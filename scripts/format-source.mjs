@@ -1,0 +1,2 @@
+import fs from 'node:fs';import ts from 'typescript';
+for(const file of ['app/marketplace.tsx','app/scene.tsx','lib/server.ts','lib/matching.ts','db/schema.ts']){const kind=file.endsWith('tsx')?ts.ScriptKind.TSX:ts.ScriptKind.TS;const source=ts.createSourceFile(file,fs.readFileSync(file,'utf8'),ts.ScriptTarget.Latest,true,kind);const out=ts.createPrinter({newLine:ts.NewLineKind.LineFeed}).printFile(source);fs.writeFileSync(file,out+'\n')}
