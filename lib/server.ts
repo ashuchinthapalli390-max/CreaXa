@@ -1,5 +1,6 @@
 import { env } from 'cloudflare:workers';
 import { getChatGPTUser } from '../app/chatgpt-auth';
+import { hashPassword, verifyPassword, createSessionToken, buildSessionCookie, buildClearSessionCookie } from './auth';
 import { z } from 'zod';
 import { match, allowedTransition, list } from './matching';
 const now = () => Date.now();
@@ -59,13 +60,80 @@ export async function handle(req: Request, path: string[]) {
         if (method !== 'GET') {
             if (req.headers.get('origin') !== url.origin)
                 fail('Request origin is not allowed.', 403);
-            const user = await getChatGPTUser();
-            if (!user)
-                fail('Sign in to continue.', 401);
-            await rate(user!.userId);
+            const isAuthRoute = route === 'auth/login' || route === 'auth/signup' || route === 'auth/logout';
+            if (!isAuthRoute) {
+                const user = await getChatGPTUser(req);
+                if (!user)
+                    fail('Sign in to continue.', 401);
+                await rate(user!.userId);
+            }
+        }
+        if (method === 'POST' && route === 'auth/signup') {
+            const b = z.object({
+                name: short.min(2),
+                email: z.string().trim().email().max(200),
+                password: z.string().min(6).max(200),
+                role: z.enum(['creator', 'brand', 'agency']).default('creator'),
+            }).parse(await body(req));
+            const email = b.email.toLowerCase();
+            const existing = await one('SELECT id FROM accounts WHERE lower(email)=?', email);
+            if (existing)
+                fail('An account with this email already exists. Sign in instead.', 409);
+            const { salt, hash } = await hashPassword(b.password);
+            const id = uid();
+            const accData = { name: b.name, email, role: b.role, salt, passwordHash: hash, terms: true };
+            await db().prepare('INSERT INTO accounts (id,email,name,role,data,created,updated) VALUES (?,?,?,?,?,?,?)').bind(id, email, b.name, b.role, JSON.stringify(accData), now(), now()).run();
+            const token = await createSessionToken({ userId: id, email, name: b.name, role: b.role });
+            const user = { userId: id, email, displayName: b.name, fullName: b.name, role: b.role };
+            const account = decoded(await one('SELECT * FROM accounts WHERE id=?', id));
+            return new Response(JSON.stringify({ user, account }), {
+                status: 200,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Set-Cookie': buildSessionCookie(token),
+                    'Cache-Control': 'no-store',
+                },
+            });
+        }
+        if (method === 'POST' && route === 'auth/login') {
+            const b = z.object({
+                email: z.string().trim().email(),
+                password: z.string().min(1),
+            }).parse(await body(req));
+            const email = b.email.toLowerCase();
+            const acc = await one('SELECT * FROM accounts WHERE lower(email)=?', email);
+            if (!acc)
+                fail('Invalid email or password.', 401);
+            const data = acc.data ? JSON.parse(acc.data) : {};
+            if (!data.salt || !data.passwordHash)
+                fail('This account was created without a password. Please sign up or contact support.', 401);
+            const isValid = await verifyPassword(b.password, data.salt, data.passwordHash);
+            if (!isValid)
+                fail('Invalid email or password.', 401);
+            const token = await createSessionToken({ userId: acc.id, email: acc.email, name: acc.name, role: acc.role });
+            const user = { userId: acc.id, email: acc.email, displayName: acc.name, fullName: acc.name, role: acc.role };
+            const account = decoded(acc);
+            return new Response(JSON.stringify({ user, account }), {
+                status: 200,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Set-Cookie': buildSessionCookie(token),
+                    'Cache-Control': 'no-store',
+                },
+            });
+        }
+        if (method === 'POST' && route === 'auth/logout') {
+            return new Response(JSON.stringify({ ok: true }), {
+                status: 200,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Set-Cookie': buildClearSessionCookie(),
+                    'Cache-Control': 'no-store',
+                },
+            });
         }
         if (method === 'GET' && route === 'me') {
-            const user = await getChatGPTUser();
+            const user = await getChatGPTUser(req);
             return json({ user, account: user ? decoded(await one('SELECT * FROM accounts WHERE id=?', user.userId)) : null, aiAvailable: !!(env as any).OPENAI_API_KEY });
         }
         if (method === 'GET' && route === 'discovery') {
@@ -432,7 +500,14 @@ export async function handle(req: Request, path: string[]) {
                 await env.BUCKET?.delete(f.id);
             const id = user.userId;
             await db().batch([db().prepare('DELETE FROM events WHERE engagement IN (SELECT id FROM engagements WHERE brand=? OR creator=?)').bind(id, id), db().prepare('DELETE FROM engagements WHERE brand=? OR creator=?').bind(id, id), db().prepare('DELETE FROM invitations WHERE brand=? OR creator=?').bind(id, id), ...['campaigns', 'portfolios', 'notifications', 'favorites', 'evidence', 'support', 'files'].map(table => db().prepare(`DELETE FROM ${table} WHERE owner=?`).bind(id)), db().prepare('DELETE FROM favorites WHERE creator=?').bind(id), db().prepare('DELETE FROM profiles WHERE id=?').bind(id), db().prepare('DELETE FROM accounts WHERE id=?').bind(id)]);
-            return json({ deleted: true });
+            return new Response(JSON.stringify({ deleted: true }), {
+                status: 200,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Set-Cookie': buildClearSessionCookie(),
+                    'Cache-Control': 'no-store',
+                },
+            });
         }
         fail('Not found.', 404);
     }
