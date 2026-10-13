@@ -9,8 +9,8 @@ if (typeof process !== 'undefined' && typeof (process as any).loadEnvFile === 'f
 
 export function getSupabaseEnv(customEnv?: any) {
   const envObj = customEnv || {};
-  const procEnv = (typeof process !== 'undefined' && process.env) ? process.env : {};
-  const globEnv = (typeof globalThis !== 'undefined' && (globalThis as any).env) ? (globalThis as any).env : {};
+  const procEnv: Record<string, any> = (typeof process !== 'undefined' && process.env) ? process.env : {};
+  const globEnv: Record<string, any> = (typeof globalThis !== 'undefined' && (globalThis as any).env) ? (globalThis as any).env : {};
 
   const url =
     envObj.NEXT_PUBLIC_SUPABASE_URL ||
