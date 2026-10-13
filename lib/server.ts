@@ -65,11 +65,21 @@ async function requireImages(ids: unknown) {
             fail('Profile and cover assets must be images.');
     }
 }
+async function getAccountRecord(userId: string) {
+    const acc = await dbService.getAccount(userId);
+    if (acc) return acc;
+    if (env.DB) {
+        try {
+            return decoded(await one('SELECT * FROM accounts WHERE id=?', userId));
+        } catch {}
+    }
+    return null;
+}
 async function account() {
     const user = await resolveUser();
     if (!user)
         fail('Sign in to continue.', 401);
-    const a = decoded(await one('SELECT * FROM accounts WHERE id=?', user!.userId));
+    const a = await getAccountRecord(user!.userId);
     return { user: user!, a };
 }
 async function requireRole(roles: string[]) {
@@ -122,7 +132,7 @@ export async function handle(req: Request, path: string[]) {
             const user = await verifyFirebaseIdToken(token);
             if (!user)
                 fail('Invalid Firebase ID token.', 401);
-            const a = decoded(await one('SELECT * FROM accounts WHERE id=?', user!.userId));
+            const a = await getAccountRecord(user!.userId);
             const res = json({ user, account: a, status: a ? 'authenticated' : 'needs_onboarding' });
             res.headers.append('Set-Cookie', `__session=${token}; Path=/; SameSite=Lax; Max-Age=604800`);
             res.headers.append('Set-Cookie', `firebase_token=${token}; Path=/; SameSite=Lax; Max-Age=604800`);
@@ -140,7 +150,8 @@ export async function handle(req: Request, path: string[]) {
             return enhancement;
         if (method === 'GET' && route === 'me') {
             const user = await resolveUser(req);
-            return json({ user, account: user ? decoded(await one('SELECT * FROM accounts WHERE id=?', user.userId)) : null, aiAvailable: !!(env as any).OPENAI_API_KEY });
+            const a = user ? await getAccountRecord(user.userId) : null;
+            return json({ user, account: a, aiAvailable: !!(env as any).OPENAI_API_KEY });
         }
         if (method === 'GET' && route === 'discovery') {
             const groups = ['specializations', 'tools', 'contentTypes', 'styles', 'aspectRatios', 'industries', 'platforms'];
@@ -186,16 +197,27 @@ export async function handle(req: Request, path: string[]) {
             return json(decodedAll(await all('SELECT p.* FROM profiles p JOIN accounts a ON a.id=p.id WHERE p.published=1 ORDER BY p.updated DESC LIMIT 200')));
         }
         if (method === 'GET' && path[0] === 'creators' && path[1]) {
-            const p = decoded(await one('SELECT * FROM profiles WHERE slug=? AND published=1', path[1]));
+            let p = decoded(await one('SELECT * FROM profiles WHERE slug=? AND published=1', path[1]));
+            if (!p) {
+                p = await dbService.getProfile(path[1], true);
+            }
             if (!p)
                 fail('Creator not found.', 404);
-            return json({ profile: p, projects: (await all('SELECT * FROM portfolios WHERE owner=? AND published=1 ORDER BY updated DESC', p.id)).map(publicProject) });
+            let projects = (await all('SELECT * FROM portfolios WHERE owner=? AND published=1 ORDER BY updated DESC', p.id)).map(publicProject);
+            if (!projects.length) {
+                projects = (await dbService.getPublishedPortfoliosByOwner(p.id)).map(publicProject);
+            }
+            return json({ profile: p, projects });
         }
         if (method === 'GET' && path[0] === 'projects' && path[1]) {
             const p = decoded(await one('SELECT * FROM portfolios WHERE slug=? AND published=1', path[1]));
             if (!p)
                 fail('Project not found.', 404);
-            return json({ project: publicProject({ ...p, data: JSON.stringify(p.data) }), profile: decoded(await one('SELECT * FROM profiles WHERE id=? AND published=1', p.owner)) });
+            let profile = decoded(await one('SELECT * FROM profiles WHERE id=? AND published=1', p.owner));
+            if (!profile) {
+                profile = await dbService.getProfile(p.owner);
+            }
+            return json({ project: publicProject({ ...p, data: typeof p.data === 'string' ? p.data : JSON.stringify(p.data) }), profile });
         }
         if (method === 'POST' && route === 'account') {
             const { user, a } = await account();

@@ -15,11 +15,23 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
 
+-- Helper function to check admin role safely without triggering RLS recursion
+CREATE OR REPLACE FUNCTION is_admin_user(uid TEXT) RETURNS BOOLEAN AS $$
+BEGIN
+  IF uid IS NULL OR uid = '' THEN
+    RETURN FALSE;
+  END IF;
+  RETURN EXISTS (
+    SELECT 1 FROM accounts WHERE id = uid AND role = 'admin'
+  );
+END;
+$$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
+
 -- 1. accounts
 ALTER TABLE accounts ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "accounts_select_own" ON accounts
-  FOR SELECT USING (id = current_app_user_id() OR current_app_user_id() IN (SELECT id FROM accounts WHERE role = 'admin'));
+  FOR SELECT USING (id = current_app_user_id() OR is_admin_user(current_app_user_id()));
 
 CREATE POLICY "accounts_insert_own" ON accounts
   FOR INSERT WITH CHECK (id = current_app_user_id());
@@ -167,7 +179,7 @@ CREATE POLICY "favorites_all_own" ON favorites
 ALTER TABLE evidence ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "evidence_select_own_or_admin" ON evidence
-  FOR SELECT USING (owner = current_app_user_id() OR current_app_user_id() IN (SELECT id FROM accounts WHERE role = 'admin'));
+  FOR SELECT USING (owner = current_app_user_id() OR is_admin_user(current_app_user_id()));
 
 CREATE POLICY "evidence_insert_own" ON evidence
   FOR INSERT WITH CHECK (owner = current_app_user_id());
@@ -176,7 +188,7 @@ CREATE POLICY "evidence_insert_own" ON evidence
 ALTER TABLE support ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "support_select_own_or_admin" ON support
-  FOR SELECT USING (owner = current_app_user_id() OR current_app_user_id() IN (SELECT id FROM accounts WHERE role = 'admin'));
+  FOR SELECT USING (owner = current_app_user_id() OR is_admin_user(current_app_user_id()));
 
 CREATE POLICY "support_insert_own" ON support
   FOR INSERT WITH CHECK (owner = current_app_user_id());

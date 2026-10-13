@@ -25,9 +25,10 @@ async function checkDatabase() {
     const disc = await discRes.json();
     console.log('\nDiscovery / Creator Directory Check:');
     console.log('  Status:       ', discRes.status);
-    console.log('  Count:        ', disc.creators?.length || 0);
-    if (disc.creators?.length) {
-      console.log('  Sample:       ', disc.creators[0].data?.name, '—', disc.creators[0].data?.headline);
+    const creators = disc.items || disc.creators || [];
+    console.log('  Count:        ', creators.length);
+    if (creators.length) {
+      console.log('  Sample:       ', creators[0].data?.name, '—', creators[0].data?.headline);
     }
 
     const brandDashRes = await fetch('http://127.0.0.1:5173/api/dashboard', {

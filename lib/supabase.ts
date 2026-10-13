@@ -1,26 +1,70 @@
 import { createClient, type SupabaseClient, type RealtimeChannel } from '@supabase/supabase-js';
 
-// Supabase environment settings
-export const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || '';
-export const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || '';
-export const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+// Load .env automatically if running in Node.js
+if (typeof process !== 'undefined' && typeof (process as any).loadEnvFile === 'function') {
+  try {
+    (process as any).loadEnvFile('.env');
+  } catch {}
+}
 
-export function isSupabaseConfigured(): boolean {
+export function getSupabaseEnv(customEnv?: any) {
+  const envObj = customEnv || {};
+  const procEnv = (typeof process !== 'undefined' && process.env) ? process.env : {};
+  const globEnv = (typeof globalThis !== 'undefined' && (globalThis as any).env) ? (globalThis as any).env : {};
+
+  const url =
+    envObj.NEXT_PUBLIC_SUPABASE_URL ||
+    envObj.SUPABASE_URL ||
+    globEnv.NEXT_PUBLIC_SUPABASE_URL ||
+    globEnv.SUPABASE_URL ||
+    procEnv.NEXT_PUBLIC_SUPABASE_URL ||
+    procEnv.SUPABASE_URL ||
+    '';
+
+  const anonKey =
+    envObj.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+    envObj.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+    envObj.SUPABASE_ANON_KEY ||
+    globEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+    globEnv.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+    procEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+    procEnv.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+    '';
+
+  const serviceKey =
+    envObj.SUPABASE_SERVICE_ROLE_KEY ||
+    globEnv.SUPABASE_SERVICE_ROLE_KEY ||
+    procEnv.SUPABASE_SERVICE_ROLE_KEY ||
+    '';
+
+  return { url, anonKey, serviceKey };
+}
+
+// Supabase environment settings
+export const SUPABASE_URL = getSupabaseEnv().url;
+export const SUPABASE_ANON_KEY = getSupabaseEnv().anonKey;
+export const SUPABASE_SERVICE_ROLE_KEY = getSupabaseEnv().serviceKey;
+
+export function isSupabaseConfigured(customEnv?: any): boolean {
+  const { url, anonKey, serviceKey } = getSupabaseEnv(customEnv);
   return (
-    !!SUPABASE_URL &&
-    SUPABASE_URL.startsWith('https://') &&
-    !SUPABASE_URL.includes('placeholder') &&
-    !!(SUPABASE_ANON_KEY || SUPABASE_SERVICE_ROLE_KEY)
+    !!url &&
+    url.startsWith('https://') &&
+    !url.includes('placeholder') &&
+    !!(anonKey || serviceKey)
   );
 }
 
 // Client-side or authenticated Supabase client
-export function getSupabaseClient(firebaseIdToken?: string): SupabaseClient | null {
-  if (!isSupabaseConfigured()) {
+export function getSupabaseClient(firebaseIdToken?: string, customEnv?: any): SupabaseClient | null {
+  if (!isSupabaseConfigured(customEnv)) {
     return null;
   }
 
-  return createClient(SUPABASE_URL, SUPABASE_ANON_KEY || SUPABASE_SERVICE_ROLE_KEY, {
+  const { url, anonKey, serviceKey } = getSupabaseEnv(customEnv);
+  const key = anonKey || serviceKey;
+
+  return createClient(url, key, {
     auth: {
       persistSession: false,
       autoRefreshToken: false,
@@ -37,13 +81,14 @@ export function getSupabaseClient(firebaseIdToken?: string): SupabaseClient | nu
 }
 
 // Server-side admin client with service_role privileges
-export function getSupabaseAdmin(): SupabaseClient | null {
-  if (!isSupabaseConfigured()) {
+export function getSupabaseAdmin(customEnv?: any): SupabaseClient | null {
+  if (!isSupabaseConfigured(customEnv)) {
     return null;
   }
 
-  const key = SUPABASE_SERVICE_ROLE_KEY || SUPABASE_ANON_KEY;
-  return createClient(SUPABASE_URL, key, {
+  const { url, anonKey, serviceKey } = getSupabaseEnv(customEnv);
+  const key = serviceKey || anonKey;
+  return createClient(url, key, {
     auth: {
       persistSession: false,
       autoRefreshToken: false
@@ -125,9 +170,10 @@ export function subscribeToUserNotifications(
 export async function broadcastRealtimeEvent(
   channelName: string,
   eventName: string,
-  payload: any
+  payload: any,
+  customEnv?: any
 ): Promise<void> {
-  const client = getSupabaseAdmin() || getSupabaseClient();
+  const client = getSupabaseAdmin(customEnv) || getSupabaseClient(undefined, customEnv);
   if (!client) return;
 
   const channel = client.channel(channelName);
@@ -138,3 +184,4 @@ export async function broadcastRealtimeEvent(
     payload
   });
 }
+
