@@ -1,6 +1,432 @@
-@keyframes pageArrival{from{transform:translateY(12px);clip-path:inset(0 0 3% 0)}to{transform:translateY(0);clip-path:inset(0)}}.page,.workspace,.auth-page{animation:pageArrival .5s cubic-bezier(.22,1,.36,1) both}.motion-ready{transition:transform .8s cubic-bezier(.22,1,.36,1),clip-path .8s cubic-bezier(.22,1,.36,1),border-color .25s,background .25s!important;transition-delay:var(--motion-delay,0ms)}.motion-ready[data-motion-visible='false']{transform:translateY(25px);clip-path:inset(0 0 12% 0)}.motion-ready[data-motion-visible='true']{transform:translateY(0);clip-path:inset(0)}.motion-ready[data-motion-visible='true'].creator-card:hover,.motion-ready[data-motion-visible='true'].campaign-card:hover,.motion-ready[data-motion-visible='true'].portfolio-card:hover{transform:translateY(-5px);transition-delay:0ms}.button{position:relative;overflow:hidden;isolation:isolate}.button::before{content:'';position:absolute;inset:0;transform:translateX(-115%) skewX(-14deg);background:linear-gradient(90deg,transparent,#fff2,transparent);z-index:-1;transition:transform .55s}.button:hover::before{transform:translateX(115%) skewX(-14deg)}.button:hover>svg:last-child,.text-link:hover>svg:last-child,.card-controls a:hover>svg{transform:translate(3px,-3px)}.button svg,.text-link svg,.card-controls svg{transition:transform .25s cubic-bezier(.22,1,.36,1)}button,a,input,select,textarea,summary{transition:color .2s,background .2s,border-color .2s,box-shadow .2s,transform .2s}.nav a,.app-sidebar nav a,.footer-top a{position:relative}.nav a::after{content:'';position:absolute;bottom:-7px;left:0;width:100%;height:1px;background:var(--accent);transform:scaleX(0);transform-origin:left;transition:transform .25s}.nav a:hover::after,.nav a.active::after{transform:scaleX(1)}.app-sidebar nav a:hover svg{transform:translateX(2px)}.app-sidebar nav svg{transition:transform .2s}.field:focus-within>label{color:var(--accent)}input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent),transparent 95%)}.creator-cover img,.portfolio-card>img,.project-hero{transition:transform .75s cubic-bezier(.22,1,.36,1),filter .35s}.creator-card:hover .creator-cover img,.portfolio-card:hover>img{transform:scale(1.025)}.pill-select button:hover,.selected-filters button:hover{transform:translateY(-2px)}.theme-grid>button:hover,.theme-popover button:hover{transform:translateX(3px)}.role-cards>button:hover{border-color:var(--accent);transform:translateY(-3px)}details[open]>p,details[open]>.review,details[open]>.check-row{animation:pageArrival .3s both}.toast{animation:toastIn .3s cubic-bezier(.22,1,.36,1)}@keyframes toastIn{from{opacity:0;translate:0 15px}to{opacity:1;translate:0 0}}.page-scroll-progress{position:fixed;top:0;left:0;width:100%;height:2px;z-index:90;background:var(--accent);transform:scaleX(var(--page-progress,0));transform-origin:left;pointer-events:none}.back-top{position:fixed;bottom:20px;right:22px;width:42px;height:42px;border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:50%;z-index:46;box-shadow:0 7px 25px #0003;font-size:20px}.back-top:hover{transform:translateY(-3px);border-color:var(--accent)}.resource-card:hover,.template-card:hover,.feature-card:hover{border-color:var(--accent);transform:translateY(-4px)!important}.task-row{animation:pageArrival .3s both}.check-progress>i{transition:width .5s cubic-bezier(.22,1,.36,1)}.command-dialog[open]{animation:pageArrival .25s both}.command-dialog::backdrop{background:#0009;backdrop-filter:blur(7px)}
-@media(prefers-reduced-motion:reduce){.page,.workspace,.auth-page,.toast,details[open]>p,.task-row,.command-dialog[open]{animation:none!important}.motion-ready,.motion-ready[data-motion-visible='false']{transform:none!important;clip-path:none!important;transition:none!important}.button::before{display:none}.creator-cover img,.portfolio-card>img{transform:none!important}}
+/* ==============================================================================
+   CREAXA COMPREHENSIVE MOTION DESIGN SYSTEM (CSS SPECIFICATION)
+   ============================================================================== */
 
-body[data-immersive='true'] .quick-nav,body[data-immersive='true'] .compare-tray,body[data-immersive='true'] .back-top,body[data-immersive='true'] .page-scroll-progress{display:none}
+/* 1. Page & Route Entrance */
+@keyframes pageArrival {
+  from {
+    opacity: 0.6;
+    transform: translateY(12px);
+    clip-path: inset(0 0 2% 0);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    clip-path: inset(0);
+  }
+}
 
-@keyframes sectionArrival{from{opacity:.65;translate:0 18px}to{opacity:1;translate:0 0}}.motion-ready[data-motion-visible='true']{animation:sectionArrival .65s cubic-bezier(.22,1,.36,1);animation-delay:var(--motion-delay,0ms)}@media(prefers-reduced-motion:reduce){.motion-ready[data-motion-visible='true']{animation:none!important}}
+.page,
+.workspace,
+.auth-page {
+  animation: pageArrival 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* 2. Scroll Section & Card Stagger System */
+.motion-ready {
+  transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+    clip-path 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.22s,
+    background 0.22s !important;
+  transition-delay: var(--motion-delay, 0ms);
+}
+
+.motion-ready[data-motion-visible='false'] {
+  opacity: 0.15;
+  transform: translateY(28px);
+  clip-path: inset(0 0 8% 0);
+}
+
+.motion-ready[data-motion-visible='true'] {
+  opacity: 1;
+  transform: translateY(0);
+  clip-path: inset(0);
+}
+
+/* 3. Button Microinteractions & Tactile Responses */
+.button {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+    background 0.2s,
+    border-color 0.2s,
+    box-shadow 0.2s,
+    filter 0.2s;
+}
+
+.button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-115%) skewX(-14deg);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+  z-index: -1;
+  transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.button:hover::before {
+  transform: translateX(115%) skewX(-14deg);
+}
+
+.button:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.05);
+}
+
+.button:active {
+  transform: translateY(1px);
+}
+
+/* Directional Arrow Translations */
+.button:hover > svg:last-child,
+.text-link:hover > svg:last-child,
+.card-controls a:hover > svg,
+.view-profile-link:hover > svg,
+.carousel-arrow-btn:hover > svg {
+  transform: translate(3px, -3px);
+}
+
+.button svg,
+.text-link svg,
+.card-controls svg,
+.carousel-arrow-btn svg {
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* 4. Navbar Links Animated Underline */
+.nav a {
+  position: relative;
+  transition: color 0.2s;
+}
+
+.nav a::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 0;
+  width: 100%;
+  height: 1.5px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.nav a:hover::after,
+.nav a.active::after {
+  transform: scaleX(1);
+}
+
+/* 5. Icon Buttons & Micro-Interactions */
+.icon-btn {
+  transition: background 0.18s, transform 0.18s, color 0.18s, border-color 0.18s;
+}
+
+.icon-btn:hover {
+  transform: scale(1.06);
+}
+
+.icon-btn:active {
+  transform: scale(0.96);
+}
+
+.icon-btn svg {
+  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Search Focus & Inputs */
+.search {
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.search:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent), transparent 92%);
+}
+
+.search:focus-within svg {
+  color: var(--accent);
+  transform: scale(1.08);
+}
+
+input,
+select,
+textarea {
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent), transparent 93%);
+}
+
+/* 6. Typographic Line-Mask Reveal */
+.reveal-headline-container {
+  overflow: visible;
+}
+
+.reveal-headline {
+  margin: 0;
+}
+
+.reveal-line-wrap {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.08em;
+}
+
+.reveal-line {
+  display: inline-block;
+  transform: translateY(112%);
+  opacity: 0;
+  transition: transform 0.72s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform, opacity;
+}
+
+.reveal-line.is-revealed {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.reveal-subtitle {
+  transform: translateY(18px);
+  opacity: 0;
+  transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+  margin-top: 18px;
+}
+
+.reveal-subtitle.is-revealed {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* 7. Image Masking & Editorial Wipes */
+.image-wipe-frame {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius);
+  isolation: isolate;
+  background: var(--raised);
+}
+
+.image-wipe-frame.wipe-horizontal {
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path 0.78s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: var(--wipe-delay, 0ms);
+}
+
+.image-wipe-frame.wipe-horizontal.is-revealed {
+  clip-path: inset(0 0 0 0);
+}
+
+.image-wipe-frame.wipe-vertical {
+  clip-path: inset(100% 0 0 0);
+  transition: clip-path 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: var(--wipe-delay, 0ms);
+}
+
+.image-wipe-frame.wipe-vertical.is-revealed {
+  clip-path: inset(0 0 0 0);
+}
+
+.image-wipe-frame.wipe-colorPanel .image-wipe-shutter {
+  position: absolute;
+  inset: 0;
+  background: var(--accent);
+  z-index: 3;
+  transform: translateX(0);
+  transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: var(--wipe-delay, 0ms);
+  pointer-events: none;
+}
+
+.image-wipe-frame.wipe-colorPanel.is-revealed .image-wipe-shutter {
+  transform: translateX(101%);
+}
+
+.image-wipe-media {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1), filter 0.35s;
+}
+
+.image-wipe-frame:hover .image-wipe-media {
+  transform: scale(1.035);
+}
+
+.image-wipe-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* 8. Card Elevation & Interaction Systems */
+.creator-editorial-card,
+.problem-card,
+.pipeline-step-card,
+.gallery-project-card,
+.feature-card,
+.creator-card,
+.portfolio-card,
+.campaign-card {
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.22s,
+    box-shadow 0.25s;
+}
+
+.creator-editorial-card:hover,
+.problem-card:hover,
+.pipeline-step-card:hover,
+.gallery-project-card:hover,
+.creator-card:hover,
+.portfolio-card:hover,
+.campaign-card:hover {
+  transform: translateY(-4px);
+  border-color: color-mix(in srgb, var(--accent), var(--line) 55%);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.18);
+}
+
+/* 9. Scroll Progress Indicator & Back to Top */
+.page-scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2.5px;
+  z-index: 90;
+  background: var(--accent);
+  transform: scaleX(var(--page-progress, 0));
+  transform-origin: left;
+  pointer-events: none;
+}
+
+.back-top {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 50%;
+  z-index: 46;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+  font-size: 20px;
+  transition: transform 0.22s, border-color 0.22s, background 0.22s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.back-top:hover {
+  transform: translateY(-3px) scale(1.05);
+  border-color: var(--accent);
+  background: var(--raised);
+}
+
+/* 10. Filter Chips & Pill Selects */
+.filter-chip {
+  padding: 8px 16px;
+  border: 1px solid var(--line);
+  border-radius: 30px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+  background: var(--surface);
+  transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+  cursor: pointer;
+}
+
+.filter-chip:hover {
+  color: var(--text);
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.filter-chip.active {
+  background: var(--accent);
+  color: var(--on-accent);
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
+/* 11. Toast & Dialog Animations */
+.toast {
+  animation: toastIn 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 16px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+.command-dialog[open] {
+  animation: pageArrival 0.25s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.command-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(8px);
+}
+
+/* 12. Accessibility: PREFERS-REDUCED-MOTION */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .reveal-line {
+    transform: none !important;
+    opacity: 1 !important;
+  }
+
+  .reveal-subtitle {
+    transform: none !important;
+    opacity: 1 !important;
+  }
+
+  .image-wipe-frame.wipe-horizontal,
+  .image-wipe-frame.wipe-vertical {
+    clip-path: none !important;
+  }
+
+  .image-wipe-frame.wipe-colorPanel .image-wipe-shutter {
+    display: none !important;
+  }
+
+  .button:hover,
+  .creator-editorial-card:hover,
+  .problem-card:hover,
+  .pipeline-step-card:hover,
+  .gallery-project-card:hover {
+    transform: none !important;
+  }
+
+  .motion-ready,
+  .motion-ready[data-motion-visible='false'] {
+    transform: none !important;
+    clip-path: none !important;
+    opacity: 1 !important;
+  }
+}

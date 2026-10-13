@@ -28,19 +28,49 @@ const baseUrl = 'http://127.0.0.1:5173';
 
 console.log('=== RUNNING PLAYWRIGHT E2E BROWSER TESTS ===');
 
-// 1. Homepage & 3D WebGL Intro
-console.log('1. Testing Homepage & WebGL canvas...');
+// 1. Homepage & Verified 3D WebGL Intro Removal
+console.log('1. Testing Homepage & 3D WebGL removal...');
 await page.goto(baseUrl, { waitUntil: 'networkidle' });
 const title = await page.title();
 console.log('   Page title:', title);
 assert.ok(title.includes('CreaXa'));
 
-// Wait for canvas or skip intro if visible
+// Verify WebGL / Three.js canvas is completely absent
 const hasCanvas = await page.$('canvas');
 console.log('   WebGL / Three.js canvas present:', !!hasCanvas);
+assert.equal(hasCanvas, null, 'No Three.js/WebGL canvas should be present on homepage!');
 
-await page.screenshot({ path: path.join(screenshotsDir, '01_homepage_hero.png') });
-console.log('   Saved screenshot: 01_homepage_hero.png');
+// Verify 2D Editorial Hero content renders immediately without delays
+const bodyTextHero = await page.innerText('body');
+assert.ok(bodyTextHero.includes('CREATIVE TALENT.'), 'Hero headline "CREATIVE TALENT." must be visible');
+assert.ok(bodyTextHero.includes('WITHOUT THE GUESSWORK.'), 'Hero subtitle "WITHOUT THE GUESSWORK." must be visible');
+assert.ok(bodyTextHero.includes('Discover Creators'), '"Discover Creators" CTA must be present');
+assert.ok(bodyTextHero.includes('Start a Campaign'), '"Start a Campaign" CTA must be present');
+
+// Verify all 7 Editorial Storytelling sections are present in the DOM
+assert.ok(bodyTextHero.includes('THE TALENT EXISTS.'), 'Section 02 "THE DISCOVERY PROBLEM" must be rendered');
+assert.ok(bodyTextHero.includes('TURN RAW IDEAS INTO') || bodyTextHero.includes('CREATIVE DIRECTION.'), 'Section 03 "AI BRIEF BUILDER" must be rendered');
+assert.ok(bodyTextHero.includes('FIND THE RIGHT') || bodyTextHero.includes('THE TALENT DIRECTORY'), 'Section 04 "CREATOR DISCOVERY" must be rendered');
+assert.ok(bodyTextHero.includes('THE CRAFT BEHIND') || bodyTextHero.includes('THE PROOF OF WORK'), 'Section 05 "PORTFOLIO GALLERY" must be rendered');
+assert.ok(bodyTextHero.includes('FROM FIRST INVITATION.') || bodyTextHero.includes('TO FINAL DELIVERY.'), 'Section 06 "COLLABORATION" must be rendered');
+assert.ok(bodyTextHero.includes('MAKE SOMETHING') || bodyTextHero.includes('EXTRAORDINARY.'), 'Section 07 "FINAL CTA" must be rendered');
+
+await page.screenshot({ path: path.join(screenshotsDir, '01_homepage_editorial_hero.png') });
+console.log('   Saved screenshot: 01_homepage_editorial_hero.png');
+
+// Scroll down and screenshot Section 03 & Section 06
+await page.evaluate(() => window.scrollTo(0, 1400));
+await page.waitForTimeout(500);
+await page.screenshot({ path: path.join(screenshotsDir, '01b_scroll_storytelling_brief.png') });
+console.log('   Saved screenshot: 01b_scroll_storytelling_brief.png');
+
+await page.evaluate(() => window.scrollTo(0, 3200));
+await page.waitForTimeout(500);
+await page.screenshot({ path: path.join(screenshotsDir, '01c_scroll_storytelling_workflow.png') });
+console.log('   Saved screenshot: 01c_scroll_storytelling_workflow.png');
+
+// Scroll back to top
+await page.evaluate(() => window.scrollTo(0, 0));
 
 // 2. All 10 Themes & Persistence
 console.log('2. Testing All 10 Themes & Persistence...');
