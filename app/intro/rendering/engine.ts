@@ -1,0 +1,27 @@
+import * as THREE from 'three';
+import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
+import {createWorld} from '../scenes/world';
+import {clamp01,createCameraTimeline,damp,stageAt} from '../camera/timeline';
+export type IntroEngine={dispose:()=>void;setPaused:(v:boolean)=>void;recover:()=>void};
+export async function createIntroEngine(canvas:HTMLCanvasElement,section:HTMLElement,onProgress:(p:number,stage:number)=>void,onFailure:()=>void,onHover:(v:boolean)=>void,onSelect:()=>void):Promise<IntroEngine>{
+ const mobile=innerWidth<700;const context=canvas.getContext('webgl2',{antialias:!mobile,alpha:false,powerPreference:'high-performance'});if(!context)throw new Error('WebGL 2 is unavailable');const renderer=new THREE.WebGLRenderer({canvas,context,antialias:!mobile,alpha:false,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio,mobile?1.15:1.6));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;
+ const world=createWorld(mobile),camera=new THREE.PerspectiveCamera(mobile?56:43,1,.08,65),timeline=createCameraTimeline();
+ const environment=new RoomEnvironment();const pmrem=new THREE.PMREMGenerator(renderer);const envTarget=pmrem.fromScene(environment,.04);world.scene.environment=envTarget.texture;environment.dispose();pmrem.dispose();
+ const ray=new THREE.Raycaster(),pointer=new THREE.Vector2(),look=new THREE.Vector3(),offset=new THREE.Vector2();let frame=0,disposed=false,paused=false,lost=false,visible=true,last=performance.now(),target=0,progress=0,time=0,lastStage=-1,top=0,range=1,average=1/60,frames=0,quality=renderer.getPixelRatio();
+ const resize=()=>{const w=canvas.clientWidth,h=canvas.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/Math.max(1,h);camera.fov=w<700?56:43;camera.updateProjectionMatrix();const rect=section.getBoundingClientRect();top=scrollY+rect.top;range=Math.max(1,section.offsetHeight-h);onScroll()};
+ const onScroll=()=>{target=clamp01((scrollY-top)/range)};
+ const move=(e:PointerEvent)=>{const r=canvas.getBoundingClientRect();pointer.set(((e.clientX-r.left)/r.width)*2-1,-((e.clientY-r.top)/r.height)*2+1)};
+ const click=()=>{ray.setFromCamera(pointer,camera);if(ray.intersectObjects(world.sculpture.group.children,true).length)onSelect()};
+ const contextLost=(e:Event)=>{e.preventDefault();lost=true;onFailure()};const recover=()=>{if(disposed)return;lost=false;resize()};
+ const visibility=()=>{last=performance.now()};const io=new IntersectionObserver(([entry])=>{visible=entry.isIntersecting;last=performance.now()},{rootMargin:'100px'});io.observe(section);
+ const ro=new ResizeObserver(resize);ro.observe(canvas);
+ window.addEventListener('scroll',onScroll,{passive:true});canvas.addEventListener('pointermove',move,{passive:true});canvas.addEventListener('click',click);canvas.addEventListener('webglcontextlost',contextLost);canvas.addEventListener('webglcontextrestored',recover);document.addEventListener('visibilitychange',visibility);
+ const dispose=()=>{if(disposed)return;disposed=true;cancelAnimationFrame(frame);io.disconnect();ro.disconnect();window.removeEventListener('scroll',onScroll);canvas.removeEventListener('pointermove',move);canvas.removeEventListener('click',click);canvas.removeEventListener('webglcontextlost',contextLost);canvas.removeEventListener('webglcontextrestored',recover);document.removeEventListener('visibilitychange',visibility);world.scene.traverse(o=>{const mesh=o as THREE.Mesh;if(mesh.geometry)mesh.geometry.dispose();if(mesh.material){for(const m of Array.isArray(mesh.material)?mesh.material:[mesh.material])m.dispose()}});envTarget.dispose();renderer.dispose()};resize();try{await renderer.compileAsync(world.scene,camera)}catch(error){dispose();throw error}
+ const render=(stamp:number)=>{if(disposed)return;const dt=Math.min(.05,Math.max(.001,(stamp-last)/1000));last=stamp;if(visible&&!document.hidden&&!lost){progress=damp(progress,target,7,dt);time+=paused?0:dt;offset.x=damp(offset.x,pointer.x*.1,3,dt);offset.y=damp(offset.y,pointer.y*.075,3,dt);timeline.position.getPoint(progress,camera.position);camera.position.x+=offset.x;camera.position.y+=offset.y;timeline.target.getPoint(progress,look);camera.lookAt(look);
+ world.sculpture.group.rotation.y=Math.sin(time*.17)*.13;world.sculpture.group.rotation.z=Math.sin(time*.13)*.025;world.sculpture.inner.rotation.z=.08+time*.035;world.chrome.iridescenceThicknessRange=[140+progress*200,510-progress*80];world.constellation.rotation.y=time*.065;world.frames.rotation.z=Math.sin(time*.1)*.04;world.portal.rotation.z=time*.055;world.cyan.intensity=32+Math.sin(time*.3)*4;
+ world.particles.uniforms.uTime.value=time;world.particles.uniforms.uProgress.value=progress;world.particles.uniforms.uPointer.value.copy(offset);world.particles.uniforms.uPixelRatio.value=quality;
+ const stage=stageAt(progress);if(stage!==lastStage){lastStage=stage}onProgress(progress,stage);ray.setFromCamera(pointer,camera);onHover(progress<.42&&ray.intersectObjects(world.sculpture.group.children,true).length>0);renderer.render(world.scene,camera);
+ average=average*.98+dt*.02;if(++frames%180===0&&average>.027&&quality>.75){quality=Math.max(.75,quality-.2);renderer.setPixelRatio(quality);resize()}}
+ frame=requestAnimationFrame(render)};frame=requestAnimationFrame(render);
+ return {setPaused:(v)=>{paused=v},recover,dispose};
+}

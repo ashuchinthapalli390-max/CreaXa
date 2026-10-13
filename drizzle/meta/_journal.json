@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1791786315966,
+      "tag": "0000_bouncy_captain_cross",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1791786597807,
+      "tag": "0001_melted_stryfe",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1791860654769,
+      "tag": "0002_ordinary_talkback",
+      "breakpoints": true
+    }
+  ]
+}

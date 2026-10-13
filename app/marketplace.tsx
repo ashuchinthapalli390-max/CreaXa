@@ -1,0 +1,944 @@
+'use client';
+import { useState, useEffect, useCallback, createContext, useContext } from 'react';
+import { ArrowUpRight, ArrowRight, ArrowLeft, Plus, Search, SlidersHorizontal, X, Menu, ChevronDown, Check, CheckCircle2, Layers, Orbit, MoveUpRight, Film, Image as ImageIcon, Box, Sparkles, Briefcase, LayoutDashboard, Users, FolderOpen, Mail, Bell, Settings, Heart, LogOut, Upload, FileText, Shield, Clock, MapPin, Globe, Eye, Trash2, Download, Send, Loader2, Palette, Play, RefreshCw, ExternalLink } from 'lucide-react';
+import Scene from './scene';
+import IntroExperience from './intro/IntroExperience';
+import './intro/intro.css';
+import MotionSystem from './motion';
+import './motion.css';
+import './features.css';
+import { CompareProvider, CompareSelect, ComparePage, SavedSearchTools, WorkGallery, TemplateGallery, ResourceHub, ProjectTasks, ProjectReview, CreatorReviews, CampaignTools, AccountExport, ProfileChecklist, SavedCreators, HomeAdditions, GlobalTools, RECIPES } from './features';
+import { list, intersects } from '../lib/matching';
+type Obj = Record<string, any>;
+const Context = createContext<any>(null);
+const useApp = () => useContext(Context);
+const THEMES = ['Obsidian Editorial', 'Paper & Ink', 'Carbon Acid', 'Midnight Cobalt', 'Terracotta Atelier', 'Arctic Signal', 'Plum Archive', 'Industrial Mono', 'Analog Film', 'Deep Teal Gallery'];
+const SPECIAL = ['AI Filmmaking', 'AI Animation', 'Generative Images', 'Product Advertising', 'AI Fashion', 'Music Video Production', 'Motion Graphics', 'Concept Art', 'Creative Direction'];
+const TOOLS = ['Runway', 'Kling', 'Midjourney', 'Flux', 'Veo', 'Sora', 'ComfyUI', 'Blender', 'After Effects', 'Premiere Pro', 'DaVinci Resolve'];
+const TYPES = ['AI Video', 'AI Image', 'AI Animation', 'AI Graphics'];
+const STYLES = ['Cinematic', 'Luxury', 'Realistic', 'Futuristic', 'Minimal', 'Surreal', 'Editorial', 'Anime', '3D'];
+const INDUSTRIES = ['Fashion', 'Beauty', 'Gaming', 'Technology', 'Food & Beverage', 'Travel', 'Entertainment', 'Education', 'Automotive'];
+const PLATFORMS = ['Instagram', 'YouTube', 'TikTok', 'Web Ads', 'LinkedIn', 'Broadcast'];
+const RATIOS = ['9:16', '16:9', '1:1', '4:5', '3:2'];
+async function api(path: string, data?: unknown, method?: string, signal?: AbortSignal) {
+    const res = await fetch('/api/' + path, { signal, method: method || (data !== undefined ? 'POST' : 'GET'), headers: data instanceof FormData ? {} : data !== undefined ? { 'Content-Type': 'application/json' } : {}, body: data instanceof FormData ? data : data !== undefined ? JSON.stringify(data) : undefined });
+    const result: any = await res.json();
+    if (!res.ok)
+        throw new Error(result.error || 'Request failed. Please try again.');
+    return result;
+}
+const money = (n: any, c = 'INR') => new Intl.NumberFormat(c === 'INR' ? 'en-IN' : c === 'EUR' ? 'de-DE' : 'en-US', { style: 'currency', currency: c, maximumFractionDigits: 0 }).format(Number(n) || 0);
+const date = (t: any) => t ? new Date(t).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Not set';
+const dashboard = (role?: string) => '/app/' + (role === 'creator' ? 'creator' : 'brand');
+function Button({ children, href, secondary = false, className = '', ...props }: any) { const cl = 'button ' + (secondary ? 'secondary ' : '') + className; return href ? <a className={cl} href={href} {...props}>{children}</a> : <button className={cl} {...props}>{children}</button>; }
+function Badge({ children }: any) { return <span className="badge">{children}</span>; }
+function Empty({ icon: Icon = Layers, title, description, action, href }: any) { return <div className="empty"><div className="empty-icon"><Icon size={28}/></div><h3>{title}</h3><p>{description}</p>{action && <Button href={href}>{action}<ArrowUpRight size={16}/></Button>}</div>; }
+function Loading() { return <div className="loading"><Loader2 className="spin" size={25}/>Loading your workspace…</div>; }
+function ErrorBox({ message, retry }: any) { return <div className="error-box" role="alert"><p>{message}</p>{retry && <button onClick={retry}>Try again</button>}</div>; }
+function useResource(path: string) {
+    const [data, setData] = useState<any>(null), [error, setError] = useState(''), [loading, setLoading] = useState(true), [revision, setRevision] = useState(0);
+    const refresh = useCallback(() => setRevision(n => n + 1), []);
+    useEffect(() => {
+        const controller = new AbortController();
+        setLoading(true);
+        setError('');
+        api(path, undefined, undefined, controller.signal).then(result => {
+            if (!controller.signal.aborted)
+                setData(result);
+        }).catch(e => {
+            if (!controller.signal.aborted)
+                setError(e.message);
+        }).finally(() => {
+            if (!controller.signal.aborted)
+                setLoading(false);
+        });
+        return () => controller.abort();
+    }, [path, revision]);
+    return { data, error, loading, refresh };
+}
+export default function Marketplace({ path }: {
+    path: string;
+}) {
+    const [me, setMe] = useState<any>(null), [error, setError] = useState(''), [toast, setToast] = useState(''), [theme, setTheme] = useState(0);
+    const refreshMe = () => api('me').then(setMe).catch(e => setError(e.message));
+    useEffect(() => {
+        refreshMe();
+        try {
+            const n = Number(localStorage.getItem('creaxa-theme') || 0);
+            setTheme(Number.isInteger(n) && n >= 0 && n < THEMES.length ? n : 0);
+        }
+        catch { }
+    }, []);
+    useEffect(() => {
+        document.documentElement.dataset.theme = String(theme);
+        try {
+            localStorage.setItem('creaxa-theme', String(theme));
+        }
+        catch { }
+    }, [theme]);
+    useEffect(() => {
+        if (toast) {
+            const id = setTimeout(() => setToast(''), 4500);
+            return () => clearTimeout(id);
+        }
+    }, [toast]);
+    const app = { me, toast: setToast, refreshMe, theme, setTheme };
+    const inside = path.startsWith('/app') || path.startsWith('/admin');
+    return <Context.Provider value={app}><CompareProvider><MotionSystem /><GlobalTools role={me?.account?.role}/><a className="skip" href="#main">Skip to content</a>{inside ? <AppShell path={path}/> : <>{path === '/' && <IntroExperience />}<div id={path === '/' ? 'creaxa-home' : undefined} tabIndex={path === '/' ? -1 : undefined}><Header path={path}/><main id="main">{path === '/' ? <Home /> : path === '/discover' ? <Discover /> : path === '/compare' ? <ComparePage /> : path === '/work' ? <WorkGallery /> : path === '/templates' ? <TemplateGallery /> : path === '/resources' || path.startsWith('/resources/') ? <ResourceHub slug={path.split('/')[2]}/> : path.startsWith('/creators/') ? <Creator slug={path.split('/')[2]}/> : path.startsWith('/projects/') ? <Project slug={path.split('/')[2]}/> : path === '/onboarding' ? <Onboarding /> : ['/login', '/signup', '/verify-email', '/forgot-password', '/reset-password'].includes(path) ? <Auth path={path}/> : <Info path={path}/>}</main><Footer /></div></>}{error && <div className="global-error" role="alert">{error}<button onClick={() => { setError(''); refreshMe(); }}>Retry</button></div>}{toast && <div className="toast" role="status"><CheckCircle2 size={18}/>{toast}</div>}</CompareProvider></Context.Provider>;
+}
+function Logo() { return <a className="logo" href="/" aria-label="CreaXa home"><span className="logo-symbol"><span /><span /><span /></span>CreaXa<span className="logo-period">®</span></a>; }
+function Header({ path }: any) {
+    const { me, theme, setTheme } = useApp();
+    const [menu, setMenu] = useState(false), [palette, setPalette] = useState(false);
+    useEffect(() => { document.body.style.overflow = menu ? 'hidden' : ''; return () => { document.body.style.overflow = ''; }; }, [menu]);
+    useEffect(() => {
+        const close = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                setMenu(false);
+                setPalette(false);
+            }
+        };
+        window.addEventListener('keydown', close);
+        return () => window.removeEventListener('keydown', close);
+    }, []);
+    return <header className="header"><Logo /><nav className={menu ? 'nav open' : 'nav'} aria-label="Primary">{[['Discover', '/discover'], ['Work', '/work'], ['Brief structures', '/templates'], ['Field notes', '/resources'], ['How it works', '/how-it-works']].map(([label, href]) => <a key={href} href={href} className={path === href ? 'active' : ''}>{label}</a>)}</nav><div className="header-actions"><div className="theme-menu"><button className="icon-btn" aria-label="Choose theme" aria-expanded={palette} onClick={() => setPalette(!palette)}><Palette size={19}/></button>{palette && <div className="theme-popover"><span className="eyebrow">A DIFFERENT PERSPECTIVE</span>{THEMES.map((t, i) => <button key={t} onClick={() => { setTheme(i); setPalette(false); }}><span className={'swatch swatch-' + i}/>{t}{theme === i && <Check size={15}/>}</button>)}</div>}</div>{me?.account ? <Button href={dashboard(me.account.role)}>Workspace<ArrowUpRight size={15}/></Button> : <><a className="sign-in" href="/login">Sign in</a><Button href="/signup">Get started<ArrowUpRight size={15}/></Button></>}<button className="icon-btn mobile-toggle" onClick={() => setMenu(!menu)} aria-label={menu ? 'Close navigation' : 'Open navigation'} aria-expanded={menu}>{menu ? <X /> : <Menu />}</button></div></header>;
+}
+function Home() { const creators = useResource('creators'); return <><section className="hero"><div className="hero-top"><span className="eyebrow"><span className="live-dot"/>THE AI CREATIVE MARKETPLACE</span><span className="hero-note">INDEPENDENT MINDS.<br />EXTRAORDINARY POSSIBILITIES.</span></div><div className="hero-grid"><div className="hero-copy"><h1>Creative talent.<br /><em>Intelligently</em><br />matched<span className="accent">.</span></h1><p>Big ideas deserve the right people. Find AI filmmakers, artists and animators who can turn your next brief into something remarkable.</p><div className="hero-ctas"><Button href="/discover">Find your creative partner<ArrowUpRight size={19}/></Button><a className="text-link" href="/app/brand/campaigns/new">Start a campaign<ArrowRight size={18}/></a></div></div><Scene /></div><div className="hero-bottom"><a href="#possibilities"><span className="scroll-circle">↓</span>SCROLL TO EXPLORE</a><span>FROM FIRST SPARK TO FINAL FRAME</span><span className="page-number">01 — 06</span></div></section><div className="discipline-strip">{['AI FILMMAKING', 'GENERATIVE ART', 'MOTION & ANIMATION', 'PRODUCT CREATIVE'].map(s => <span key={s}><span className="small-star">✳</span>{s}</span>)}</div><section className="section intro" id="possibilities"><div className="section-label"><span>01 / A BETTER CONNECTION</span><ArrowUpRight size={25}/></div><div><h2>Less searching.<br />More <em>creating.</em></h2><p className="large-copy">A beautiful portfolio is just the beginning. Find the tools, workflows and creative instincts behind the work, then build something together.</p><div className="three-columns">{[['01', 'Talent with context', 'Understand how a creator works. Explore their AI tools, creative process and declared commercial-use terms.'], ['02', 'A brief that means business', 'Put your idea, deliverables, timeline and rights in one place. Give every collaboration a clear starting point.'], ['03', 'Room for the whole process', 'Invite your partner, share files, review versions and approve the work. Keep the creative conversation connected.']].map(([n, t, d]) => <article key={n}><span className="index">{n}</span><h3>{t}</h3><p>{d}</p></article>)}</div></div></section><section className="section workflow"><div className="section-heading"><div><span className="eyebrow">02 / FROM IDEA TO IMPACT</span><h2>Your vision.<br />A shared <em>process.</em></h2></div><a className="text-link" href="/how-it-works">See how it works<ArrowUpRight size={18}/></a></div><div className="process-grid">{[[FileText, 'Define the brief', 'The idea, the details, the ambition.'], [Users, 'Find your people', 'Capabilities that fit your campaign.'], [Orbit, 'Create together', 'One workspace. Every conversation.'], [CheckCircle2, 'Approve & deliver', 'A clear path to the final frame.']].map(([Icon, title, desc]: any, i) => <article key={title}><span className="process-index">0{i + 1}</span><Icon size={38} strokeWidth={1}/><h3>{title}</h3><p>{desc}</p><div className="process-line"/></article>)}</div></section><section className="brief-band"><div><span className="eyebrow">03 / A STRONG START</span><h2>Great work starts<br />with a <em>better brief.</em></h2><p>Define the creative direction. Get specific about delivery.<br />Make the commercial terms clear from the beginning.</p><Button href="/app/brand/campaigns/new">Build your campaign<ArrowUpRight size={18}/></Button></div><div className="brief-graphic"><div className="graphic-heading"><span>YOUR NEXT CAMPAIGN</span><FileText size={20}/></div><div className="brief-lines"><span>01</span><strong>Creative direction</strong><Check size={16}/></div><div className="brief-lines"><span>02</span><strong>Formats & deliverables</strong><Check size={16}/></div><div className="brief-lines"><span>03</span><strong>Budget & timeline</strong><Check size={16}/></div><div className="brief-lines"><span>04</span><strong>Usage & rights</strong><Check size={16}/></div><div className="graphic-foot">A CLEAR VISION IS A CREATIVE ADVANTAGE.<ArrowUpRight size={25}/></div></div></section><section className="section talent"><div className="section-heading"><div><span className="eyebrow">04 / ORIGINAL MINDS</span><h2>Meet your next<br /><em>creative partner.</em></h2></div><a className="text-link" href="/discover">Explore the directory<ArrowUpRight size={18}/></a></div>{creators.loading ? <Loading /> : creators.error ? <ErrorBox message={creators.error} retry={creators.refresh}/> : creators.data.length ? <div className="creator-grid">{creators.data.slice(0, 3).map((p: any) => <CreatorCard key={p.id} p={p}/>)}</div> : <div className="founding-card"><div className="founding-art"><Orbit size={95} strokeWidth={.6}/><span>MAKE YOUR MARK.</span></div><div><Badge>THE DIRECTORY IS OPEN</Badge><h3>The next great creative<br />connection could start with you.</h3><p>Bring your vision, your process and your original work. Publish your creator profile and make your capabilities discoverable.</p><a className="text-link" href="/signup">Join as a creator<ArrowUpRight size={18}/></a></div></div>}</section><HomeAdditions /><section className="section manifesto"><span className="eyebrow">05 / MADE FOR THE WAY YOU CREATE</span><h2>Human imagination.<br /><em>New possibilities.</em></h2><div className="manifesto-foot"><p>AI changes the tools. The vision is still yours.<br />A marketplace built around the people behind the work.</p><Button href="/signup">Let's make something<ArrowUpRight size={20}/></Button></div></section><section className="section faq-section"><div><span className="eyebrow">06 / GOOD QUESTIONS</span><h2>A little more<br /><em>clarity.</em></h2><a className="text-link" href="/faq">All questions<ArrowUpRight size={17}/></a></div><FaqList /></section></>; }
+const FAQ = [['What kind of creators can I find here?', 'AI filmmakers, animators, generative artists, product creatives and creative directors. Published profiles show each creator’s declared skills, tools, formats and original portfolio.'], ['How does creator matching work?', 'Compatibility uses creative style and specialization (30%), preferred tools (20%), format (20%), industry (15%), and budget and availability (15%). Required format, commercial-use capability and budget constraints affect eligibility. Scores are compatibility indices, not outcome guarantees.'], ['Who owns the final creative work?', 'Usage rights are agreed between brand and creator for each project. Your brief records licensing or ownership requests, territory, duration and attribution. Underlying AI tools and third-party assets may impose separate terms.'], ['Can I manage revisions and delivery here?', 'Yes. Accepted invitations create a shared workspace for messages, versioned submissions, revision requests, approvals and final delivery. Files are available to authorized project participants.'], ['Are payments processed on the platform?', 'Payments and escrow are not currently processed here. Agree payment arrangements directly with your creative partner. A completed workspace records delivery, not payment settlement.'], ['What does a verification label mean?', 'Self-declared capabilities have not been independently reviewed. Evidence submitted and under review are separate from verified. Verification reviews only the specified claim and does not establish copyright ownership or commercial rights.']];
+function FaqList() { return <div className="faq-list">{FAQ.map(([q, a], i) => <details key={q}><summary><span className="faq-index">0{i + 1}</span>{q}<Plus size={19}/></summary><p>{a}</p></details>)}</div>; }
+function Footer() { return <footer className="footer"><div className="footer-top"><Logo /><p>A new connection.<br />An original creation.</p><div><a href="/discover">Discover creators</a><a href="/for-brands">For brands</a><a href="/for-creators">For creators</a></div><div><a href="/work">The workroom</a><a href="/templates">Brief structures</a><a href="/resources">Field notes</a><a href="/about">About</a><a href="/faq">FAQs</a><a href="/contact">Contact</a></div></div><div className="footer-wordmark">CreaXa<span>↗</span></div><div className="footer-bottom"><span>© {new Date().getFullYear()} CreaXa</span><span>HUMAN VISION. AI CAPABILITY.</span><div><a href="/privacy">Privacy</a><a href="/terms">Terms</a></div></div></footer>; }
+function CreatorCard({ p, match: score }: any) {
+    const { toast, me } = useApp();
+    const d = p.data;
+    return <article className="creator-card"><a href={'/creators/' + p.slug} className="creator-cover">{d.cover ? <img src={'/api/files/' + d.cover} alt={d.name + ' cover'} loading="lazy"/> : <div className="cover-empty"><Orbit size={65} strokeWidth={.7}/><span>{list(d.specializations)[0] || 'AI creative'}</span></div>}{score && <span className="match-badge">{score.score}% compatibility</span>}<span className="card-arrow"><ArrowUpRight size={21}/></span></a><div className="creator-meta"><div className="avatar">{d.avatar ? <img src={'/api/files/' + d.avatar} alt=""/> : d.name?.slice(0, 1)}</div><div><a href={'/creators/' + p.slug}><h3>{d.name}</h3></a><p>{d.headline}</p></div><button className="icon-btn" aria-label={'Save ' + d.name} onClick={async () => {
+            if (!me?.account) {
+                location.href = '/login';
+                return;
+            }
+            try {
+                const r = await api('favorite', { creator: p.id });
+                toast(r.saved ? 'Creator saved.' : 'Creator removed from saved.');
+            }
+            catch (e: any) {
+                toast(e.message);
+            }
+        }}><Heart size={18}/></button></div><div className="tags">{list(d.tools).slice(0, 3).map(t => <Badge key={t}>{t}</Badge>)}</div><CompareSelect slug={p.slug}/><div className="card-bottom"><span><span className={'status-dot ' + (d.availability === 'Available' ? 'available' : '')}/>{d.availability}</span><strong>{d.rate > 0 ? 'From ' + money(d.rate, d.currency) : 'Rate on request'}</strong></div>{score && <details className="match-details"><summary>Why this match?<ChevronDown size={15}/></summary>{score.reasons.map((r: any) => <div key={r.label}><span>{r.label}</span><strong>{r.points}/{r.max}</strong></div>)}</details>}</article>;
+}
+function Discover() {
+    const [q, setQ] = useState(''), [debounced, setDebounced] = useState(''), [page, setPage] = useState(1), [filters, setFilters] = useState<Obj>({}), [sort, setSort] = useState('recent'), [open, setOpen] = useState(false), [saved, setSaved] = useState(false);
+    const { me } = useApp();
+    useEffect(() => { const id = setTimeout(() => setDebounced(q), 250); return () => clearTimeout(id); }, [q]);
+    const query = new URLSearchParams({ q: debounced, sort, page: String(page) });
+    for (const [k, v] of Object.entries(filters)) {
+        if (Array.isArray(v) && v.length)
+            query.set(k, v.join('|'));
+        else if (v)
+            query.set(k, typeof v === 'boolean' ? '1' : String(v));
+    }
+    if (saved)
+        query.set('saved', '1');
+    const r = useResource('discovery?' + query.toString());
+    useEffect(() => setPage(1), [debounced, sort, filters, saved]);
+    const groups: [
+        string,
+        string,
+        string[]
+    ][] = [['specializations', 'Specialization', SPECIAL], ['tools', 'AI tools', TOOLS], ['contentTypes', 'Content type', TYPES], ['styles', 'Creative style', STYLES], ['aspectRatios', 'Aspect ratio', RATIOS], ['industries', 'Industry', INDUSTRIES], ['platforms', 'Platform', PLATFORMS]];
+    const result = r.data?.items || [];
+    const set = (k: string, v: any) => setFilters({ ...filters, [k]: v });
+    return <div className="page discovery"><div className="page-intro"><span className="eyebrow">THE CREATIVE DIRECTORY</span><h1>Find your next<br /><em>creative partner.</em></h1><p>Explore the people, tools and perspectives behind the work.</p></div><div className="discovery-toolbar"><div className="search"><Search size={20}/><input aria-label="Search creators" placeholder="Search creators, skills, tools or specialties" value={q} onChange={e => setQ(e.target.value)}/>{q && <button className="icon-btn" onClick={() => setQ('')} aria-label="Clear search"><X size={17}/></button>}</div><button className="filter-toggle" onClick={() => setOpen(!open)}><SlidersHorizontal size={18}/>Filters</button><select aria-label="Sort creators" value={sort} onChange={e => setSort(e.target.value)}><option value="recent">Recently updated</option><option value="name">Alphabetical</option><option value="rate">Starting rate: low to high</option></select></div><SavedSearchTools signedIn={!!me?.account} current={{ ...filters, q, sort }} onApply={(values: Obj) => { setQ(values.q || ''); setSort(values.sort || 'recent'); const { q: search, sort: order, ...rest } = values; setFilters(rest); setPage(1); }}/><div className="discovery-layout"><aside className={'filters ' + (open ? 'filters-open' : '')}><div className="filter-heading"><strong>Refine your search</strong><button onClick={() => { setFilters({}); setQ(''); }}>Reset</button></div><p className="micro">Any selection within a group. All selected groups must match.</p>{groups.map(([key, label, options]) => <details key={key} open={key === 'specializations' || key === 'tools'}><summary>{label}<ChevronDown size={15}/></summary>{options.map(option => <label className="check-row" key={option}><input type="checkbox" checked={list(filters[key]).includes(option)} onChange={e => set(key, e.target.checked ? [...list(filters[key]), option] : list(filters[key]).filter(v => v !== option))}/>{option}</label>)}</details>)}<details open><summary>Starting rate ({filters.currency || 'INR'})<ChevronDown size={15}/></summary><div style={{ marginBottom: '8px' }}><select aria-label="Rate currency" value={filters.currency || 'INR'} onChange={e => set('currency', e.target.value)}><option value="INR">INR (₹)</option><option value="USD">USD ($)</option><option value="EUR">EUR (€)</option></select></div><div className="range"><input type="number" min="0" aria-label="Minimum rate" placeholder="Min" value={filters.min || ''} onChange={e => set('min', e.target.value)}/><span>–</span><input type="number" min="0" aria-label="Maximum rate" placeholder="Max" value={filters.max || ''} onChange={e => set('max', e.target.value)}/></div></details><label className="check-row"><input type="checkbox" checked={!!filters.available} onChange={e => set('available', e.target.checked)}/>Available now</label><label className="check-row"><input type="checkbox" checked={!!filters.verified} onChange={e => set('verified', e.target.checked)}/>Verified claims</label>{me?.account && <label className="check-row"><input type="checkbox" checked={saved} onChange={e => setSaved(e.target.checked)}/>Saved creators</label>}</aside><div><div className="results-heading"><span>{r.loading ? 'Searching…' : `${r.data?.total || 0} creative${r.data?.total === 1 ? '' : 's'}`}</span><span className="micro">ORIGINAL PEOPLE. DISTINCT PERSPECTIVES.</span></div><div className="selected-filters">{Object.entries(filters).filter(([k, v]) => Array.isArray(v)).flatMap(([k, v]: any) => v.map((s: string) => <button key={k + s} onClick={() => set(k, v.filter((a: string) => a !== s))}>{s}<X size={13}/></button>))}</div>{r.loading ? <Loading /> : r.error ? <ErrorBox message={r.error} retry={r.refresh}/> : result.length ? <div className="creator-grid">{result.map((p: any) => <CreatorCard key={p.id} p={p}/>)}</div> : <Empty icon={Users} title={(Object.values(filters).some(v => v && (!Array.isArray(v) || v.length)) || q || saved) ? 'No creators match these filters.' : 'The directory is ready for its first creators.'} description={(Object.values(filters).some(v => v && (!Array.isArray(v) || v.length)) || q || saved) ? 'Try fewer filters or a wider budget to explore more creative partners.' : 'Published creator profiles appear here. Share your real work, tools and creative process to become discoverable.'} action={(Object.values(filters).some(v => v && (!Array.isArray(v) || v.length)) || q || saved) ? undefined : 'Publish your creator profile'} href="/signup"/>}{r.data?.pages > 1 && <div className="pagination"><Button secondary disabled={page <= 1} onClick={() => setPage(page - 1)}><ArrowLeft size={15}/>Previous</Button><span>Page {page} of {r.data.pages}</span><Button secondary disabled={page >= r.data.pages} onClick={() => setPage(page + 1)}>Next<ArrowRight size={15}/></Button></div>}</div></div></div>;
+}
+function Creator({ slug }: any) {
+    const r = useResource('creators/' + slug);
+    const { me, toast } = useApp();
+    if (r.loading)
+        return <Loading />;
+    if (r.error)
+        return <div className="page"><ErrorBox message={r.error}/></div>;
+    const { profile: p, projects } = r.data, d = p.data;
+    return <div className="page profile-public"><a className="back-link" href="/discover"><ArrowLeft size={16}/>Back to discovery</a><div className="profile-cover">{d.cover ? <img src={'/api/files/' + d.cover} alt=""/> : <div className="cover-empty"><Orbit size={130} strokeWidth={.5}/></div>}</div><div className="profile-title"><div className="avatar large">{d.avatar ? <img src={'/api/files/' + d.avatar} alt=""/> : d.name.slice(0, 1)}</div><div><div className="tags"><Badge>{p.verification}</Badge><Badge>{d.availability}</Badge></div><h1>{d.name}</h1><p>{d.headline}</p></div><Button href={'/app/brand/invitations?creator=' + encodeURIComponent(p.id)}>Invite to a campaign<ArrowUpRight size={18}/></Button></div><div className="profile-layout"><div><section className="profile-section"><span className="eyebrow">THE PERSON BEHIND THE PROCESS</span><h2>About</h2><p className="preserve">{d.bio}</p></section><section className="profile-section"><h2>Tools & capabilities</h2>{[['Specializations', d.specializations], ['AI tools & models', d.tools], ['Creative styles', d.styles], ['Content types', d.contentTypes], ['Aspect ratios', d.aspectRatios], ['Industries', d.industries], ['Output formats', d.formats]].map(([l, v]) => <div className="capability-row" key={l}><h4>{l}</h4><div className="tags">{list(v).length ? list(v).map(t => <Badge key={t}>{t}</Badge>) : <span className="muted">Not provided</span>}</div></div>)}{d.experience && <p className="preserve">{d.experience}</p>}{d.workflow && <div className="note"><strong>Creative workflow</strong><p className="preserve">{d.workflow}</p></div>}</section><section className="profile-section"><div className="section-heading"><h2>Selected work</h2><span>{projects.length} project{projects.length !== 1 ? 's' : ''}</span></div>{projects.length ? <div className="portfolio-grid">{projects.map((p: any) => <a className="portfolio-card" key={p.id} href={'/projects/' + p.slug}><img src={'/api/files/' + p.data.cover} alt={p.data.title} loading="lazy"/><div><Badge>{p.data.contentType}</Badge><h3>{p.data.title}<ArrowUpRight size={18}/></h3><p>{list(p.data.tools).join(' · ')}</p></div></a>)}</div> : <Empty title="Portfolio work hasn’t been published yet." description="This creator can add project case studies with tools, workflow details and commercial-use declarations."/>}</section><CreatorReviews slug={slug}/></div><aside className="profile-facts"><h3>At a glance</h3><div><MapPin size={17}/>{d.location || 'Location not provided'}</div><div><Clock size={17}/>{d.turnaround ? d.turnaround + ' day typical turnaround' : 'Turnaround not provided'}</div><div><Briefcase size={17}/>{d.rate ? money(d.rate, d.currency) + ' starting rate' : 'Rate on request'}</div><div><RefreshCw size={17}/>{d.revisions} revision rounds</div><div><Shield size={17}/>{d.commercial ? 'Commercial projects accepted' : 'Commercial capability not declared'}</div>{d.website && <a href={d.website} target="_blank" rel="noopener noreferrer"><Globe size={17}/>Website<ExternalLink size={14}/></a>}<p className="micro">Capabilities and availability are creator declared unless a specific claim has been verified.</p><CompareSelect slug={p.slug}/><Button secondary onClick={async () => {
+            if (!me?.account) {
+                location.href = '/login';
+                return;
+            }
+            try {
+                const r = await api('favorite', { creator: p.id });
+                toast(r.saved ? 'Creator saved.' : 'Creator removed.');
+            }
+            catch (e: any) {
+                toast(e.message);
+            }
+        }}><Heart size={16}/>Save creator</Button></aside></div></div>;
+}
+function Project({ slug }: any) {
+    const r = useResource('projects/' + slug);
+    if (r.loading)
+        return <Loading />;
+    if (r.error)
+        return <div className="page"><ErrorBox message={r.error}/></div>;
+    const { project: p, profile } = r.data, d = p.data;
+    return <div className="page project-public"><a className="back-link" href={profile ? '/creators/' + profile.slug : '/discover'}><ArrowLeft size={16}/>Creator portfolio</a><span className="eyebrow">THE WORK. THE PROCESS. THE THINKING.</span><h1>{d.title}</h1><div className="tags"><Badge>{d.contentType}</Badge><Badge>{d.aspectRatio}</Badge>{d.industry && <Badge>{d.industry}</Badge>}</div><img className="project-hero" src={'/api/files/' + d.cover} alt={d.title}/><div className="profile-layout"><div><h2>The brief</h2><p className="preserve large-copy">{d.description}</p><h2>Creative workflow</h2><p className="preserve">{d.workflow}</p><h2>Creator contribution</h2><p className="preserve">{d.contribution}</p><div className="project-media">{d.media.map((id: string) => <Media key={id} id={id}/>)}</div></div><aside className="profile-facts"><h3>Project details</h3><div>Tools: {list(d.tools).join(', ')}</div><div>Skills: {list(d.skills).join(', ')}</div><div>Styles: {list(d.styles).join(', ')}</div><div>Resolution: {d.resolution || 'Not provided'}</div>{d.duration > 0 && <div>Duration: {d.duration} seconds</div>}<h4>Commercial-use declaration</h4><p>{d.commercialUse}</p><p className="micro">This is the creator’s declaration. Tool terms and third-party rights must be checked for your intended usage.</p>{d.externalLink && <a href={d.externalLink} target="_blank" rel="noopener noreferrer">Project link<ExternalLink size={15}/></a>}</aside></div></div>;
+}
+function Media({ id }: any) {
+    const [type, setType] = useState(''), [error, setError] = useState(false);
+    useEffect(() => {
+        let cancelled = false;
+        fetch('/api/files/' + id, { method: 'GET' }).then(r => {
+            if (!r.ok)
+                throw new Error();
+            if (!cancelled)
+                setType(r.headers.get('content-type') || '');
+            r.body?.cancel();
+        }).catch(() => {
+            if (!cancelled)
+                setError(true);
+        });
+        return () => { cancelled = true; };
+    }, [id]);
+    return error ? <p className="error-box">File unavailable.</p> : type.startsWith('video/') ? <video controls preload="metadata" src={'/api/files/' + id}/> : type.startsWith('image/') ? <img src={'/api/files/' + id} alt="Project media" loading="lazy"/> : <a className="file-link" href={'/api/files/' + id} target="_blank" rel="noopener noreferrer"><Download size={17}/>Open file</a>;
+}
+function GoogleIcon() {
+    return <svg viewBox="0 0 24 24" width="18" height="18" fill="none"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/></svg>;
+}
+function Auth({ path }: any) {
+    const { me, refreshMe, toast } = useApp();
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [displayName, setDisplayName] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [terms, setTerms] = useState(false);
+    const [busy, setBusy] = useState(false);
+    const [error, setError] = useState('');
+    const [infoMsg, setInfoMsg] = useState('');
+
+    const syncSession = async (user: any) => {
+        try {
+            const token = await user.getIdToken();
+            document.cookie = `__session=${token}; path=/; max-age=604800; SameSite=Lax`;
+            document.cookie = `firebase_token=${token}; path=/; max-age=604800; SameSite=Lax`;
+            const sessRes = await api('auth/session', { idToken: token });
+            await refreshMe();
+            const returnTo = new URLSearchParams(location.search).get('return_to');
+            if (sessRes.status === 'needs_onboarding') {
+                location.href = '/onboarding' + (returnTo ? '?next=' + encodeURIComponent(returnTo) : '');
+            } else if (returnTo && returnTo.startsWith('/')) {
+                location.href = returnTo;
+            } else {
+                location.href = dashboard(sessRes.account?.role);
+            }
+        } catch (err: any) {
+            setError(err.message || 'Authentication session sync failed.');
+        }
+    };
+
+    const handleGoogle = async () => {
+        setBusy(true);
+        setError('');
+        try {
+            const { getFirebaseAuth, googleProvider, signInWithPopup } = await import('../lib/firebase');
+            const cred = await signInWithPopup(getFirebaseAuth(), googleProvider);
+            toast('Signed in with Google.');
+            await syncSession(cred.user);
+        } catch (err: any) {
+            if (err.code !== 'auth/popup-closed-by-user') {
+                setError(err.message || 'Google sign-in failed.');
+            }
+        } finally {
+            setBusy(false);
+        }
+    };
+
+    const handleEmailAuth = async (e: any) => {
+        e.preventDefault();
+        setBusy(true);
+        setError('');
+        setInfoMsg('');
+        try {
+            const {
+                getFirebaseAuth,
+                signInWithEmailAndPassword,
+                createUserWithEmailAndPassword,
+                sendPasswordResetEmail,
+                updateProfile,
+                sendEmailVerification
+            } = await import('../lib/firebase');
+            const auth = getFirebaseAuth();
+
+            if (path === '/forgot-password' || path === '/reset-password') {
+                await sendPasswordResetEmail(auth, email);
+                setInfoMsg('Password reset instructions sent. Please check your inbox.');
+                toast('Reset link sent.');
+                return;
+            }
+
+            if (path === '/signup') {
+                if (password !== confirmPassword) {
+                    throw new Error('Passwords do not match.');
+                }
+                if (password.length < 6) {
+                    throw new Error('Password must be at least 6 characters.');
+                }
+                const cred = await createUserWithEmailAndPassword(auth, email, password);
+                if (displayName) {
+                    await updateProfile(cred.user, { displayName });
+                }
+                sendEmailVerification(cred.user).catch(() => {});
+                toast('Account created successfully.');
+                await syncSession(cred.user);
+            } else {
+                const cred = await signInWithEmailAndPassword(auth, email, password);
+                toast('Signed in.');
+                await syncSession(cred.user);
+            }
+        } catch (err: any) {
+            const msg = err.code === 'auth/email-already-in-use'
+                ? 'An account with this email already exists. Sign in instead.'
+                : err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential'
+                ? 'Incorrect email or password.'
+                : err.code === 'auth/user-not-found'
+                ? 'No account found with this email address.'
+                : err.message || 'Authentication failed.';
+            setError(msg);
+        } finally {
+            setBusy(false);
+        }
+    };
+
+    const isSignUp = path === '/signup';
+    const isForgot = path === '/forgot-password' || path === '/reset-password';
+    const isVerify = path === '/verify-email';
+
+    return (
+        <div className="auth-page">
+            <div className="auth-art">
+                <span className="eyebrow">THE NEXT CONNECTION STARTS HERE</span>
+                <h1>Bring your<br /><em>possibilities.</em></h1>
+                <Orbit size={180} strokeWidth={.5}/>
+                <p>One unified account. Unlimited creative collaboration.</p>
+            </div>
+            <div className="auth-card">
+                <Badge>CREAXA / INDEPENDENT MARKETPLACE</Badge>
+                <h2>
+                    {isSignUp ? 'Create your account.' : isForgot ? 'Reset your password.' : isVerify ? 'Verify your email.' : 'Welcome back.'}
+                </h2>
+                <p>
+                    {isSignUp
+                        ? 'Join as an AI creator, brand, or agency to begin collaborating.'
+                        : isForgot
+                        ? 'Enter your registered email to receive secure recovery instructions.'
+                        : isVerify
+                        ? 'Check your email inbox to confirm your account address.'
+                        : 'Sign in to access your creative workspace and live projects.'}
+                </p>
+
+                {me?.account && (
+                    <div style={{ marginBottom: 20 }}>
+                        <Button href={dashboard(me.account.role)}>Open your workspace ({me.account.role})<ArrowUpRight size={18}/></Button>
+                    </div>
+                )}
+
+                {!isVerify && !isForgot && (
+                    <>
+                        <div className="oauth-grid single">
+                            <button className="oauth-btn google-btn full-width" type="button" onClick={handleGoogle} disabled={busy}>
+                                <GoogleIcon /> Continue with Google
+                            </button>
+                        </div>
+                        <div className="auth-divider">Or continue with email</div>
+                    </>
+                )}
+
+                {error && <ErrorBox message={error} />}
+                {infoMsg && <div className="note"><CheckCircle2 size={18}/>{infoMsg}</div>}
+
+                {isVerify ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 15, marginTop: 20 }}>
+                        <Button href="/login">Return to Sign In<ArrowRight size={16}/></Button>
+                    </div>
+                ) : (
+                    <form className="auth-form" onSubmit={handleEmailAuth}>
+                        {isSignUp && (
+                            <div className="field">
+                                <label htmlFor="auth-name">Your Full Name <span className="accent">*</span></label>
+                                <input
+                                    id="auth-name"
+                                    type="text"
+                                    required
+                                    value={displayName}
+                                    onChange={e => setDisplayName(e.target.value)}
+                                    placeholder="Jane Doe"
+                                    disabled={busy}
+                                />
+                            </div>
+                        )}
+                        <div className="field">
+                            <label htmlFor="auth-email">Email Address <span className="accent">*</span></label>
+                            <input
+                                id="auth-email"
+                                type="email"
+                                required
+                                value={email}
+                                onChange={e => setEmail(e.target.value)}
+                                placeholder="name@company.com"
+                                disabled={busy}
+                            />
+                        </div>
+                        {!isForgot && (
+                            <div className="field">
+                                <label htmlFor="auth-password">Password <span className="accent">*</span></label>
+                                <div className="password-wrap">
+                                    <input
+                                        id="auth-password"
+                                        type={showPassword ? 'text' : 'password'}
+                                        required
+                                        value={password}
+                                        onChange={e => setPassword(e.target.value)}
+                                        placeholder="••••••••"
+                                        minLength={6}
+                                        disabled={busy}
+                                    />
+                                    <button
+                                        type="button"
+                                        className="password-toggle"
+                                        aria-label={showPassword ? 'Hide password' : 'Show password'}
+                                        onClick={() => setShowPassword(!showPassword)}
+                                    >
+                                        {showPassword ? <Eye size={16}/> : <Eye size={16} style={{ opacity: .5 }}/>}
+                                    </button>
+                                </div>
+                                {!isSignUp && (
+                                    <div className="auth-extra-links">
+                                        <a href="/forgot-password">Forgot password?</a>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                        {isSignUp && (
+                            <>
+                                <div className="field">
+                                    <label htmlFor="auth-confirm">Confirm Password <span className="accent">*</span></label>
+                                    <input
+                                        id="auth-confirm"
+                                        type={showPassword ? 'text' : 'password'}
+                                        required
+                                        value={confirmPassword}
+                                        onChange={e => setConfirmPassword(e.target.value)}
+                                        placeholder="••••••••"
+                                        minLength={6}
+                                        disabled={busy}
+                                    />
+                                </div>
+                                <label className="check-row terms-check" style={{ margin: '8px 0' }}>
+                                    <input
+                                        type="checkbox"
+                                        checked={terms}
+                                        required
+                                        onChange={e => setTerms(e.target.checked)}
+                                    />
+                                    <span>I accept the <a href="/terms" target="_blank">Terms</a> and <a href="/privacy" target="_blank">Privacy Policy</a></span>
+                                </label>
+                            </>
+                        )}
+                        <Button type="submit" disabled={busy} className="full">
+                            {busy ? (
+                                <><Loader2 className="spin" size={17}/> Processing…</>
+                            ) : isSignUp ? (
+                                <>Create Account<ArrowRight size={17}/></>
+                            ) : isForgot ? (
+                                <>Send Reset Instructions<Send size={17}/></>
+                            ) : (
+                                <>Sign In<ArrowRight size={17}/></>
+                            )}
+                        </Button>
+                    </form>
+                )}
+
+                <div className="auth-switch">
+                    {isSignUp ? (
+                        <>Already have an account? <a href="/login">Sign in</a></>
+                    ) : isForgot ? (
+                        <>Remember your password? <a href="/login">Sign in</a></>
+                    ) : (
+                        <>Don’t have an account yet? <a href="/signup">Sign up</a></>
+                    )}
+                </div>
+
+                <div className="auth-note">
+                    <Shield size={16}/>
+                    <span>End-to-end encrypted authentication. Your credentials are protected by Firebase.</span>
+                </div>
+            </div>
+        </div>
+    );
+}
+function Field({ field, value, set }: any) { const [name, label, type = 'text', options, required = false, help] = field; const id = 'f-' + name; return <div className={'field ' + (type === 'textarea' || type === 'tags' ? 'field-wide' : '')}><label htmlFor={id}>{label}{required && <span className="accent"> *</span>}</label>{type === 'textarea' ? <textarea id={id} value={value || ''} onChange={e => set(name, e.target.value)} rows={4} required={required}/> : type === 'select' ? <select id={id} value={value ?? ''} onChange={e => set(name, e.target.value)} required={required}><option value="">Select {label.toLowerCase()}</option>{options.map((o: string) => <option key={o}>{o}</option>)}</select> : type === 'check' ? <label className="check-row"><input id={id} type="checkbox" checked={!!value} onChange={e => set(name, e.target.checked)}/>{help || 'Yes'}</label> : type === 'tags' ? <div className="pill-select">{options.map((o: string) => <button key={o} type="button" aria-pressed={list(value).includes(o)} className={list(value).includes(o) ? 'selected' : ''} onClick={() => set(name, list(value).includes(o) ? list(value).filter(s => s !== o) : [...list(value), o])}>{o}{list(value).includes(o) && <Check size={13}/>}</button>)}</div> : <input id={id} type={type === 'number' ? 'number' : type === 'date' ? 'date' : type === 'url' ? 'url' : type === 'email' ? 'email' : 'text'} min={type === 'number' ? 0 : type === 'date' ? new Date().toISOString().slice(0, 10) : undefined} value={value ?? ''} onChange={e => set(name, type === 'number' ? e.target.value : e.target.value)} required={required} maxLength={type === 'text' ? 200 : undefined}/>}{help && type !== 'check' && <p className="field-help">{help}</p>}</div>; }
+function Fields({ fields, data, set }: any) { return <div className="form-grid">{fields.map((f: any) => <Field key={f[0]} field={f} value={data[f[0]]} set={set}/>)}</div>; }
+function UploadField({ label, value, set, multiple = false, accept = 'image/jpeg,image/png,image/webp,video/mp4,application/pdf' }: any) {
+    const [busy, setBusy] = useState(false), [err, setErr] = useState('');
+    return <div className="field field-wide upload-field"><label>{label}</label><label className="upload-zone"><Upload size={22}/><strong>{busy ? 'Uploading…' : 'Choose ' + (multiple ? 'files' : 'a file')}</strong><span>JPG, PNG, WebP, MP4 or PDF · up to 25 MB each</span><input type="file" accept={accept} multiple={multiple} disabled={busy} aria-label={label} onChange={async (e) => {
+            const files = Array.from(e.target.files || []);
+            if (!files.length)
+                return;
+            setBusy(true);
+            setErr('');
+            try {
+                const ids = [];
+                for (const f of files) {
+                    if (f.size > 25 * 1024 * 1024)
+                        throw new Error('Maximum file size is 25 MB.');
+                    const form = new FormData();
+                    form.set('file', f);
+                    const r = await api('upload', form);
+                    ids.push(r.id);
+                }
+                set(multiple ? [...value || [], ...ids] : ids[0]);
+            }
+            catch (e: any) {
+                setErr(e.message);
+            }
+            finally {
+                setBusy(false);
+                e.target.value = '';
+            }
+        }}/></label>{err && <ErrorBox message={err}/>}<div className="uploaded-files">{(multiple ? value || [] : value ? [value] : []).map((id: string, i: number) => <div key={id}><a href={'/api/files/' + id} target="_blank" rel="noopener noreferrer"><FileText size={15}/>Uploaded file {i + 1}</a><button type="button" className="icon-btn" aria-label="Remove attached file" onClick={() => set(multiple ? value.filter((s: string) => s !== id) : '')}><X size={15}/></button></div>)}</div></div>;
+}
+function Onboarding() {
+    const { me, refreshMe, toast } = useApp();
+    const [role, setRole] = useState(''), [data, setData] = useState<Obj>({ name: '', organization: '', industry: '', website: '', goals: '', terms: false }), [busy, setBusy] = useState(false), [error, setError] = useState('');
+    useEffect(() => {
+        if (me?.account) {
+            setRole(me.account.role);
+            setData(me.account.data);
+        }
+        else if (me?.user)
+            setData(d => ({ ...d, name: me.user.fullName || '' }));
+    }, [me]);
+    if (me === null)
+        return <Loading />;
+    return <div className="page onboarding"><span className="eyebrow">A PLACE FOR YOUR PERSPECTIVE</span><h1>How do you<br /><em>create impact?</em></h1><p>Choose the workspace that fits your work.</p><div className="role-cards">{[['creator', Sparkles, 'I’m a creator', 'Share your work. Find your next collaboration.'], ['brand', Briefcase, 'I’m a brand', 'Bring a campaign. Find your creative partner.'], ['agency', Layers, 'I’m an agency', 'Manage client campaigns and creative delivery.']].map(([id, Icon, t, d]: any) => <button key={id} className={role === id ? 'selected' : ''} disabled={!!me?.account && me.account.role !== id} onClick={() => setRole(id)}><Icon size={30} strokeWidth={1}/><h3>{t}</h3><p>{d}</p>{role === id && <CheckCircle2 className="role-check" size={20}/>}</button>)}</div>{role && <form className="form-panel" onSubmit={async (e) => {
+                e.preventDefault();
+                setBusy(true);
+                setError('');
+                try {
+                    await api('account', { ...data, role });
+                    refreshMe();
+                    toast('Your workspace is ready.');
+                    const next = new URLSearchParams(location.search).get('next') || '';
+                    const permittedBase = dashboard(role);
+                    location.href = next.startsWith(permittedBase + '/') && !next.includes('\\') ? next : role === 'creator' ? '/app/creator/profile' : '/app/brand';
+                }
+                catch (e: any) {
+                    setError(e.message);
+                }
+                finally {
+                    setBusy(false);
+                }
+            }}><Fields fields={role === 'creator' ? [['name', 'Your name', 'text', null, true]] : [['name', 'Your name', 'text', null, true], ['organization', role === 'agency' ? 'Agency name' : 'Brand / company name', 'text', null, true], ['industry', 'Industry', 'select', INDUSTRIES, true], ['website', 'Website', 'url'], ['contactEmail', 'Business contact email', 'email'], ['country', 'Country', 'text'], ['currency', 'Default currency', 'select', ['INR', 'USD', 'EUR']], ['description', 'Organization overview', 'textarea'], ['goals', 'What are you hoping to create?', 'textarea']]} data={data} set={(k: string, v: any) => setData({ ...data, [k]: v })}/><label className="check-row terms-check"><input type="checkbox" checked={data.terms} required onChange={e => setData({ ...data, terms: e.target.checked })}/>I agree to the <a href="/terms">Terms</a> and <a href="/privacy">Privacy Policy</a>.</label>{error && <ErrorBox message={error}/>}<Button disabled={busy}>{busy ? 'Setting things up…' : 'Create my workspace'}<ArrowRight size={18}/></Button></form>}</div>;
+}
+function AppShell({ path }: any) {
+    const r = useResource('dashboard');
+    const [menu, setMenu] = useState(false);
+    const { me } = useApp();
+    const [returnTo, setReturnTo] = useState(path);
+    useEffect(() => setReturnTo(path + location.search), [path]);
+    const data = r.data, role = data?.account?.role || 'creator', base = dashboard(role);
+    const creator = role === 'creator';
+    useEffect(() => {
+        if (!data?.account?.id) return;
+        let cleanup: (() => void) | null = null;
+        import('../lib/supabase').then(({ subscribeToUserNotifications }) => {
+            cleanup = subscribeToUserNotifications(data.account.id, () => {
+                r.refresh();
+            });
+        }).catch(() => {});
+        return () => { cleanup?.(); };
+    }, [data?.account?.id]);
+    if (r.loading)
+        return <><Header path={path}/><Loading /></>;
+    if (r.error)
+        return <><Header path={path}/><div className="page"><ErrorBox message={r.error} retry={r.refresh}/></div></>;
+    if (r.data.onboarding)
+        return <><Header path={path}/><div className="page"><Empty title="Choose your creative workspace." description="Set up your account before publishing work or creating a campaign." action="Set up my account" href={'/onboarding?next=' + encodeURIComponent(returnTo)}/></div></>;
+    const links = creator ? [[LayoutDashboard, 'Overview', base], [Users, 'My profile', base + '/profile'], [FolderOpen, 'My portfolio', base + '/portfolio'], [Mail, 'Invitations', base + '/invitations'], [Briefcase, 'Projects', base + '/engagements'], [Shield, 'Verification', base + '/verification']] : [[LayoutDashboard, 'Overview', base], [FileText, 'Campaigns', base + '/campaigns'], [Users, 'Discover creators', '/discover'], [Heart, 'Saved creators', base + '/saved'], [Mail, 'Invitations', base + '/invitations'], [Briefcase, 'Projects', base + '/engagements']];
+    const unread = data.notifications.filter((n: any) => !n.read).length;
+    return <div className="app-layout"><aside className={'app-sidebar ' + (menu ? 'open' : '')}><Logo /><span className="sidebar-label">{role === 'agency' ? 'AGENCY' : creator ? 'CREATOR' : 'BRAND'} WORKSPACE</span><nav aria-label="Workspace">{links.map(([Icon, label, href]: any) => <a key={href} className={path === href || (href !== base && path.startsWith(href)) ? 'active' : ''} href={href}><Icon size={19}/>{label}</a>)}<a className={path === '/app/notifications' ? 'active' : ''} href="/app/notifications"><Bell size={19}/>Notifications{unread > 0 && <span className="unread">{unread}</span>}</a><a className={path === '/app/settings' ? 'active' : ''} href="/app/settings"><Settings size={19}/>Settings</a></nav><div className="sidebar-bottom"><a href="/"><ArrowUpRight size={17}/>Back to CreaXa</a><div className="sidebar-account"><div className="avatar">{data.account.name.slice(0, 1)}</div><div><strong>{data.account.name}</strong><span>{role}</span></div><button aria-label="Sign out" className="icon-btn" onClick={async () => { try { const { getFirebaseAuth, signOut } = await import('../lib/firebase'); await signOut(getFirebaseAuth()); } catch {} try { await api('auth/signout', {}); } catch {} document.cookie = '__session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'; document.cookie = 'firebase_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'; document.cookie = '__sites_local_auth=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'; location.href = '/'; }}><LogOut size={17}/></button></div></div></aside><div className="app-content"><header className="app-header"><button className="icon-btn mobile-toggle" onClick={() => setMenu(!menu)} aria-label="Toggle workspace menu">{menu ? <X /> : <Menu />}</button><span>YOUR VISION, IN PROGRESS.</span><div><a href="/app/notifications" className="icon-btn" aria-label={`${unread} unread notifications`}><Bell size={18}/>{unread > 0 && <span className="notification-dot"/>}</a><a href="/app/settings" className="avatar small">{data.account.name.slice(0, 1)}</a></div></header><main id="main" className="workspace">{path.startsWith('/admin') ? <Admin /> : path === '/app/settings' ? <AccountSettings data={data} refresh={r.refresh}/> : path === '/app/notifications' ? <Notifications data={data} refresh={r.refresh}/> : path === base ? <Overview data={data} base={base}/> : path.endsWith('/saved') ? <SavedCreators /> : path.endsWith('/profile') && creator ? <ProfileEditor data={data} refresh={r.refresh}/> : path.includes('/portfolio') && creator ? <PortfolioManager data={data} refresh={r.refresh}/> : path.endsWith('/verification') && creator ? <Verification data={data} refresh={r.refresh}/> : path.endsWith('/invitations') ? <Invitations data={data} base={base} refresh={r.refresh}/> : path.includes('/engagements/') ? <Workspace id={path.split('/').pop()} base={base}/> : path.endsWith('/engagements') ? <Engagements data={data} base={base}/> : path.endsWith('/matches') ? <Matches id={path.split('/').slice(-2)[0]} base={base}/> : path.endsWith('/campaigns/new') ? <CampaignEditor data={data} base={base}/> : path.includes('/campaigns/') ? <CampaignDetail id={path.split('/').pop()} data={data} base={base}/> : path.endsWith('/campaigns') ? <Campaigns data={data} base={base}/> : <Empty title="Page not found." description="Return to your workspace to continue." action="Go to overview" href={base}/>}</main></div></div>;
+}
+function PageTitle({ eyebrow, title, description, action }: any) { return <div className="workspace-title"><div><span className="eyebrow">{eyebrow}</span><h1>{title}</h1>{description && <p>{description}</p>}</div>{action}</div>; }
+function Overview({ data, base }: any) { const creator = data.account.role === 'creator'; const active = data.engagements.filter((p: any) => !['completed', 'cancelled'].includes(p.status)); const pending = data.invitations.filter((p: any) => p.status === 'pending' && new Date(p.data.responseDeadline + 'T23:59:59Z') > new Date()); return <><PageTitle eyebrow="YOUR CREATIVE WORKSPACE" title={'Hello, ' + data.account.name.split(' ')[0] + '.'} description={creator ? 'Your work deserves to be seen. Keep your creative momentum going.' : 'Your next great campaign starts with a clear vision.'} action={<Button href={creator ? base + '/portfolio' : base + '/campaigns/new'}><Plus size={17}/>{creator ? 'Add portfolio work' : 'New campaign'}</Button>}/><div className="stat-grid">{[[creator ? 'Published projects' : 'Campaigns', creator ? data.portfolios.filter((p: any) => p.published).length : data.campaigns.length], [creator ? 'Pending invitations' : 'Invitations sent', creator ? pending.length : data.invitations.length], ['Active projects', active.length], ['Completed projects', data.engagements.filter((p: any) => p.status === 'completed').length]].map(([label, n]) => <article key={label}><span>{label}</span><strong>{n}</strong><ArrowUpRight size={18}/></article>)}</div>{creator && !data.profile?.published && <div className="workspace-banner"><Orbit size={40} strokeWidth={1}/><div><h3>Make your creative capabilities discoverable.</h3><p>Add your real tools, formats and process, then publish your profile.</p></div><Button href={base + '/profile'}>Complete your profile<ArrowRight size={17}/></Button></div>}{creator && <ProfileChecklist profile={data.profile} projects={data.portfolios} base={base}/>}<div className="dashboard-grid"><section className="panel"><div className="panel-heading"><h3>Active projects</h3><a href={base + '/engagements'}>View all<ArrowUpRight size={14}/></a></div>{active.length ? active.slice(0, 5).map((e: any) => <a className="list-row" key={e.id} href={base + '/engagements/' + e.id}><div><strong>{e.data.title}</strong><p>Due {date(e.data.deadline)}</p></div><Badge>{e.status}</Badge><ArrowUpRight size={17}/></a>) : <Empty icon={Briefcase} title="A clear canvas." description="Accepted campaign invitations become projects here."/>}</section><section className="panel"><div className="panel-heading"><h3>Latest activity</h3><a href="/app/notifications">View all<ArrowUpRight size={14}/></a></div>{data.notifications.length ? data.notifications.slice(0, 5).map((n: any) => <a className="list-row" key={n.id} href={n.href}><Bell size={16}/><div><strong>{n.title}</strong><p>{date(n.created)}</p></div></a>) : <Empty icon={Bell} title="You’re all caught up." description="Invitations, submissions and project updates will appear here."/>}</section></div><div className="workspace-callout"><span className="eyebrow">CREATE WITH INTENTION</span><h2>{creator ? 'Your process is part of your portfolio.' : 'A thoughtful brief is a creative advantage.'}</h2><p>{creator ? 'Show what you made, how you made it, and what you contributed.' : 'Define deliverables, rights and expectations before the first frame.'}</p><a className="text-link" href={creator ? base + '/portfolio' : base + '/campaigns/new'}>{creator ? 'Build your portfolio' : 'Create a campaign'}<ArrowUpRight size={18}/></a></div></>; }
+const PROFILE_STEPS = [{ title: 'The basics', fields: [['name', 'Display name', 'text', null, true], ['slug', 'Profile URL name', 'text', null, true, 'Lowercase letters, numbers and single hyphens.'], ['headline', 'Professional headline', 'text', null, true], ['location', 'Location', 'text'], ['contactPreference', 'Contact preference', 'select', ['Platform messages', 'Email by agreement', 'Website contact']], ['bio', 'About you', 'textarea', null, true], ['website', 'Website / social link', 'url']] }, { title: 'Specializations', fields: [['specializations', 'Your specializations', 'tags', SPECIAL], ['styles', 'Creative styles', 'tags', STYLES], ['industries', 'Industry experience', 'tags', INDUSTRIES]] }, { title: 'Tools & models', fields: [['tools', 'Your creative toolkit', 'tags', TOOLS], ['experience', 'Tool experience & usage', 'textarea', null, false, 'Include experience levels, how you use each tool, and relevant evidence links. These are self-declared.']] }, { title: 'Formats & workflow', fields: [['contentTypes', 'Supported content', 'tags', TYPES], ['aspectRatios', 'Aspect ratios', 'tags', RATIOS], ['platforms', 'Platforms', 'tags', PLATFORMS], ['formats', 'Output file formats (comma separated)', 'text'], ['maxDuration', 'Maximum video duration (seconds)', 'number'], ['workflow', 'Your creative workflow', 'textarea']] }, { title: 'Rates & availability', fields: [['rate', 'Starting project rate', 'number', null, true], ['maxRate', 'Preferred maximum budget', 'number'], ['currency', 'Currency', 'select', ['INR', 'USD', 'EUR'], true], ['turnaround', 'Typical turnaround (days)', 'number'], ['availability', 'Availability', 'select', ['Available', 'Busy', 'Not accepting work'], true], ['revisions', 'Included revision rounds', 'number'], ['commercial', 'Commercial projects', 'check', null, false, 'I accept commercial-use work subject to agreed rights.']] }, { title: 'Review & publish', fields: [] }];
+function ProfileEditor({ data: initial, refresh }: any) {
+    const { toast } = useApp();
+    const [data, setData] = useState<Obj>(initial.profile?.data || { name: initial.account.name, slug: '', headline: '', bio: '', rate: 0, currency: 'INR', turnaround: 0, availability: 'Available', commercial: false, revisions: 0, published: false }), [step, setStep] = useState(0), [busy, setBusy] = useState(false), [error, setError] = useState('');
+    const set = (k: string, v: any) => setData(d => ({ ...d, [k]: v }));
+    const save = async (publish: boolean, next = false) => {
+        setBusy(true);
+        setError('');
+        try {
+            await api('profile', { ...data, published: publish });
+            set('published', publish);
+            toast(publish ? 'Your creator profile is published.' : 'Profile saved.');
+            refresh();
+            if (next)
+                setStep(s => Math.min(s + 1, 5));
+        }
+        catch (e: any) {
+            setError(e.message);
+        }
+        finally {
+            setBusy(false);
+        }
+    };
+    return <><PageTitle eyebrow="YOUR CREATIVE IDENTITY" title="Make your perspective visible." description="Real capabilities. Your original work. A process worth knowing." action={initial.profile?.published && <Button secondary href={'/creators/' + initial.profile.slug}>View public profile<Eye size={17}/></Button>}/><div className="wizard-layout"><StepNav steps={PROFILE_STEPS} step={step} setStep={setStep}/><div className="form-panel"><span className="eyebrow">STEP {step + 1} OF 6</span><h2>{PROFILE_STEPS[step].title}</h2><Fields fields={PROFILE_STEPS[step].fields} data={data} set={set}/>{step === 0 && <><UploadField label="Profile image" value={data.avatar} set={(v: any) => set('avatar', v)} accept="image/jpeg,image/png,image/webp"/><UploadField label="Cover image" value={data.cover} set={(v: any) => set('cover', v)} accept="image/jpeg,image/png,image/webp"/></>}{step === 5 && <><Review data={data} keys={['name', 'slug', 'headline', 'bio', 'specializations', 'tools', 'contentTypes', 'aspectRatios', 'rate', 'currency', 'turnaround', 'availability', 'commercial']}/><div className="note">Portfolio projects are managed separately. Add original work with workflow and rights details from My Portfolio.</div></>}{error && <ErrorBox message={error}/>}<div className="form-actions">{step > 0 && <Button secondary onClick={() => setStep(step - 1)}><ArrowLeft size={16}/>Back</Button>}<Button secondary disabled={busy} onClick={() => save(data.published)}>Save {data.published ? 'profile' : 'draft'}</Button>{step < 5 ? <Button disabled={busy} onClick={() => save(data.published, true)}>Save & continue<ArrowRight size={16}/></Button> : <Button disabled={busy} onClick={() => save(true)}>Publish profile<ArrowUpRight size={17}/></Button>}</div>{data.published && <button className="danger-text" disabled={busy} onClick={() => save(false)}>Unpublish profile</button>}</div></div></>;
+}
+function StepNav({ steps, step, setStep }: any) { return <ol className="steps">{steps.map((s: any, i: number) => <li key={s.title}><button className={i === step ? 'active' : ''} onClick={() => setStep(i)}><span>{i < step ? <Check size={14}/> : String(i + 1).padStart(2, '0')}</span>{s.title}</button></li>)}</ol>; }
+function Review({ data, keys }: any) { return <dl className="review">{keys.map((k: string) => <div key={k}><dt>{k.replace(/([A-Z])/g, ' $1')}</dt><dd>{typeof data[k] === 'boolean' ? (data[k] ? 'Yes' : 'No') : Array.isArray(data[k]) ? data[k].join(', ') || 'Not provided' : String(data[k] ?? '') || 'Not provided'}</dd></div>)}</dl>; }
+const PORTFOLIO_FIELDS = [['title', 'Project title', 'text', null, true], ['contentType', 'Content type', 'select', TYPES, true], ['description', 'Project brief & description', 'textarea', null, true], ['tools', 'AI tools used', 'tags', TOOLS], ['skills', 'Skills demonstrated (comma separated)', 'text', null, true], ['styles', 'Creative style', 'tags', STYLES], ['workflow', 'Workflow details', 'textarea', null, true], ['contribution', 'Your contribution', 'textarea', null, true], ['aspectRatio', 'Aspect ratio', 'select', RATIOS, true], ['resolution', 'Resolution', 'text'], ['duration', 'Duration (seconds)', 'number'], ['industry', 'Industry', 'select', INDUSTRIES], ['commercialUse', 'Commercial-use declaration', 'textarea', null, true, 'Describe permissions, tool/model conditions and any third-party assets.'], ['externalLink', 'External project link', 'url'], ['permission', 'Portfolio display permission', 'check', null, true, 'I have permission to display these assets and describe my contribution.']];
+function PortfolioManager({ data, refresh }: any) {
+    const [editing, setEditing] = useState<Obj | null>(null), [busy, setBusy] = useState(false), [error, setError] = useState('');
+    const { toast } = useApp();
+    const save = async (published: boolean) => {
+        setBusy(true);
+        setError('');
+        try {
+            await api('portfolio', { ...editing, published });
+            toast(published ? 'Project published.' : 'Project saved.');
+            setEditing(null);
+            refresh();
+        }
+        catch (e: any) {
+            setError(e.message);
+        }
+        finally {
+            setBusy(false);
+        }
+    };
+    return <><PageTitle eyebrow="YOUR ORIGINAL WORK" title="A portfolio with perspective." description="Show the creative result and the process behind it." action={!editing && <Button onClick={() => { setError(''); setEditing({ title: '', contentType: '', description: '', workflow: '', contribution: '', aspectRatio: '', commercialUse: '', permission: false, cover: '', media: [], evidence: [], published: false }); }}><Plus size={17}/>Add project</Button>}/>{editing ? <div className="form-panel"><div className="panel-heading"><h2>{editing.id ? 'Edit project' : 'New portfolio project'}</h2><button className="icon-btn" aria-label="Close editor" onClick={() => setEditing(null)}><X /></button></div><Fields fields={PORTFOLIO_FIELDS} data={editing} set={(k: string, v: any) => setEditing({ ...editing, [k]: v })}/><UploadField label="Cover image (required)" value={editing.cover} set={(v: any) => setEditing({ ...editing, cover: v })} accept="image/jpeg,image/png,image/webp"/><UploadField label="Project media (required)" value={editing.media} multiple set={(v: any) => setEditing({ ...editing, media: v })} accept="image/jpeg,image/png,image/webp,video/mp4"/><UploadField label="Supporting evidence (private)" value={editing.evidence} multiple set={(v: any) => setEditing({ ...editing, evidence: v })}/>{error && <ErrorBox message={error}/>}<div className="form-actions"><Button secondary disabled={busy} onClick={() => save(false)}>Save unpublished</Button><Button disabled={busy} onClick={() => save(true)}>Publish project<ArrowUpRight size={17}/></Button></div></div> : data.portfolios.length ? <div className="portfolio-grid">{data.portfolios.map((p: any) => <article className="portfolio-card" key={p.id}><img src={'/api/files/' + p.data.cover} alt={p.data.title}/><div><Badge>{p.published ? 'Published' : 'Unpublished'}</Badge><h3>{p.data.title}</h3><p>{p.data.contentType} · {p.data.aspectRatio}</p><div className="card-controls"><button onClick={() => { setError(''); setEditing({ ...p.data, id: p.id }); }}>Edit</button>{p.published && <a href={'/projects/' + p.slug}>View<ArrowUpRight size={14}/></a>}<button className="danger-text" onClick={async () => {
+                    if (!confirm('Delete this project and its unreferenced media?'))
+                        return;
+                    try {
+                        await api('portfolio/' + p.id, undefined, 'DELETE');
+                        refresh();
+                        toast('Project deleted.');
+                    }
+                    catch (e: any) {
+                        toast(e.message);
+                    }
+                }}>Delete<Trash2 size={14}/></button></div></div></article>)}</div> : <Empty icon={FolderOpen} title="Your work belongs here." description="Add your first project with real media, tools, workflow and commercial-use details."/>}</>;
+}
+const CAMPAIGN_STEPS = [{ title: 'Campaign identity', fields: [['title', 'Campaign title', 'text', null, true], ['industry', 'Industry', 'select', INDUSTRIES, true], ['description', 'Creative brief', 'textarea', null, true], ['goal', 'Campaign goal', 'text'], ['client', 'Client organization (agencies)', 'text'], ['audience', 'Target audience', 'text'], ['references', 'Reference links & direction', 'textarea']] }, { title: 'Creative requirements', fields: [['contentType', 'Content type', 'select', TYPES, true], ['styles', 'Creative styles', 'tags', STYLES], ['specializations', 'Preferred specialization', 'tags', SPECIAL], ['platform', 'Primary platform', 'select', PLATFORMS, true], ['aspectRatio', 'Aspect ratio', 'select', RATIOS, true], ['resolution', 'Resolution', 'text'], ['duration', 'Duration (seconds)', 'number'], ['quantity', 'Number of deliverables', 'number', null, true], ['language', 'Language', 'text'], ['tools', 'Preferred AI tools', 'tags', TOOLS], ['format', 'Deliverable file format', 'text']] }, { title: 'Budget & timeline', fields: [['budget', 'Project budget', 'number', null, true], ['currency', 'Currency', 'select', ['INR', 'USD', 'EUR'], true], ['deadline', 'Delivery deadline', 'date', null, true], ['revisions', 'Included revision rounds', 'number', null, true], ['availability', 'Creator availability', 'select', ['Available', 'Flexible']], ['reviewTime', 'Expected review turnaround', 'text'], ['milestones', 'Milestone dates & scope', 'textarea']] }, { title: 'Usage & rights', fields: [['commercialUse', 'Intended use', 'select', ['Paid advertising', 'Organic social', 'Website / editorial', 'Personal'], true], ['channels', 'Distribution channels', 'tags', PLATFORMS], ['territory', 'Usage territory', 'text', null, true], ['usageDuration', 'Usage duration', 'text', null, true], ['rights', 'Rights requested', 'select', ['Negotiated license', 'Ownership transfer as agreed', 'To be negotiated'], true], ['thirdParty', 'Third-party assets policy', 'textarea'], ['attribution', 'Attribution', 'select', ['Required', 'Not required', 'Negotiable']], ['exclusivity', 'Exclusivity requested', 'check'], ['confidentiality', 'Confidentiality / NDA requested', 'check']] }, { title: 'Review & publish', fields: [] }];
+function CampaignEditor({ data, base, existing }: any) {
+    const { toast, me } = useApp();
+    const [form, setForm] = useState<Obj>(existing ? { ...existing.data, id: existing.id } : { title: '', description: '', industry: '', contentType: '', platform: '', aspectRatio: '', quantity: 1, budget: 0, currency: 'INR', deadline: '', revisions: 1, commercialUse: '', status: 'draft', assets: [] }), [step, setStep] = useState(0), [busy, setBusy] = useState(false), [error, setError] = useState(''), [idea, setIdea] = useState(''), [ai, setAi] = useState<any>(null), [aiBusy, setAiBusy] = useState(false), [showAi, setShowAi] = useState(false);
+    useEffect(() => { if (existing)
+        return; const id = new URLSearchParams(location.search).get('recipe'); const recipe = RECIPES.find(r => r.id === id); if (recipe)
+        setForm(f => ({ ...f, ...recipe.fields })); }, [existing]);
+    const set = (k: string, v: any) => setForm(d => ({ ...d, [k]: v }));
+    const save = async (status: string, next = false) => {
+        setBusy(true);
+        setError('');
+        try {
+            const r = await api('campaign', { ...form, status });
+            setForm(f => ({ ...f, id: r.id, status }));
+            if (status === 'draft')
+                history.replaceState(null, '', base + '/campaigns/' + r.id);
+            toast(status === 'published' ? 'Campaign published.' : 'Campaign saved.');
+            if (status === 'published')
+                location.href = base + '/campaigns/' + r.id;
+            else if (next)
+                setStep(s => Math.min(4, s + 1));
+        }
+        catch (e: any) {
+            setError(e.message);
+        }
+        finally {
+            setBusy(false);
+        }
+    };
+    return <><PageTitle eyebrow="BRING YOUR VISION INTO FOCUS" title={existing ? 'Refine your campaign.' : 'A new creative beginning.'} description="A strong brief brings the right people and expectations together." action={<Button secondary onClick={() => setShowAi(!showAi)}><Sparkles size={17}/>AI brief assistant</Button>}/>{showAi && <section className="form-panel ai-panel"><div className="panel-heading"><h3>From rough idea to clear direction</h3><button className="icon-btn" onClick={() => setShowAi(false)} aria-label="Close assistant"><X size={18}/></button></div>{!me?.aiAvailable ? <div className="note">AI assistance is not configured yet. Continue with the complete manual builder below.</div> : <><label htmlFor="idea">Describe your campaign idea</label><textarea id="idea" rows={4} value={idea} onChange={e => setIdea(e.target.value)}/><Button disabled={aiBusy || idea.length < 20} onClick={async () => {
+                    setAiBusy(true);
+                    setError('');
+                    try {
+                        setAi(await api('ai', { idea }));
+                    }
+                    catch (e: any) {
+                        setError(e.message);
+                    }
+                    finally {
+                        setAiBusy(false);
+                    }
+                }}>{aiBusy ? 'Structuring your brief…' : 'Structure my idea'}<Sparkles size={16}/></Button>{ai && <><h4>Extracted from your idea</h4><Review data={ai.extracted} keys={Object.keys(ai.extracted)}/><h4>Suggested details</h4><Review data={ai.suggested} keys={Object.keys(ai.suggested)}/><p>Still needed: {ai.missing_fields.join(', ')}</p><Button secondary onClick={() => { const allowed = new Set(CAMPAIGN_STEPS.flatMap(s => s.fields.map(f => f[0]))); const picked = Object.fromEntries(Object.entries({ ...ai.suggested, ...ai.extracted }).filter(([k, v]) => allowed.has(k) && v !== null && (typeof v === 'string' || typeof v === 'number' || Array.isArray(v)))); setForm(f => ({ ...f, ...picked })); setShowAi(false); toast('Suggestions added. Review every field before publishing.'); }}>Apply & review<Check size={17}/></Button></>}</>}</section>}<div className="wizard-layout"><StepNav steps={CAMPAIGN_STEPS} step={step} setStep={setStep}/><div className="form-panel"><span className="eyebrow">STEP {step + 1} OF 5</span><h2>{CAMPAIGN_STEPS[step].title}</h2><Fields fields={CAMPAIGN_STEPS[step].fields} data={form} set={set}/>{step === 1 && <UploadField label="Reference assets (private to your project)" value={form.assets} multiple set={(v: any) => set('assets', v)}/>}{step === 3 && <div className="note"><Shield size={18}/>Usage requirements are negotiated with your creator. AI tool terms and third-party permissions are separate.</div>}{step === 4 && <Review data={form} keys={['title', 'description', 'industry', 'contentType', 'styles', 'platform', 'aspectRatio', 'resolution', 'duration', 'quantity', 'language', 'tools', 'format', 'budget', 'currency', 'deadline', 'revisions', 'commercialUse', 'territory', 'usageDuration', 'rights', 'exclusivity', 'confidentiality']}/>}{error && <ErrorBox message={error}/>}<div className="form-actions">{step > 0 && <Button secondary onClick={() => setStep(step - 1)}><ArrowLeft size={15}/>Back</Button>}<Button secondary disabled={busy} onClick={() => save('draft')}>Save draft</Button>{step < 4 ? <Button disabled={busy} onClick={() => save('draft', true)}>Save & continue<ArrowRight size={16}/></Button> : <Button disabled={busy} onClick={() => save('published')}>Publish brief<ArrowUpRight size={17}/></Button>}</div><p className="micro">Drafts are saved to your account when you select Save. Your last saved version is available after refreshing.</p></div></div></>;
+}
+function Campaigns({ data, base }: any) { return <><PageTitle eyebrow="IDEAS WITH INTENTION" title="Your campaigns." description="From first direction to the final frame." action={<Button href={base + '/campaigns/new'}><Plus size={17}/>New campaign</Button>}/>{data.campaigns.length ? <div className="campaign-grid">{data.campaigns.map((c: any) => <a className="campaign-card" key={c.id} href={base + '/campaigns/' + c.id}><div><Badge>{c.status}</Badge><ArrowUpRight size={21}/></div><h3>{c.data.title || 'Untitled campaign'}</h3><p>{c.data.description || 'Your saved brief is ready to develop.'}</p><div className="tags">{c.data.contentType && <Badge>{c.data.contentType}</Badge>}{c.data.aspectRatio && <Badge>{c.data.aspectRatio}</Badge>}</div><footer><strong>{money(c.data.budget, c.data.currency)}</strong><span>Due {date(c.data.deadline)}</span></footer></a>)}</div> : <Empty icon={FileText} title="Every great campaign starts somewhere." description="Define your idea, creative format, budget and rights to find the right creative partner." action="Create your first campaign" href={base + '/campaigns/new'}/>}</>; }
+function CampaignDetail({ id, data, base }: any) {
+    const c = data.campaigns.find((c: any) => c.id === id);
+    const [editing, setEditing] = useState(false);
+    const { toast } = useApp();
+    if (!c)
+        return <Empty title="Campaign not found." description="This campaign may not belong to your account." action="View campaigns" href={base + '/campaigns'}/>;
+    if (editing)
+        return <CampaignEditor data={data} base={base} existing={c}/>;
+    return <><a className="back-link" href={base + '/campaigns'}><ArrowLeft size={16}/>All campaigns</a><PageTitle eyebrow={c.status.toUpperCase() + ' / CAMPAIGN'} title={c.data.title || 'Untitled campaign'} description={c.data.description} action={<div className="inline-actions"><Button secondary onClick={() => setEditing(true)}>Edit brief</Button><Button href={base + '/campaigns/' + id + '/matches'}>Find matching creators<ArrowUpRight size={17}/></Button></div>}/><CampaignTools campaign={c} base={base}/><div className="form-panel"><Review data={c.data} keys={['industry', 'goal', 'audience', 'contentType', 'styles', 'platform', 'aspectRatio', 'resolution', 'duration', 'quantity', 'language', 'tools', 'format', 'budget', 'currency', 'deadline', 'revisions', 'commercialUse', 'territory', 'usageDuration', 'rights', 'exclusivity', 'confidentiality', 'attribution', 'thirdParty']}/>{c.data.assets?.length > 0 && <><h3>Reference assets</h3><div className="file-list">{c.data.assets.map((f: string) => <a className="file-link" key={f} href={'/api/files/' + f} target="_blank" rel="noopener noreferrer"><Download size={15}/>Open asset</a>)}</div></>}<div className="form-actions">{['published', 'draft'].includes(c.status) && <Button secondary onClick={async () => {
+                try {
+                    await api('campaign', { ...c.data, id: c.id, status: 'closed' });
+                    location.reload();
+                }
+                catch (e: any) {
+                    toast(e.message);
+                }
+            }}>Close campaign</Button>}{c.status !== 'archived' && <Button secondary onClick={async () => {
+                try {
+                    await api('campaign', { ...c.data, id: c.id, status: 'archived' });
+                    location.reload();
+                }
+                catch (e: any) {
+                    toast(e.message);
+                }
+            }}>Archive campaign</Button>}</div></div></>;
+}
+function Matches({ id, base }: any) {
+    const r = useResource('matches/' + id);
+    if (r.loading)
+        return <Loading />;
+    if (r.error)
+        return <ErrorBox message={r.error} retry={r.refresh}/>;
+    return <><a className="back-link" href={base + '/campaigns/' + id}><ArrowLeft size={16}/>Campaign details</a><PageTitle eyebrow="CAPABILITIES MEET YOUR BRIEF" title="Your creative connections." description={r.data.campaign.data.title}/><div className="note">Compatibility uses styles and specialization (30), tools (20), format (20), industry (15), and budget and availability (15). Required format, commercial-use and budget constraints determine eligibility. Scores are not success probabilities.</div>{r.data.matches.length ? <div className="creator-grid">{r.data.matches.map((p: any) => <div key={p.id}><CreatorCard p={p} match={p.match}/><Button className="full" href={base + '/invitations?creator=' + encodeURIComponent(p.id) + '&campaign=' + id}>Invite creator<ArrowUpRight size={16}/></Button></div>)}</div> : <Empty icon={Users} title="No eligible creators yet." description="Try a broader brief or check again when creators publish profiles matching your required formats, availability and budget." action="Browse all creators" href="/discover"/>}</>;
+}
+function Invitations({ data, base, refresh }: any) {
+    const creator = data.account.role === 'creator';
+    const [creating, setCreating] = useState(false), [form, setForm] = useState<Obj>({ campaign: '', creator: '', budget: 0, message: '', start: '', responseDeadline: '', rights: '', revisions: 1 }), [busy, setBusy] = useState(false), [error, setError] = useState('');
+    const cr = useResource('creators');
+    const { toast } = useApp();
+    useEffect(() => {
+        const q = new URLSearchParams(location.search);
+        if (q.get('creator') && !creator) {
+            setForm(f => ({ ...f, creator: q.get('creator'), campaign: q.get('campaign') || '' }));
+            setCreating(true);
+        }
+    }, [creator]);
+    const update = (k: string, v: any) => {
+        if (k === 'campaign') {
+            const c = data.campaigns.find((c: any) => c.id === v);
+            setForm(f => ({ ...f, campaign: v, budget: c?.data.budget || 0, rights: c?.data.rights || '', revisions: c?.data.revisions || 0 }));
+        }
+        else
+            setForm(f => ({ ...f, [k]: v }));
+    };
+    return <><PageTitle eyebrow="A NEW COLLABORATION" title={creator ? 'Your invitations.' : 'Make a creative connection.'} description={creator ? 'Review the brief, budget, scope and rights before accepting.' : 'Invite a creator to a published campaign with clear expectations.'} action={!creator && !creating && <Button onClick={() => setCreating(true)}><Plus size={17}/>New invitation</Button>}/>{creating && <form className="form-panel" onSubmit={async (e) => {
+                e.preventDefault();
+                setBusy(true);
+                setError('');
+                try {
+                    await api('invitation', form);
+                    setCreating(false);
+                    refresh();
+                    toast('Invitation sent.');
+                }
+                catch (e: any) {
+                    setError(e.message);
+                }
+                finally {
+                    setBusy(false);
+                }
+            }}><div className="panel-heading"><h2>Invite your creative partner</h2><button type="button" className="icon-btn" aria-label="Close invitation" onClick={() => setCreating(false)}><X /></button></div><div className="form-grid"><div className="field"><label htmlFor="invite-campaign">Published campaign *</label><select id="invite-campaign" required value={form.campaign} onChange={e => update('campaign', e.target.value)}><option value="">Choose a campaign</option>{data.campaigns.filter((c: any) => c.status === 'published').map((c: any) => <option key={c.id} value={c.id}>{c.data.title}</option>)}</select></div><div className="field"><label htmlFor="invite-creator">Creator *</label><select id="invite-creator" required value={form.creator} onChange={e => update('creator', e.target.value)}><option value="">Choose a published creator</option>{(cr.data || []).map((p: any) => <option key={p.id} value={p.id}>{p.data.name} · {p.data.headline}</option>)}</select></div></div>{cr.error && <ErrorBox message={cr.error} retry={cr.refresh}/>}<Fields fields={[["budget", "Proposed budget", "number", null, true], ["start", "Preferred start date", "date", null, true], ["responseDeadline", "Response deadline", "date", null, true], ["revisions", "Proposed revision rounds", "number", null, true], ["rights", "Proposed rights terms", "textarea", null, true], ["message", "Your invitation message", "textarea", null, true]]} data={form} set={update}/>{error && <ErrorBox message={error}/>}<Button disabled={busy}>{busy ? 'Sending invitation…' : 'Send invitation'}<Send size={17}/></Button></form>}{data.invitations.length ? <div className="invitation-list">{data.invitations.map((i: any) => {
+                const c = JSON.parse(i.campaign_data || '{}'), p = JSON.parse(i.creator_data || '{}'), expired = i.status === 'pending' && new Date(i.data.responseDeadline + 'T23:59:59Z').getTime() < Date.now();
+                return <article className="panel invitation" key={i.id}><div className="panel-heading"><div><Badge>{expired ? 'expired' : i.status}</Badge><h3>{c.title}</h3>{!creator && <p>To {p.name || 'Creator'}</p>}</div><strong>{money(i.data.budget, c.currency)}</strong></div><p className="preserve">{i.data.message}</p><div className="invitation-facts"><span><Clock size={15}/>Respond by {date(i.data.responseDeadline)}</span><span>{i.data.revisions} revision rounds</span><span>Start {date(i.data.start)}</span></div><details><summary>Scope & rights<ChevronDown size={15}/></summary><Review data={{ ...c, ...i.data }} keys={['description', 'contentType', 'platform', 'aspectRatio', 'duration', 'quantity', 'deadline', 'commercialUse', 'territory', 'usageDuration', 'rights']}/></details>{i.status === 'pending' && !expired && <div className="form-actions">{(creator ? ['accept', 'decline'] : ['withdraw']).map(action => <Button key={action} secondary={action !== 'accept'} disabled={busy} onClick={async () => {
+                                if (!confirm(action === 'accept' ? 'Accept this scope, budget and rights agreement?' : action + ' this invitation?'))
+                                    return;
+                                setBusy(true);
+                                try {
+                                    await api('invitation/' + i.id, { action });
+                                    refresh();
+                                    toast('Invitation ' + (action === 'accept' ? 'accepted' : action === 'decline' ? 'declined' : 'withdrawn') + '.');
+                                }
+                                catch (e: any) {
+                                    toast(e.message);
+                                }
+                                finally {
+                                    setBusy(false);
+                                }
+                            }}>{action === 'accept' ? 'Accept & start project' : action === 'decline' ? 'Decline' : 'Withdraw invitation'}{action === 'accept' && <ArrowUpRight size={16}/>}</Button>)}</div>}{i.status === 'accepted' && <a className="text-link" href={base + '/engagements'}>Open your projects<ArrowRight size={16}/></a>}</article>;
+            })}</div> : <Empty icon={Mail} title="A new connection is a brief away." description={creator ? 'Invitations from brands and agencies will appear here. Publish a complete profile so your skills can be discovered.' : 'Create a campaign, find a creator, and send a thoughtful invitation.'} action={!creator ? 'Create a campaign' : undefined} href={base + '/campaigns/new'}/>}</>;
+}
+function Engagements({ data, base }: any) { return <><PageTitle eyebrow="MAKE SOMETHING TOGETHER" title="Your projects." description="Messages, revisions, approvals and delivery, all in one place."/>{data.engagements.length ? <div className="campaign-grid">{data.engagements.map((e: any) => <a className="campaign-card" key={e.id} href={base + '/engagements/' + e.id}><div><Badge>{e.status}</Badge><ArrowUpRight size={20}/></div><h3>{e.data.title}</h3><p>{e.data.message}</p><footer><strong>{money(e.data.budget, e.data.currency)}</strong><span>Due {date(e.data.deadline)}</span></footer></a>)}</div> : <Empty icon={Briefcase} title="Your next collaboration will live here." description="A project workspace opens when a creator accepts an invitation." action="View invitations" href={base + '/invitations'}/>}</>; }
+function Workspace({ id, base }: any) {
+    const r = useResource('workspace/' + id);
+    const [message, setMessage] = useState(''), [deliverable, setDeliverable] = useState(''), [files, setFiles] = useState<string[]>([]), [busy, setBusy] = useState(false), [error, setError] = useState('');
+    const { toast } = useApp();
+    useEffect(() => {
+        let cleanup: (() => void) | null = null;
+        import('../lib/supabase').then(({ subscribeToWorkspaceEvents }) => {
+            cleanup = subscribeToWorkspaceEvents(id, () => {
+                r.refresh();
+            });
+        }).catch(() => {});
+        return () => { cleanup?.(); };
+    }, [id]);
+    if (r.loading && !r.data)
+        return <Loading />;
+    if (r.error)
+        return <ErrorBox message={r.error} retry={r.refresh}/>;
+    const e = r.data.engagement, creator = e.creator === r.data.viewer, events = r.data.events;
+    const submits = events.filter((ev: any) => ev.type === 'submit'), latest = submits[submits.length - 1];
+    const cancellation = events.filter((ev: any) => ev.type === 'request_cancel').at(-1);
+    const actions = e.status === 'cancellation requested' ? ['resume', ...(cancellation?.author !== r.data.viewer ? ['confirm_cancel'] : [])] : creator ? (e.status === 'accepted' ? ['start'] : ['in progress', 'changes requested'].includes(e.status) ? ['submit'] : e.status === 'approved' ? ['deliver'] : []) : ['submitted', 'resubmitted'].includes(e.status) ? ['approve', ...(e.revisions < e.data.revisions ? ['revise'] : [])] : e.status === 'delivered' ? ['complete'] : [];
+    const act = async (action: string) => {
+        if (['approve', 'deliver', 'complete', 'request_cancel', 'confirm_cancel'].includes(action) && !confirm(action === 'approve' ? 'Approve the latest submitted version?' : action === 'deliver' ? 'Deliver the approved files under the agreed scope and rights?' : action === 'request_cancel' ? 'Request cancellation? Your partner must confirm.' : action === 'confirm_cancel' ? 'Confirm cancellation of this project?' : 'Mark this project completed? This records delivery, not payment settlement.'))
+            return;
+        setBusy(true);
+        setError('');
+        try {
+            await api('workspace/' + id, { action, message, files, deliverable });
+            setMessage('');
+            setDeliverable('');
+            setFiles([]);
+            r.refresh();
+            toast('Project updated.');
+        }
+        catch (e: any) {
+            setError(e.message);
+        }
+        finally {
+            setBusy(false);
+        }
+    };
+    const labels: Obj = { start: 'Start production', submit: submits.length ? 'Submit revised version' : 'Submit deliverables', approve: 'Approve latest version', revise: 'Request changes', deliver: 'Deliver approved files', complete: 'Complete project', request_cancel: 'Request cancellation', confirm_cancel: 'Confirm cancellation', resume: 'Continue project' };
+    return <><a className="back-link" href={base + '/engagements'}><ArrowLeft size={16}/>All projects</a><PageTitle eyebrow="SHARED PROJECT WORKSPACE" title={e.data.title} action={<Badge>{e.status}</Badge>}/><div className="project-progress">{['accepted', 'in progress', 'submitted', 'approved', 'delivered', 'completed'].map(s => <span key={s} className={e.status === s || (s === 'submitted' && ['resubmitted', 'changes requested'].includes(e.status)) ? 'active' : ''}>{s}</span>)}</div><div className="workspace-project-grid"><div><section className="panel"><div className="panel-heading"><h3>Conversation & activity</h3><span>{events.length} update{events.length !== 1 ? 's' : ''}</span></div>{events.length ? <div className="event-stream">{events.map((ev: any) => <article key={ev.id} className={'event ' + (ev.author === r.data.viewer ? 'own' : '')}><div><strong>{ev.author_name || 'Project participant'}</strong><Badge>{ev.type === 'submit' ? 'Version ' + (submits.findIndex((s: any) => s.id === ev.id) + 1) : ev.type}</Badge><span>{date(ev.created)}</span></div>{ev.data.deliverable && <h4 className="event-deliverable">{ev.data.deliverable}</h4>}{ev.data.message && <p className="preserve">{ev.data.message}</p>}{ev.data.files?.length > 0 && <div className="file-list">{ev.data.files.map((f: string, i: number) => <a className="file-link" key={f} href={'/api/files/' + f} target="_blank" rel="noopener noreferrer"><Download size={15}/>File {i + 1}</a>)}</div>}</article>)}</div> : <Empty icon={Mail} title="A shared space for a shared vision." description="Start the conversation and keep decisions close to the work."/>}<div className="composer">{creator && actions.includes('submit') && <div className="field"><label htmlFor="deliverable-name">Deliverable name *</label><input id="deliverable-name" value={deliverable} onChange={e => setDeliverable(e.target.value)} maxLength={200}/></div>}<label htmlFor="project-message">Message or submission notes</label><textarea id="project-message" value={message} onChange={e => setMessage(e.target.value)} rows={3} maxLength={10000}/><UploadField label={creator ? 'Attach files / deliverables' : 'Attach reference files'} value={files} multiple set={setFiles}/>{error && <ErrorBox message={error}/>}<div className="form-actions"><Button secondary disabled={busy || !message.trim()} onClick={() => act('message')}>Send message<Send size={15}/></Button>{actions.map(a => <Button key={a} secondary={a === 'revise'} disabled={busy} onClick={() => act(a)}>{labels[a]}<ArrowUpRight size={16}/></Button>)}</div>{!['completed', 'cancelled', 'cancellation requested'].includes(e.status) && <button className="danger-text" disabled={busy} onClick={() => act('request_cancel')}>Request project cancellation</button>}{e.revisions >= e.data.revisions && ['submitted', 'resubmitted'].includes(e.status) && !creator && <p className="micro">The agreed revision allowance has been used. Discuss any additional scope with your creator before proceeding.</p>}</div></section><ProjectTasks id={id} viewer={r.data.viewer} status={e.status}/><ProjectReview engagement={e} viewer={r.data.viewer}/></div><aside><section className="panel agreement"><span className="eyebrow">THE AGREED SCOPE</span><h3>Project agreement</h3><Review data={e.data} keys={['contentType', 'aspectRatio', 'quantity', 'duration', 'budget', 'currency', 'deadline', 'commercialUse', 'rights', 'territory', 'usageDuration']}/><div className="revision-meter"><strong>{e.revisions} / {e.data.revisions}</strong><span>Revision rounds requested</span></div><p className="micro">Delivery status does not represent payment settlement.</p></section>{latest && <section className="panel"><h3>{['approved', 'delivered', 'completed'].includes(e.status) ? 'Approved version' : 'Latest submission'}</h3><p>Version {submits.length} · {date(latest.created)}</p><div className="file-list">{latest.data.files.map((id: string, i: number) => <a className="file-link" key={id} href={'/api/files/' + id} target="_blank" rel="noopener noreferrer"><Download size={15}/>Download file {i + 1}</a>)}</div></section>}{e.data.assets?.length > 0 && <section className="panel"><h3>Brand reference assets</h3>{e.data.assets.map((id: string, i: number) => <a className="file-link" key={id} href={'/api/files/' + id} target="_blank" rel="noopener noreferrer"><FileText size={15}/>Reference {i + 1}</a>)}</section>}</aside></div></>;
+}
+function Notifications({ data, refresh }: any) {
+    const { toast } = useApp();
+    return <><PageTitle eyebrow="KEEP THE CONVERSATION CONNECTED" title="Your notifications." action={<Button secondary disabled={!data.notifications.some((n: any) => !n.read)} onClick={async () => {
+                try {
+                    await api('notifications', {});
+                    refresh();
+                    toast('All notifications marked read.');
+                }
+                catch (e: any) {
+                    toast(e.message);
+                }
+            }}><Check size={17}/>Mark all read</Button>}/>{data.notifications.length ? <div className="panel">{data.notifications.map((n: any) => <div className={'list-row ' + (!n.read ? 'unread-row' : '')} key={n.id}><Bell size={18}/><a href={n.href} onClick={() => { api('notifications', { id: n.id }).catch(() => { }); }}><strong>{n.title}</strong><p>{date(n.created)}</p></a>{!n.read && <button className="icon-btn" aria-label="Mark read" onClick={async () => {
+                        try {
+                            await api('notifications', { id: n.id });
+                            refresh();
+                        }
+                        catch (e: any) {
+                            toast(e.message);
+                        }
+                    }}><Check size={16}/></button>}<a href={n.href} aria-label="Open notification"><ArrowUpRight size={17}/></a></div>)}</div> : <Empty icon={Bell} title="You’re all caught up." description="Real invitation and project updates appear here as your collaborations progress."/>}</>;
+}
+function Verification({ data, refresh }: any) {
+    const [form, setForm] = useState<Obj>({ claim: '', description: '', files: [] }), [busy, setBusy] = useState(false), [error, setError] = useState('');
+    const { toast } = useApp();
+    return <><PageTitle eyebrow="TRUST WITH CONTEXT" title="Evidence behind your skills." description="Submit evidence for a specific capability. Only reviewed claims can become verified."/><div className="note"><Shield size={20}/>Evidence is private. Verification of a workflow or tool claim does not establish copyright ownership or commercial rights.</div><form className="form-panel" onSubmit={async (e) => {
+            e.preventDefault();
+            setBusy(true);
+            setError('');
+            try {
+                await api('evidence', form);
+                setForm({ claim: '', description: '', files: [] });
+                refresh();
+                toast('Evidence submitted for review.');
+            }
+            catch (e: any) {
+                setError(e.message);
+            }
+            finally {
+                setBusy(false);
+            }
+        }}><Fields fields={[["claim", "Specific capability / tool claim", "text", null, true], ["description", "Explain your evidence", "textarea", null, true]]} data={form} set={(k: string, v: any) => setForm({ ...form, [k]: v })}/><UploadField label="Private supporting files" value={form.files} multiple set={(v: any) => setForm({ ...form, files: v })}/>{error && <ErrorBox message={error}/>}<Button disabled={busy}>Submit evidence<ArrowUpRight size={17}/></Button></form>{data.evidence.length > 0 && <section className="panel"><h3>Your submissions</h3>{data.evidence.map((e: any) => <div className="list-row" key={e.id}><Shield size={20}/><div><strong>{e.data.claim}</strong><p>{e.data.description}</p>{e.data.review && <p>Review: {e.data.review}</p>}</div><Badge>{e.status}</Badge></div>)}</section>}</>;
+}
+function AccountSettings({ data, refresh }: any) {
+    const { toast, theme, setTheme, refreshMe } = useApp();
+    const [form, setForm] = useState<Obj>(data.account.data), [busy, setBusy] = useState(false), [error, setError] = useState('');
+    return <><PageTitle eyebrow="YOUR WORKSPACE, YOUR WAY" title="Account settings."/><form className="form-panel" onSubmit={async (e) => {
+            e.preventDefault();
+            setBusy(true);
+            setError('');
+            try {
+                await api('account', { ...form, role: data.account.role, terms: true });
+                refresh();
+                refreshMe();
+                toast('Account updated.');
+            }
+            catch (e: any) {
+                setError(e.message);
+            }
+            finally {
+                setBusy(false);
+            }
+        }}><h3>Profile & organization</h3><Fields fields={data.account.role === 'creator' ? [['name', 'Your name', 'text', null, true]] : [['name', 'Your name', 'text', null, true], ['organization', 'Organization name', 'text'], ['industry', 'Industry', 'select', INDUSTRIES], ['website', 'Website', 'url'], ['contactEmail', 'Business contact email', 'email'], ['country', 'Country', 'text'], ['currency', 'Default currency', 'select', ['INR', 'USD', 'EUR']], ['description', 'Organization overview', 'textarea'], ['goals', 'Creative goals', 'textarea']]} data={form} set={(k: string, v: any) => setForm({ ...form, [k]: v })}/>{data.account.role !== 'creator' && <UploadField label="Organization logo" value={form.logo} set={(v: any) => setForm({ ...form, logo: v })} accept="image/jpeg,image/png,image/webp"/>}<div className="account-email"><Mail size={17}/>{data.account.email}<Badge>{data.account.role}</Badge></div>{error && <ErrorBox message={error}/>}<Button disabled={busy}>Save changes<Check size={16}/></Button></form><section className="panel"><h3>Appearance</h3><p>Choose a visual perspective. Your choice is saved on this device.</p><div className="theme-grid">{THEMES.map((t, i) => <button className={theme === i ? 'selected' : ''} key={t} onClick={() => setTheme(i)}><span className={'swatch swatch-' + i}/>{t}{theme === i && <Check size={14}/>}</button>)}</div></section><section className="panel"><h3>Security & notifications</h3><p>Authentication is secured by Firebase. Manage your login credentials and connected single sign-on providers below.</p><p>Project and invitation notifications are delivered to your notification center.</p><div className="inline-actions"><Button secondary href="/forgot-password">Reset password<ArrowUpRight size={15}/></Button><Button secondary href="/app/notifications">Notification center<Bell size={16}/></Button></div></section><AccountExport /><section className="panel danger-panel"><h3>Delete account</h3><p>Deleting your CreaXa account permanently removes your creator profile, published campaigns, portfolio media, and project records. Complete active engagements first.</p><button className="danger-text" disabled={busy} onClick={async () => {
+            if (!confirm('Permanently delete your CreaXa account and its marketplace records?'))
+                return;
+            setBusy(true);
+            try {
+                await api('account', undefined, 'DELETE');
+                location.href = '/';
+            }
+            catch (e: any) {
+                setError(e.message);
+                toast(e.message);
+            }
+            finally {
+                setBusy(false);
+            }
+        }}>Delete my marketplace account<Trash2 size={16}/></button></section></>;
+}
+function Admin() {
+    const r = useResource('admin');
+    const { toast } = useApp();
+    const [reason, setReason] = useState('');
+    if (r.loading)
+        return <Loading />;
+    if (r.error)
+        return <ErrorBox message={r.error}/>;
+    return <><PageTitle eyebrow="PROTECTED MODERATOR TOOLS" title="Evidence & support."/><div className="field"><label htmlFor="review-reason">Review reason</label><textarea id="review-reason" value={reason} onChange={e => setReason(e.target.value)}/></div>{r.data.evidence.map((e: any) => <section className="panel" key={e.id}><Badge>{e.status}</Badge><h3>{e.data.claim}</h3><p>{e.data.description}</p><div className="file-list">{e.data.files.map((id: string, i: number) => <a key={id} href={'/api/files/' + id} target="_blank" rel="noopener noreferrer" className="file-link">Evidence {i + 1}<Download size={14}/></a>)}</div><div className="form-actions">{['under review', 'verified', 'rejected'].map(status => <Button secondary key={status} disabled={reason.length < 5} onClick={async () => {
+                    try {
+                        await api('admin', { id: e.id, status, reason });
+                        r.refresh();
+                        toast('Review recorded.');
+                    }
+                    catch (e: any) {
+                        toast(e.message);
+                    }
+                }}>{status}</Button>)}</div></section>)}{r.data.support.map((s: any) => <section className="panel" key={s.id}><h3>{s.data.subject}</h3><p className="preserve">{s.data.message}</p><p>{date(s.created)}</p></section>)}</>;
+}
+function ContactForm() {
+    const { me, toast } = useApp();
+    const [subject, setSubject] = useState(''), [message, setMessage] = useState(''), [busy, setBusy] = useState(false), [error, setError] = useState('');
+    return me?.account ? <form className="form-panel" onSubmit={async (e) => {
+            e.preventDefault();
+            setBusy(true);
+            setError('');
+            try {
+                await api('support', { subject, message });
+                setSubject('');
+                setMessage('');
+                toast('Your enquiry has been received.');
+            }
+            catch (e: any) {
+                setError(e.message);
+            }
+            finally {
+                setBusy(false);
+            }
+        }}><Fields fields={[["subject", "Subject", "text", null, true], ["message", "How can we help?", "textarea", null, true]]} data={{ subject, message }} set={(k: string, v: any) => k === 'subject' ? setSubject(v) : setMessage(v)}/>{error && <ErrorBox message={error}/>}<Button disabled={busy}>Send enquiry<Send size={16}/></Button></form> : <div className="panel"><h3>A conversation starts with a connection.</h3><p>Sign in and set up your account to send a private support enquiry.</p><Button href="/login">Sign in to contact us<ArrowUpRight size={17}/></Button></div>;
+}
+const INFO: Record<string, Obj> = {
+    '/about': { tag: 'THE PEOPLE BEHIND THE POSSIBILITIES', title: 'Built around creative people.', desc: 'AI opens new creative possibilities. The right collaboration turns those possibilities into work that matters.', sections: [['Our purpose', 'CreaXa connects brands and agencies with creators who work with generative tools. We put capability, process and creative context alongside the final image or film.'], ['Clarity makes better work', 'Every campaign starts with a documented brief. Every collaboration keeps its scope, files, revisions and delivery connected.'], ['Trust is specific', 'Creative capabilities start as self-declared claims. Evidence and review are clearly distinguished. No automatic verification badge replaces the context behind the work.']] },
+    '/for-brands': { tag: 'FOR BRANDS & AGENCIES', title: 'Your ambition. Their perspective.', desc: 'Find AI creative partners through capabilities, original work and a brief that means business.', sections: [['Start with a clear vision', 'Define content type, creative style, platform, aspect ratio, language and deliverables. Set a real budget, deadline, revision allowance and intended usage.'], ['Find capability that fits', 'Search creator tools, specialization, industries and supported formats. Campaign matching explains the underlying factors and respects required capabilities.'], ['Keep the whole process together', 'Send an invitation with clear terms. When accepted, a shared workspace tracks messages, versioned files, revision requests, approval and delivery.']] },
+    '/for-creators': { tag: 'FOR ORIGINAL MINDS', title: 'Make your process part of your story.', desc: 'A place for the vision, tools and creative thinking behind your work.', sections: [['Publish your perspective', 'Build a profile with your specializations, toolkit, output formats, industries, rates and availability. Keep your capabilities accurate and current.'], ['Show more than the result', 'Add original image and video projects with tools, workflow, contribution and commercial-use declarations. Private evidence stays separate from public media.'], ['Choose your collaborations', 'Review campaign invitations, agree the scope and work alongside your client through submission, revision, approval and final delivery.']] },
+    '/how-it-works': { tag: 'FROM FIRST SPARK TO FINAL FRAME', title: 'An idea. A connection. A creation.', desc: 'A considered process for brands, agencies and AI creators.', sections: [['01 / Define the brief', 'Brands and agencies set the campaign objective, creative requirements, budget, timeline, deliverables and commercial-use expectations.'], ['02 / Discover your partner', 'Browse published profiles and original work. Refine by style, tools, format, industry and availability, or view explained campaign compatibility.'], ['03 / Agree the scope', 'Invite a creator with a proposed budget, start date, revision allowance and rights terms. Review and acceptance create the shared project agreement.'], ['04 / Create and refine', 'Keep messages and reference files in one workspace. Creators submit versioned deliverables; brands approve or request changes within the agreed allowance.'], ['05 / Deliver with clarity', 'After approval, the creator delivers the final version and the brand completes the workspace. Delivery and payment settlement remain separate.']] },
+    '/privacy': { tag: 'YOUR DATA, WITH CONTEXT', title: 'Privacy policy.', desc: 'Last updated 13 October 2026.', sections: [['Account information', 'CreaXa authenticates users via Firebase Authentication (supporting Email, Google, and Microsoft identity). Marketplace account details, role, profile and organization information are securely stored in the Supabase PostgreSQL database. Passwords are never received or stored directly by CreaXa application servers.'], ['Public and private content', 'Published creator profiles and portfolio media are visible across the creative marketplace directory. Campaigns, invitations, project files and conversations are accessible only to their authorized owners and participants. Verification evidence remains strictly private to its owner and authorized moderators.'], ['Storage and providers', 'Structured marketplace records are stored in Supabase PostgreSQL, and uploaded media files use Cloudflare R2 object storage. Firebase provides authentication services. A configured AI brief assistant receives only the creative idea you explicitly submit to it; automated AI processing of private data does not occur.'], ['Purpose and retention', 'Data supports creator discovery, campaign collaboration, capability review and support enquiries. Records remain while your account exists. You can delete unpublished portfolio projects and remove your marketplace account from Settings after completing active engagements. Project records shared with collaborators are also removed by account deletion.'], ['Device preferences', 'The chosen visual theme is stored in your browser’s local storage. This preference contains no project or profile data. No advertising tracker is included in the application.'], ['Requests and questions', 'Use the signed-in Contact form to send a privacy enquiry. This policy describes the current application. The operator must review hosting-provider terms and any additional integrations before opening broader commercial access.']] },
+    '/terms': { tag: 'CLEAR EXPECTATIONS, BETTER COLLABORATIONS', title: 'Terms of use.', desc: 'Last updated 13 October 2026.', sections: [['Marketplace participation', 'Provide accurate account, capability, portfolio and campaign information. Upload only content you are authorized to share and display. Do not impersonate others, misrepresent evidence or submit unlawful, abusive or infringing material.'], ['Scope and agreements', 'Brands, agencies and creators are responsible for agreeing price, deliverables, schedule, revisions, confidentiality, attribution and rights. An accepted invitation stores the agreed project scope. Discuss additional work and revised terms before exceeding that scope.'], ['Commercial and intellectual-property rights', 'AI-generated content is not automatically free of third-party restrictions. Participants must check tool/model terms, source assets, likeness permissions and intended commercial usage. A rights request in a campaign does not by itself transfer ownership or grant a license.'], ['Capabilities and verification', 'Unreviewed profile information is self-declared. Evidence submitted, under review, verified and rejected are distinct states. Verification refers only to the reviewed claim and does not certify copyright ownership or guarantee a project outcome.'], ['Payments and delivery', 'CreaXa does not currently collect payments, hold escrow or settle invoices. Participants arrange payment directly. Submitted, approved, delivered and completed are creative-workflow states and do not prove payment settlement.'], ['Account security and removal', 'Sign-in is managed by Firebase Authentication. Keep your account credentials and OAuth providers secure. Marketplace account deletion is available in Settings after active engagements are completed and removes associated marketplace records.'], ['Disputes and support', 'Use the Contact form for support, abuse or rights-related enquiries. Project participants remain responsible for their agreements and disputes. Before wider commercial release, the operator must finalize business identity, applicable governing terms and operational support arrangements.']] }
+};
+function Info({ path }: any) {
+    if (path === '/faq')
+        return <div className="page info-page"><span className="eyebrow">GOOD QUESTIONS. CLEAR ANSWERS.</span><h1>A little more <em>clarity.</em></h1><FaqList /></div>;
+    if (path === '/contact')
+        return <div className="page info-page"><span className="eyebrow">LET’S KEEP THE CONVERSATION OPEN</span><h1>How can we <em>help?</em></h1><p className="large-copy">Account questions, creative-workflow issues, or a concern about published content. Send a private enquiry.</p><ContactForm /></div>;
+    const info = INFO[path];
+    if (!info)
+        return <div className="page"><Empty title="This page couldn’t be found." description="Explore the creative directory or return to the homepage." action="Back to CreaXa" href="/"/></div>;
+    return <div className="page info-page"><span className="eyebrow">{info.tag}</span><h1>{info.title}</h1><p className="large-copy">{info.desc}</p>{info.sections.map(([h, p]: any) => <section key={h}><h2>{h}</h2><p>{p}</p></section>)}{!['/privacy', '/terms'].includes(path) && <div className="info-cta"><Button href={path === '/for-creators' ? '/signup' : '/app/brand/campaigns/new'}>{path === '/for-creators' ? 'Publish your perspective' : 'Start a campaign'}<ArrowUpRight size={18}/></Button><Button secondary href="/discover">Discover creators<ArrowUpRight size={18}/></Button></div>}</div>;
+}
+
