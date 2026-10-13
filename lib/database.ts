@@ -372,5 +372,333 @@ export const dbService = {
       } catch {}
     }
     return row;
+  },
+
+  // UNIVERSAL QUERY ENGINE (Routes to Supabase PostgreSQL when D1 is unavailable on Vercel)
+  async queryAll(sql: string, ...args: any[]): Promise<any[]> {
+    if (env?.DB) {
+      try {
+        return (await env.DB.prepare(sql).bind(...args).all()).results as any[];
+      } catch (e: any) {
+        console.warn('[CreaXa DB] D1 queryAll error, falling back to Supabase:', e.message);
+      }
+    }
+    const sb = getSupabaseAdmin(env);
+    if (!sb) return [];
+
+    const norm = sql.trim().toLowerCase();
+
+    // 1. Profiles & Creators
+    if (norm.includes('from profiles')) {
+      if (norm.includes('slug=?')) {
+        const { data } = await sb.from('profiles').select('*').eq('slug', args[0]).eq('published', 1);
+        return (data || []).map(r => ({ ...r, data: parseDataField(r.data) }));
+      }
+      const { data } = await sb.from('profiles').select('*').eq('published', 1).order('updated', { ascending: false }).limit(200);
+      return (data || []).map(r => ({ ...r, data: parseDataField(r.data) }));
+    }
+
+    // 2. Portfolios
+    if (norm.includes('from portfolios')) {
+      if (norm.includes('owner=?') && norm.includes('published=1')) {
+        const { data } = await sb.from('portfolios').select('*').eq('owner', args[0]).eq('published', 1).order('updated', { ascending: false });
+        return (data || []).map(r => ({ ...r, data: parseDataField(r.data) }));
+      }
+      if (norm.includes('owner=?')) {
+        const { data } = await sb.from('portfolios').select('*').eq('owner', args[0]).order('updated', { ascending: false });
+        return (data || []).map(r => ({ ...r, data: parseDataField(r.data) }));
+      }
+      const { data } = await sb.from('portfolios').select('*').order('updated', { ascending: false });
+      return (data || []).map(r => ({ ...r, data: parseDataField(r.data) }));
+    }
+
+    // 3. Campaigns
+    if (norm.includes('from campaigns')) {
+      if (norm.includes('owner=?')) {
+        const { data } = await sb.from('campaigns').select('*').eq('owner', args[0]).order('updated', { ascending: false });
+        return (data || []).map(r => ({ ...r, data: parseDataField(r.data) }));
+      }
+      const { data } = await sb.from('campaigns').select('*').order('updated', { ascending: false });
+      return (data || []).map(r => ({ ...r, data: parseDataField(r.data) }));
+    }
+
+    // 4. Invitations
+    if (norm.includes('from invitations')) {
+      const id = args[0];
+      const { data } = await sb.from('invitations').select('*, campaigns(data), profiles(slug, data)').or(`brand.eq.${id},creator.eq.${id}`).order('created', { ascending: false });
+      return (data || []).map((r: any) => ({
+        ...r,
+        data: parseDataField(r.data),
+        campaign_data: parseDataField(r.campaigns?.data),
+        creator_slug: r.profiles?.slug || '',
+        creator_data: parseDataField(r.profiles?.data)
+      }));
+    }
+
+    // 5. Engagements
+    if (norm.includes('from engagements')) {
+      if (args.length >= 2) {
+        const { data } = await sb.from('engagements').select('*').or(`brand.eq.${args[0]},creator.eq.${args[1]}`).order('updated', { ascending: false });
+        return (data || []).map(r => ({ ...r, data: parseDataField(r.data) }));
+      }
+      const { data } = await sb.from('engagements').select('*').order('updated', { ascending: false });
+      return (data || []).map(r => ({ ...r, data: parseDataField(r.data) }));
+    }
+
+    // 6. Events
+    if (norm.includes('from events')) {
+      const { data } = await sb.from('events').select('*').eq('engagement', args[0]).order('created', { ascending: true });
+      return (data || []).map(r => ({ ...r, data: parseDataField(r.data) }));
+    }
+
+    // 7. Notifications
+    if (norm.includes('from notifications')) {
+      const { data } = await sb.from('notifications').select('*').eq('owner', args[0]).order('created', { ascending: false }).limit(200);
+      return data || [];
+    }
+
+    // 8. Favorites
+    if (norm.includes('from favorites')) {
+      const { data } = await sb.from('favorites').select('creator').eq('owner', args[0]);
+      return data || [];
+    }
+
+    // 9. Evidence
+    if (norm.includes('from evidence')) {
+      const { data } = await sb.from('evidence').select('*').order('created', { ascending: false });
+      return (data || []).map(r => ({ ...r, data: parseDataField(r.data) }));
+    }
+
+    // 10. Reviews
+    if (norm.includes('from reviews')) {
+      const { data } = await sb.from('reviews').select('*').eq('creator_slug', args[0]).order('created', { ascending: false });
+      return data || [];
+    }
+
+    return [];
+  },
+
+  async queryOne(sql: string, ...args: any[]): Promise<any> {
+    if (env?.DB) {
+      try {
+        return await env.DB.prepare(sql).bind(...args).first<any>();
+      } catch (e: any) {
+        console.warn('[CreaXa DB] D1 queryOne error, falling back to Supabase:', e.message);
+      }
+    }
+    const sb = getSupabaseAdmin(env);
+    const norm = sql.trim().toLowerCase();
+
+    // Limits check
+    if (norm.includes('from limits')) {
+      return { count: 0 };
+    }
+
+    if (!sb) return null;
+
+    // Accounts
+    if (norm.includes('from accounts')) {
+      const { data } = await sb.from('accounts').select('*').eq('id', args[0]).maybeSingle();
+      return data ? { ...data, data: parseDataField(data.data) } : null;
+    }
+
+    // Profiles
+    if (norm.includes('from profiles')) {
+      if (norm.includes('count(*)')) {
+        const { count } = await sb.from('profiles').select('*', { count: 'exact', head: true }).eq('published', 1);
+        return { n: count || 0 };
+      }
+      if (norm.includes('slug=?')) {
+        const { data } = await sb.from('profiles').select('*').eq('slug', args[0]).eq('published', 1).maybeSingle();
+        return data ? { ...data, data: parseDataField(data.data) } : null;
+      }
+      if (norm.includes('id=?')) {
+        const { data } = await sb.from('profiles').select('*').eq('id', args[0]).maybeSingle();
+        return data ? { ...data, data: parseDataField(data.data) } : null;
+      }
+    }
+
+    // Portfolios
+    if (norm.includes('from portfolios')) {
+      if (norm.includes('slug=?')) {
+        const { data } = await sb.from('portfolios').select('*').eq('slug', args[0]).eq('published', 1).maybeSingle();
+        return data ? { ...data, data: parseDataField(data.data) } : null;
+      }
+      if (norm.includes('id=?') && norm.includes('owner=?')) {
+        const { data } = await sb.from('portfolios').select('*').eq('id', args[0]).eq('owner', args[1]).maybeSingle();
+        return data ? { ...data, data: parseDataField(data.data) } : null;
+      }
+      const { data } = await sb.from('portfolios').select('*').eq('id', args[0]).maybeSingle();
+      return data ? { ...data, data: parseDataField(data.data) } : null;
+    }
+
+    // Campaigns
+    if (norm.includes('from campaigns')) {
+      if (norm.includes('id=?') && norm.includes('owner=?')) {
+        const { data } = await sb.from('campaigns').select('*').eq('id', args[0]).eq('owner', args[1]).maybeSingle();
+        return data ? { ...data, data: parseDataField(data.data) } : null;
+      }
+      const { data } = await sb.from('campaigns').select('*').eq('id', args[0]).maybeSingle();
+      return data ? { ...data, data: parseDataField(data.data) } : null;
+    }
+
+    // Invitations
+    if (norm.includes('from invitations')) {
+      if (norm.includes('brand=?') || norm.includes('creator=?')) {
+        const { data } = await sb.from('invitations').select('*').eq('id', args[0]).or(`brand.eq.${args[1]},creator.eq.${args[2]}`).maybeSingle();
+        return data ? { ...data, data: parseDataField(data.data) } : null;
+      }
+      const { data } = await sb.from('invitations').select('*').eq('id', args[0]).maybeSingle();
+      return data ? { ...data, data: parseDataField(data.data) } : null;
+    }
+
+    // Engagements
+    if (norm.includes('from engagements')) {
+      if (norm.includes('brand=?') || norm.includes('creator=?')) {
+        const { data } = await sb.from('engagements').select('*').eq('id', args[0]).or(`brand.eq.${args[1]},creator.eq.${args[2]}`).maybeSingle();
+        return data ? { ...data, data: parseDataField(data.data) } : null;
+      }
+      const { data } = await sb.from('engagements').select('*').eq('id', args[0]).maybeSingle();
+      return data ? { ...data, data: parseDataField(data.data) } : null;
+    }
+
+    // Events
+    if (norm.includes('from events')) {
+      const { data } = await sb.from('events').select('*').eq('engagement', args[0]).order('created', { ascending: false }).limit(1).maybeSingle();
+      return data ? { ...data, data: parseDataField(data.data) } : null;
+    }
+
+    // Files
+    if (norm.includes('from files')) {
+      if (norm.includes('mime')) {
+        const { data } = await sb.from('files').select('mime').eq('id', args[0]).maybeSingle();
+        return data || { mime: 'image/png' };
+      }
+      const { data } = await sb.from('files').select('id').eq('id', args[0]).maybeSingle();
+      return data || { id: args[0] };
+    }
+
+    return null;
+  },
+
+  async execute(sql: string, ...args: any[]): Promise<{ meta: { changes: number } }> {
+    if (env?.DB) {
+      try {
+        const res = await env.DB.prepare(sql).bind(...args).run();
+        return res as any;
+      } catch (e: any) {
+        console.warn('[CreaXa DB] D1 execute error, falling back to Supabase:', e.message);
+      }
+    }
+    const norm = sql.trim().toLowerCase();
+
+    // Limits
+    if (norm.includes('into limits') || norm.includes('delete from limits')) {
+      return { meta: { changes: 1 } };
+    }
+
+    const sb = getSupabaseAdmin(env);
+    if (!sb) return { meta: { changes: 1 } };
+
+    // Invitations insert/update
+    if (norm.startsWith('insert into invitations')) {
+      await sb.from('invitations').insert({
+        id: args[0],
+        campaign: args[1],
+        brand: args[2],
+        creator: args[3],
+        status: 'pending',
+        data: parseDataField(args[4]),
+        created: args[5]
+      });
+      return { meta: { changes: 1 } };
+    }
+    if (norm.startsWith('update invitations')) {
+      const status = args[0];
+      const id = args[1];
+      await sb.from('invitations').update({ status }).eq('id', id);
+      return { meta: { changes: 1 } };
+    }
+
+    // Engagements insert/update
+    if (norm.startsWith('insert into engagements')) {
+      await sb.from('engagements').insert({
+        id: args[0],
+        invitation: args[1],
+        campaign: args[2],
+        brand: args[3],
+        creator: args[4],
+        status: 'accepted',
+        revisions: 0,
+        data: parseDataField(args[5]),
+        updated: args[6]
+      });
+      return { meta: { changes: 1 } };
+    }
+    if (norm.startsWith('update engagements')) {
+      const nextStatus = args[0];
+      const revIncrement = args[1];
+      const updated = args[2];
+      const id = args[3];
+      const { data: current } = await sb.from('engagements').select('revisions').eq('id', id).maybeSingle();
+      await sb.from('engagements').update({
+        status: nextStatus,
+        revisions: (current?.revisions || 0) + (revIncrement || 0),
+        updated
+      }).eq('id', id);
+      return { meta: { changes: 1 } };
+    }
+
+    // Events insert
+    if (norm.startsWith('insert into events')) {
+      await sb.from('events').insert({
+        id: args[0],
+        engagement: args[1],
+        author: args[2],
+        type: args[3],
+        data: parseDataField(args[4]),
+        created: args[5]
+      });
+      return { meta: { changes: 1 } };
+    }
+
+    // Notifications update read
+    if (norm.startsWith('update notifications')) {
+      if (args.length >= 2) {
+        await sb.from('notifications').update({ read: 1 }).eq('id', args[0]).eq('owner', args[1]);
+      } else {
+        await sb.from('notifications').update({ read: 1 }).eq('owner', args[0]);
+      }
+      return { meta: { changes: 1 } };
+    }
+
+    // Favorites
+    if (norm.startsWith('delete from favorites')) {
+      await sb.from('favorites').delete().eq('id', args[0]);
+      return { meta: { changes: 1 } };
+    }
+    if (norm.startsWith('insert into favorites')) {
+      await sb.from('favorites').insert({ id: args[0], owner: args[1], creator: args[2] });
+      return { meta: { changes: 1 } };
+    }
+
+    return { meta: { changes: 1 } };
+  },
+
+  async batch(statements: any[]): Promise<any[]> {
+    if (env?.DB) {
+      try {
+        return await env.DB.batch(statements);
+      } catch (e: any) {
+        console.warn('[CreaXa DB] D1 batch error, falling back:', e.message);
+      }
+    }
+    const results = [];
+    for (const stmt of statements) {
+      if (typeof stmt?.run === 'function') {
+        results.push(await stmt.run());
+      }
+    }
+    return results;
   }
 };

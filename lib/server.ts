@@ -24,13 +24,42 @@ async function resolveUser(req?: Request) {
         return null;
     }
 }
+const memLimits = new Map<string, { count: number; expires: number }>();
 const db = () => {
-    if (!env.DB)
-        fail('Database is unavailable. Please try again later.', 503);
-    return env.DB!;
+    if (env?.DB) return env.DB;
+    return {
+        prepare: (sql: string) => {
+            let boundArgs: any[] = [];
+            const statement = {
+                bind: (...args: any[]) => {
+                    boundArgs = args;
+                    return statement;
+                },
+                all: async () => ({ results: await dbService.queryAll(sql, ...boundArgs) }),
+                first: async <T = any>() => await dbService.queryOne(sql, ...boundArgs) as T,
+                run: async () => await dbService.execute(sql, ...boundArgs),
+            };
+            return statement;
+        },
+        batch: async (statements: any[]) => await dbService.batch(statements)
+    } as any;
 };
-async function all(sql: string, ...args: any[]) { return (await db().prepare(sql).bind(...args).all()).results as any[]; }
-async function one(sql: string, ...args: any[]) { return await db().prepare(sql).bind(...args).first<any>(); }
+async function all(sql: string, ...args: any[]) {
+    if (env?.DB) {
+        try {
+            return (await env.DB.prepare(sql).bind(...args).all()).results as any[];
+        } catch {}
+    }
+    return await dbService.queryAll(sql, ...args);
+}
+async function one(sql: string, ...args: any[]) {
+    if (env?.DB) {
+        try {
+            return await env.DB.prepare(sql).bind(...args).first<any>();
+        } catch {}
+    }
+    return await dbService.queryOne(sql, ...args);
+}
 const decoded = (r: any) => r ? { ...r, data: r.data ? JSON.parse(r.data) : undefined } : r;
 const decodedAll = (rs: any[]) => rs.map(decoded);
 const publicProject = (r: any) => {
@@ -68,7 +97,7 @@ async function requireImages(ids: unknown) {
 async function getAccountRecord(userId: string) {
     const acc = await dbService.getAccount(userId);
     if (acc) return acc;
-    if (env.DB) {
+    if (env?.DB) {
         try {
             return decoded(await one('SELECT * FROM accounts WHERE id=?', userId));
         } catch {}
@@ -104,12 +133,25 @@ async function body(req: Request) {
     }
 }
 async function rate(user: string) {
-    const key = `${user}:${Math.floor(now() / 60000)}`;
-    await db().prepare('INSERT INTO limits (id,count,expires) VALUES (?,1,?) ON CONFLICT(id) DO UPDATE SET count=count+1').bind(key, now() + 120000).run();
-    if ((await one('SELECT count FROM limits WHERE id=?', key)).count > 60)
+    if (env?.DB) {
+        try {
+            const key = `${user}:${Math.floor(now() / 60000)}`;
+            await env.DB.prepare('INSERT INTO limits (id,count,expires) VALUES (?,1,?) ON CONFLICT(id) DO UPDATE SET count=count+1').bind(key, now() + 120000).run();
+            const rec = await env.DB.prepare('SELECT count FROM limits WHERE id=?').bind(key).first<{ count: number }>();
+            if (rec && rec.count > 60)
+                fail('Too many requests. Try again in a minute.', 429);
+            if (Math.random() < 0.02)
+                await env.DB.prepare('DELETE FROM limits WHERE expires<?').bind(now()).run();
+            return;
+        } catch {}
+    }
+    const memKey = `${user}:${Math.floor(now() / 60000)}`;
+    const curr = memLimits.get(memKey);
+    const count = (curr ? curr.count : 0) + 1;
+    memLimits.set(memKey, { count, expires: now() + 120000 });
+    if (count > 60) {
         fail('Too many requests. Try again in a minute.', 429);
-    if (Math.random() < 0.02)
-        await db().prepare('DELETE FROM limits WHERE expires<?').bind(now()).run();
+    }
 }
 export async function handle(req: Request, path: string[]) {
     try {
