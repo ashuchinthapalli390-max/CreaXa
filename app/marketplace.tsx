@@ -10,6 +10,7 @@ import { list, intersects } from '../lib/matching';
 import { AppSelect } from '../components/ui/app-select';
 import { AnimatedCheckbox } from '../components/ui/animated-checkbox';
 import { AnimatedAccordion } from '../components/ui/animated-accordion';
+import { AdminDashboard } from '../components/admin/admin-dashboard';
 type Obj = Record<string, any>;
 const Context = createContext<any>(null);
 const useApp = () => useContext(Context);
@@ -920,21 +921,11 @@ function AccountSettings({ data, refresh }: any) {
 function Admin() {
     const r = useResource('admin');
     const { toast } = useApp();
-    const [reason, setReason] = useState('');
     if (r.loading)
         return <Loading />;
     if (r.error)
-        return <ErrorBox message={r.error}/>;
-    return <><PageTitle eyebrow="PROTECTED MODERATOR TOOLS" title="Evidence & support."/><div className="field"><label htmlFor="review-reason">Review reason</label><textarea id="review-reason" value={reason} onChange={e => setReason(e.target.value)}/></div>{r.data.evidence.map((e: any) => <section className="panel" key={e.id}><Badge>{e.status}</Badge><h3>{e.data.claim}</h3><p>{e.data.description}</p><div className="file-list">{e.data.files.map((id: string, i: number) => <a key={id} href={'/api/files/' + id} target="_blank" rel="noopener noreferrer" className="file-link">Evidence {i + 1}<Download size={14}/></a>)}</div><div className="form-actions">{['under review', 'verified', 'rejected'].map(status => <Button secondary key={status} disabled={reason.length < 5} onClick={async () => {
-                    try {
-                        await api('admin', { id: e.id, status, reason });
-                        r.refresh();
-                        toast('Review recorded.');
-                    }
-                    catch (e: any) {
-                        toast(e.message);
-                    }
-                }}>{status}</Button>)}</div></section>)}{r.data.support.map((s: any) => <section className="panel" key={s.id}><h3>{s.data.subject}</h3><p className="preserve">{s.data.message}</p><p>{date(s.created)}</p></section>)}</>;
+        return <ErrorBox message={r.error} retry={r.refresh} />;
+    return <AdminDashboard data={r.data} onRefresh={r.refresh} toast={toast} />;
 }
 function ContactForm() {
     const { me, toast } = useApp();

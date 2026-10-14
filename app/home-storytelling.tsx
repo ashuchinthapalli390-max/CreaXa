@@ -23,6 +23,7 @@ import { ScrollSection } from '../components/motion/ScrollSection';
 import { ImageWipe } from '../components/motion/ImageWipe';
 import { WorkflowStory } from '../components/marketing/workflow-story';
 import { AnimatedCounter } from '../components/ui/animated-counter';
+import { CinematicIntro } from '../components/marketing/cinematic-intro';
 
 interface HomeStorytellingProps {
   creators: any[];
@@ -102,14 +103,16 @@ export function HomeStorytelling({ creators, creatorsLoading }: HomeStorytelling
 
   return (
     <div className="home-storytelling-root">
+      {/* Cinematic 5-Second 2D Opening Sequence (Session-aware / Skippable) */}
+      <CinematicIntro />
+
       {/* =========================================================================
           SECTION 01 — EDITORIAL HERO (NO THREE.JS / 100% 2D HIGH-PERFORMANCE)
           ========================================================================= */}
       <section className="editorial-hero" aria-label="Editorial Homepage Hero">
         <div className="hero-meta-bar">
-          <div className="live-pill">
-            <span className="live-dot" />
-            <span className="live-text">CREATIVE TALENT • LIVE MARKETPLACE</span>
+          <div className="editorial-meta-pill">
+            <span className="editorial-meta-tag">CREATIVE TALENT • CURATED DIRECTORY</span>
           </div>
           <span className="hero-coordinate">CX / 2026 EDITORIAL 01</span>
         </div>

@@ -59,7 +59,8 @@ html[data-theme='9']{--bg:#0d2526;--surface:#153133;--raised:#214044;--text:#e7f
   margin-bottom: 35px;
 }
 
-.live-pill {
+.live-pill,
+.editorial-meta-pill {
   display: inline-flex;
   align-items: center;
   gap: 10px;

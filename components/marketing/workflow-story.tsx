@@ -1,24 +1,13 @@
 'use client';
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Sparkles,
   CheckCircle2,
   Check,
-  Zap,
-  Cpu,
   Search,
   Send,
   ArrowRight,
-  ArrowUpRight,
-  Sliders,
-  Shield,
   Clock,
-  Layers,
-  RotateCcw,
-  Play,
-  Pause,
-  SlidersHorizontal,
-  FolderCheck,
   FileText
 } from 'lucide-react';
 
@@ -27,19 +16,15 @@ interface WorkflowStoryProps {
 }
 
 export function WorkflowStory({ creators }: WorkflowStoryProps) {
-  // Sequence 0 to 9 representing the 10 storyboard steps:
-  // 0: Typing
-  // 1: Analysis
-  // 2: Extraction
-  // 3: Validation / Verification
-  // 4: Brief Completion
-  // 5: Creator Search
-  // 6: Compatibility Scoring
-  // 7: Matching Creator Cards
-  // 8: Invitation Sending
-  // 9: Collaboration Progression
+  // 7 Streamlined Phases:
+  // 0: Concept Input (Typing)
+  // 1: Structured Brief (Extraction & Validation)
+  // 2: Creator Search (Discovery Search & Chips)
+  // 3: Capability Evaluation (Score Bars)
+  // 4: Creator Selection (Candidate Card Emphasis)
+  // 5: Invitation (Dispatch & Linked Brief)
+  // 6: Collaboration (Lifecycle Milestones: Invite → Accept → Submit → Revise → Approve → Deliver)
   const [currentStep, setCurrentStep] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(true);
   const [typedText, setTypedText] = useState('');
   const [isIntersecting, setIsIntersecting] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
@@ -56,16 +41,14 @@ export function WorkflowStory({ creators }: WorkflowStoryProps) {
       const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
       setPrefersReducedMotion(mediaQuery.matches);
       if (mediaQuery.matches) {
-        setCurrentStep(9);
+        setCurrentStep(6);
         setTypedText(fullPromptText);
-        setIsPlaying(false);
       }
       const listener = (e: MediaQueryListEvent) => {
         setPrefersReducedMotion(e.matches);
         if (e.matches) {
-          setCurrentStep(9);
+          setCurrentStep(6);
           setTypedText(fullPromptText);
-          setIsPlaying(false);
         }
       };
       mediaQuery.addEventListener('change', listener);
@@ -73,7 +56,7 @@ export function WorkflowStory({ creators }: WorkflowStoryProps) {
     }
   }, [fullPromptText]);
 
-  // Viewport intersection observer
+  // Viewport intersection observer (pause when offscreen)
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -89,22 +72,21 @@ export function WorkflowStory({ creators }: WorkflowStoryProps) {
     };
   }, []);
 
-  // Handle page visibility (pause when tab hidden)
+  // Handle page visibility (pause when browser tab hidden)
+  const [isTabActive, setIsTabActive] = useState(true);
   useEffect(() => {
     const handleVisibility = () => {
-      if (document.hidden) {
-        setIsPlaying(false);
-      } else if (isIntersecting && !prefersReducedMotion) {
-        setIsPlaying(true);
-      }
+      setIsTabActive(!document.hidden);
     };
     document.addEventListener('visibilitychange', handleVisibility);
     return () => document.removeEventListener('visibilitychange', handleVisibility);
-  }, [isIntersecting, prefersReducedMotion]);
+  }, []);
+
+  const shouldAnimate = isIntersecting && isTabActive && !prefersReducedMotion;
 
   // Typing animation for Step 0
   useEffect(() => {
-    if (currentStep !== 0 || !isPlaying || !isIntersecting || prefersReducedMotion) {
+    if (currentStep !== 0 || !shouldAnimate) {
       if (currentStep > 0) setTypedText(fullPromptText);
       return;
     }
@@ -117,7 +99,6 @@ export function WorkflowStory({ creators }: WorkflowStoryProps) {
         index++;
       } else {
         clearInterval(typingInterval);
-        // Advance to Step 1 after typing finishes
         timerRef.current = setTimeout(() => {
           setCurrentStep(1);
         }, 1200);
@@ -128,32 +109,29 @@ export function WorkflowStory({ creators }: WorkflowStoryProps) {
       clearInterval(typingInterval);
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [currentStep, isPlaying, isIntersecting, prefersReducedMotion, fullPromptText]);
+  }, [currentStep, shouldAnimate, fullPromptText]);
 
-  // Step advancement timer for Steps 1 through 9
+  // Step advancement timer for Steps 1 through 6
   useEffect(() => {
-    if (currentStep === 0 || !isPlaying || !isIntersecting || prefersReducedMotion) {
+    if (currentStep === 0 || !shouldAnimate) {
       return;
     }
 
     const stepDurations: Record<number, number> = {
-      1: 2200, // Analysis
-      2: 2600, // Extraction
-      3: 2200, // Verification visual
-      4: 2500, // Brief completion
-      5: 2200, // Creator search
-      6: 2800, // Compatibility scoring
-      7: 2800, // Matching creator cards
-      8: 2400, // Invitation preparation
-      9: 4500  // Collaboration progression (hold final)
+      1: 3000, // Structured brief
+      2: 2400, // Creator search
+      3: 3000, // Capability evaluation
+      4: 2800, // Creator selection
+      5: 2500, // Invitation dispatch
+      6: 4200  // Collaboration hold before looping back
     };
 
-    const duration = stepDurations[currentStep] || 2500;
+    const duration = stepDurations[currentStep] || 2800;
     timerRef.current = setTimeout(() => {
-      if (currentStep < 9) {
+      if (currentStep < 6) {
         setCurrentStep(prev => prev + 1);
       } else {
-        // Loop back after holding final state
+        // Continuous smooth loop with readable pause
         setCurrentStep(0);
       }
     }, duration);
@@ -161,7 +139,7 @@ export function WorkflowStory({ creators }: WorkflowStoryProps) {
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [currentStep, isPlaying, isIntersecting, prefersReducedMotion]);
+  }, [currentStep, shouldAnimate]);
 
   const jumpToPhase = (step: number) => {
     if (timerRef.current) clearTimeout(timerRef.current);
@@ -169,31 +147,17 @@ export function WorkflowStory({ creators }: WorkflowStoryProps) {
     if (step > 0) setTypedText(fullPromptText);
   };
 
-  const togglePlay = () => {
-    setIsPlaying(!isPlaying);
-  };
-
-  const restart = () => {
-    if (timerRef.current) clearTimeout(timerRef.current);
-    setCurrentStep(0);
-    setTypedText('');
-    setIsPlaying(true);
-  };
-
   const stepLabels = [
-    'Concept Conception',
-    'AI Input Analysis',
-    'Requirement Extraction',
-    'Format Validation',
+    'Concept Input',
     'Structured Brief',
-    'Creator Discovery',
-    'Compatibility Evaluation',
-    'Ranked Creator Match',
+    'Creator Search',
+    'Capability Evaluation',
+    'Creator Selection',
     'Invitation Dispatch',
     'Collaboration Lifecycle'
   ];
 
-  // Primary creator candidate
+  // Primary creator candidate (authorized illustrative data)
   const featuredCreator = (creators && creators.length > 0)
     ? creators[0]
     : {
@@ -210,12 +174,12 @@ export function WorkflowStory({ creators }: WorkflowStoryProps) {
           revisions: 2
         },
         slug: 'alice-wonder',
-        verification: 'Verified portfolio claims'
+        verification: 'Verified claims'
       };
 
   return (
     <div className="workflow-story-container" ref={containerRef}>
-      {/* Editorial Chapter Navigation Bar */}
+      {/* Editorial Phase Navigation Bar */}
       <div className="story-nav-header">
         <div className="story-step-indicator">
           <span className="step-tag">WORKFLOW TIMELINE</span>
@@ -227,52 +191,31 @@ export function WorkflowStory({ creators }: WorkflowStoryProps) {
         <div className="story-chapter-pills">
           <button
             type="button"
-            className={`chapter-pill ${currentStep <= 2 ? 'active' : ''}`}
+            className={`chapter-pill ${currentStep === 0 ? 'active' : ''}`}
             onClick={() => jumpToPhase(0)}
           >
-            01. Ideation & Specs
+            01. Concept
           </button>
           <button
             type="button"
-            className={`chapter-pill ${currentStep === 3 || currentStep === 4 ? 'active' : ''}`}
-            onClick={() => jumpToPhase(4)}
+            className={`chapter-pill ${currentStep === 1 ? 'active' : ''}`}
+            onClick={() => jumpToPhase(1)}
           >
             02. Structured Brief
           </button>
           <button
             type="button"
-            className={`chapter-pill ${currentStep >= 5 && currentStep <= 7 ? 'active' : ''}`}
-            onClick={() => jumpToPhase(7)}
+            className={`chapter-pill ${currentStep >= 2 && currentStep <= 4 ? 'active' : ''}`}
+            onClick={() => jumpToPhase(4)}
           >
             03. Talent Match
           </button>
           <button
             type="button"
-            className={`chapter-pill ${currentStep >= 8 ? 'active' : ''}`}
-            onClick={() => jumpToPhase(9)}
+            className={`chapter-pill ${currentStep >= 5 ? 'active' : ''}`}
+            onClick={() => jumpToPhase(6)}
           >
             04. Delivery Lifecycle
-          </button>
-        </div>
-
-        <div className="story-controls">
-          <button
-            type="button"
-            className="control-icon-btn"
-            onClick={togglePlay}
-            aria-label={isPlaying ? 'Pause animation' : 'Play animation'}
-            title={isPlaying ? 'Pause' : 'Play'}
-          >
-            {isPlaying ? <Pause size={14} /> : <Play size={14} />}
-          </button>
-          <button
-            type="button"
-            className="control-icon-btn"
-            onClick={restart}
-            aria-label="Restart workflow sequence"
-            title="Restart"
-          >
-            <RotateCcw size={14} />
           </button>
         </div>
       </div>
@@ -280,19 +223,17 @@ export function WorkflowStory({ creators }: WorkflowStoryProps) {
       {/* Main Interactive Stage */}
       <div className="workflow-stage">
         {/* =========================================================================
-            PANEL 1: CREATIVE INPUT & SPECIFICATION (Sequences 0 - 4)
+            PANEL 1: CREATIVE INPUT & SPECIFICATION (Phases 0 - 1)
             ========================================================================= */}
-        <div className={`stage-panel input-panel ${currentStep >= 4 ? 'condensed' : ''}`}>
+        <div className={`stage-panel input-panel ${currentStep >= 2 ? 'condensed' : ''}`}>
           <div className="panel-topbar">
             <div className="topbar-left">
               <span className="panel-number">01</span>
               <h4>Creative Conception & Extraction</h4>
             </div>
-            <span className={`panel-status-pill ${currentStep >= 3 ? 'verified' : currentStep >= 1 ? 'analyzing' : 'typing'}`}>
-              {currentStep === 0 && 'Typing idea…'}
-              {currentStep === 1 && 'Analyzing syntax…'}
-              {currentStep === 2 && 'Extracting parameters…'}
-              {currentStep >= 3 && 'Parameters validated'}
+            <span className={`panel-status-pill ${currentStep >= 1 ? 'verified' : 'typing'}`}>
+              {currentStep === 0 && 'Typing concept…'}
+              {currentStep >= 1 && 'Parameters structured'}
             </span>
           </div>
 
@@ -319,137 +260,167 @@ export function WorkflowStory({ creators }: WorkflowStoryProps) {
             )}
           </div>
 
-          {/* Extracted Fields (Steps 2 - 4) */}
-          <div className={`extracted-fields-grid ${currentStep >= 2 ? 'visible' : ''}`}>
-            <div className={`field-spec-cell ${currentStep >= 2 ? 'resolved' : ''}`}>
-              <span className="spec-k">Content Type</span>
-              <strong className="spec-v">AI Video (Short-form)</strong>
-              {currentStep >= 3 && <Check size={12} className="spec-check" />}
+          {/* Structured Parameters Grid (Phase 1) */}
+          <div className={`extracted-params-grid ${currentStep >= 1 ? 'revealed' : ''}`}>
+            <div className="param-item">
+              <span className="param-label">CONTENT TYPE</span>
+              <div className="param-value-row">
+                <strong>AI Video & Animation</strong>
+                {currentStep >= 1 && <Check size={12} className="param-check" />}
+              </div>
             </div>
-            <div className={`field-spec-cell ${currentStep >= 2 ? 'resolved' : ''}`}>
-              <span className="spec-k">Visual Style</span>
-              <strong className="spec-v">Cinematic & Haute Couture</strong>
-              {currentStep >= 3 && <Check size={12} className="spec-check" />}
+
+            <div className="param-item">
+              <span className="param-label">CREATIVE STYLE</span>
+              <div className="param-value-row">
+                <strong>Cinematic / Futuristic</strong>
+                {currentStep >= 1 && <Check size={12} className="param-check" />}
+              </div>
             </div>
-            <div className={`field-spec-cell ${currentStep >= 2 ? 'resolved' : ''}`}>
-              <span className="spec-k">Aspect Ratio</span>
-              <strong className="spec-v">9:16 Vertical (1080×1920)</strong>
-              {currentStep >= 3 && <Check size={12} className="spec-check" />}
+
+            <div className="param-item">
+              <span className="param-label">FORMAT & RATIO</span>
+              <div className="param-value-row">
+                <strong>9:16 Vertical (4K)</strong>
+                {currentStep >= 1 && <Check size={12} className="param-check" />}
+              </div>
             </div>
-            <div className={`field-spec-cell ${currentStep >= 2 ? 'resolved' : ''}`}>
-              <span className="spec-k">Required Tools</span>
-              <strong className="spec-v">Runway Gen-3 • Kling • ComfyUI</strong>
-              {currentStep >= 3 && <Check size={12} className="spec-check" />}
+
+            <div className="param-item">
+              <span className="param-label">COMMERCIAL USE</span>
+              <div className="param-value-row">
+                <strong>Full Brand License</strong>
+                {currentStep >= 1 && <Check size={12} className="param-check" />}
+              </div>
             </div>
-            <div className={`field-spec-cell ${currentStep >= 2 ? 'resolved' : ''}`}>
-              <span className="spec-k">Budget Range</span>
-              <strong className="spec-v">₹45,000 – ₹75,000</strong>
-              {currentStep >= 3 && <Check size={12} className="spec-check" />}
+
+            <div className="param-item">
+              <span className="param-label">TIMELINE</span>
+              <div className="param-value-row">
+                <strong>14 Days Production</strong>
+                {currentStep >= 1 && <Check size={12} className="param-check" />}
+              </div>
             </div>
-            <div className={`field-spec-cell ${currentStep >= 2 ? 'resolved' : ''}`}>
-              <span className="spec-k">Commercial Rights</span>
-              <strong className="spec-v">Worldwide Paid Social (Perpetual)</strong>
-              {currentStep >= 3 && <Check size={12} className="spec-check" />}
+
+            <div className="param-item">
+              <span className="param-label">BUDGET ESTIMATE</span>
+              <div className="param-value-row">
+                <strong>₹45,000 – ₹75,000</strong>
+                {currentStep >= 1 && <Check size={12} className="param-check" />}
+              </div>
             </div>
           </div>
 
-          {/* Verification Checklist (Steps 3 - 4) */}
-          {currentStep >= 3 && (
-            <div className="verification-audit-strip">
-              <div className="audit-item">
-                <CheckCircle2 size={13} className="audit-icon success" />
-                <span>Format Compatibility: 9:16 MP4 Confirmed</span>
-              </div>
-              <div className="audit-item">
-                <CheckCircle2 size={13} className="audit-icon success" />
-                <span>Commercial Usage: Explicit Terms Attached</span>
+          {/* Structured Brief Summary Bar (Phase 1+) */}
+          <div className={`structured-brief-card ${currentStep >= 1 ? 'ready' : ''}`}>
+            <div className="brief-card-meta">
+              <FileText size={16} className="brief-icon" />
+              <div>
+                <strong>Futuristic Fashion Cinematic Brief</strong>
+                <span>Verified parameters ready for talent matching</span>
               </div>
             </div>
-          )}
-
-          {/* Primary Action Button */}
-          <div className="panel-action-row">
-            <a href="/app/brand/campaigns/new" className="button stage-cta-btn">
-              <span>Create a Campaign Brief</span>
-              <ArrowUpRight size={15} />
+            <a href="/app/brand/campaigns/new" className="button hero-brief-btn">
+              <span>Create Campaign</span>
+              <ArrowRight size={14} />
             </a>
           </div>
         </div>
 
-        {/* Central Orchestrator Pulse */}
-        <div className={`stage-divider-pulse ${currentStep >= 5 ? 'active-flow' : ''}`}>
-          <div className="pulse-line" />
-          <div className="pulse-orb">
-            <Zap size={16} />
-          </div>
-          <div className="pulse-line" />
-        </div>
-
         {/* =========================================================================
-            PANEL 2: CREATOR DISCOVERY & MATCHING (Sequences 5 - 7)
+            PANEL 2: CREATOR DISCOVERY & COMPATIBILITY (Phases 2 - 4)
             ========================================================================= */}
-        <div className={`stage-panel matching-panel ${currentStep >= 5 ? 'active' : 'idle'}`}>
+        <div className={`stage-panel matching-panel ${currentStep >= 2 ? 'active-stage' : ''}`}>
           <div className="panel-topbar">
             <div className="topbar-left">
               <span className="panel-number">02</span>
               <h4>Creator Discovery & Compatibility</h4>
             </div>
-            <span className={`panel-status-pill ${currentStep >= 7 ? 'verified' : currentStep >= 6 ? 'analyzing' : 'typing'}`}>
-              {currentStep < 5 && 'Awaiting brief specs'}
-              {currentStep === 5 && 'Scanning creative directory…'}
-              {currentStep === 6 && 'Evaluating candidate fit…'}
-              {currentStep >= 7 && 'Optimal match ranked'}
+            <span className={`panel-status-pill ${currentStep >= 4 ? 'verified' : currentStep >= 2 ? 'searching' : 'standby'}`}>
+              {currentStep < 2 && 'Waiting for brief…'}
+              {currentStep === 2 && 'Filtering creator pool…'}
+              {currentStep === 3 && 'Evaluating capability…'}
+              {currentStep >= 4 && 'Match confirmed'}
             </span>
           </div>
 
-          {/* Simulated Discovery Toolbar */}
-          <div className="discovery-search-visual">
-            <div className="search-bar-mock">
-              <Search size={14} className="search-icon" />
-              <span>{currentStep >= 5 ? 'AI Filmmaker fashion 9:16' : 'Search creators…'}</span>
+          {/* Search Bar Visual */}
+          <div className={`discovery-search-mockup ${currentStep >= 2 ? 'revealed' : ''}`}>
+            <Search size={15} className="mockup-search-icon" />
+            <span className="mockup-search-text">
+              {currentStep >= 2 ? 'AI filmmaker fashion cinematic 9:16' : 'Search creators…'}
+            </span>
+          </div>
+
+          {/* Active Filter Chips */}
+          <div className={`matching-filter-chips ${currentStep >= 2 ? 'chips-in' : ''}`}>
+            <span className="story-chip active">AI Video</span>
+            <span className="story-chip active">Cinematic</span>
+            <span className="story-chip active">Runway Gen-3</span>
+            <span className="story-chip active">9:16 Format</span>
+            <span className="story-chip">Available now</span>
+          </div>
+
+          {/* Compatibility Scoring (Phases 3 - 4) */}
+          <div className={`scoring-metrics-card ${currentStep >= 3 ? 'visible' : ''}`}>
+            <div className="metric-row">
+              <span className="metric-name">Creative specialization fit</span>
+              <div className="metric-track">
+                <div
+                  className="metric-fill"
+                  style={{ width: currentStep >= 3 ? '98%' : '0%' }}
+                />
+              </div>
+              <span className="metric-pct">98%</span>
             </div>
-            <div className="active-chips-strip">
-              <span className={`filter-chip ${currentStep >= 5 ? 'on' : ''}`}>AI Video</span>
-              <span className={`filter-chip ${currentStep >= 5 ? 'on' : ''}`}>Fashion</span>
-              <span className={`filter-chip ${currentStep >= 5 ? 'on' : ''}`}>9:16</span>
-              <span className={`filter-chip ${currentStep >= 5 ? 'on' : ''}`}>Runway</span>
+
+            <div className="metric-row">
+              <span className="metric-name">AI tools compatibility (Gen-3, Kling)</span>
+              <div className="metric-track">
+                <div
+                  className="metric-fill"
+                  style={{ width: currentStep >= 3 ? '96%' : '0%' }}
+                />
+              </div>
+              <span className="metric-pct">96%</span>
+            </div>
+
+            <div className="metric-row">
+              <span className="metric-name">Output format & aspect ratio</span>
+              <div className="metric-track">
+                <div
+                  className="metric-fill"
+                  style={{ width: currentStep >= 3 ? '100%' : '0%' }}
+                />
+              </div>
+              <span className="metric-pct">100%</span>
+            </div>
+
+            <div className="metric-row">
+              <span className="metric-name">Brand aesthetic alignment</span>
+              <div className="metric-track">
+                <div
+                  className="metric-fill"
+                  style={{ width: currentStep >= 3 ? '94%' : '0%' }}
+                />
+              </div>
+              <span className="metric-pct">94%</span>
+            </div>
+
+            <div className="metric-row">
+              <span className="metric-name">Commercial rights capability</span>
+              <div className="metric-track">
+                <div
+                  className="metric-fill"
+                  style={{ width: currentStep >= 3 ? '100%' : '0%' }}
+                />
+              </div>
+              <span className="metric-pct">100%</span>
             </div>
           </div>
 
-          {/* Compatibility Scoring Weights (Step 6) */}
-          <div className={`scoring-breakdown-box ${currentStep >= 6 ? 'visible' : ''}`}>
-            <div className="score-row">
-              <div className="score-labels">
-                <span>Specialization & Style</span>
-                <strong>98%</strong>
-              </div>
-              <div className="score-meter"><div className="meter-fill" style={{ width: '98%' }} /></div>
-            </div>
-            <div className="score-row">
-              <div className="score-labels">
-                <span>Declared Tools (Runway, Kling, ComfyUI)</span>
-                <strong>95%</strong>
-              </div>
-              <div className="score-meter"><div className="meter-fill" style={{ width: '95%' }} /></div>
-            </div>
-            <div className="score-row">
-              <div className="score-labels">
-                <span>Output Format (9:16 4K)</span>
-                <strong>100%</strong>
-              </div>
-              <div className="score-meter"><div className="meter-fill" style={{ width: '100%' }} /></div>
-            </div>
-            <div className="score-row">
-              <div className="score-labels">
-                <span>Budget & Turnaround Fit</span>
-                <strong>92%</strong>
-              </div>
-              <div className="score-meter"><div className="meter-fill" style={{ width: '92%' }} /></div>
-            </div>
-          </div>
-
-          {/* Ranked Creator Match Card (Step 7) */}
-          <div className={`matched-creator-card ${currentStep >= 7 ? 'revealed' : ''}`}>
+          {/* Creator Match Card (Phases 4+) */}
+          <div className={`matched-creator-card ${currentStep >= 4 ? 'revealed' : ''}`}>
             <div className="creator-card-header">
               <div className="creator-avatar-bubble">
                 {featuredCreator.data?.avatar ? (
@@ -487,9 +458,9 @@ export function WorkflowStory({ creators }: WorkflowStoryProps) {
       </div>
 
       {/* =========================================================================
-          PANEL 3: INVITATION DISPATCH & COLLABORATION PROGRESSION (Sequences 8 - 9)
+          PANEL 3: INVITATION DISPATCH & COLLABORATION PROGRESSION (Phases 5 - 6)
           ========================================================================= */}
-      <div className={`collaboration-progression-drawer ${currentStep >= 8 ? 'expanded' : ''}`}>
+      <div className={`collaboration-progression-drawer ${currentStep >= 5 ? 'expanded' : ''}`}>
         <div className="drawer-inner">
           <div className="drawer-header">
             <div className="drawer-title-group">
@@ -500,7 +471,7 @@ export function WorkflowStory({ creators }: WorkflowStoryProps) {
               </div>
             </div>
             <div className="drawer-status-badge">
-              {currentStep === 8 ? (
+              {currentStep === 5 ? (
                 <>
                   <Send size={13} className="dispatch-icon" />
                   <span>Dispatching Invitation…</span>
@@ -524,8 +495,8 @@ export function WorkflowStory({ creators }: WorkflowStoryProps) {
               { id: 'approved', label: '5. Approved', desc: 'Version finalized' },
               { id: 'delivered', label: '6. Delivered', desc: 'Commercial handoff' }
             ].map((m, idx) => {
-              const isPassed = currentStep === 9 || (currentStep === 8 && idx === 0);
-              const isCurrent = currentStep === 8 ? idx === 0 : idx === 5;
+              const isPassed = currentStep === 6 || (currentStep === 5 && idx === 0);
+              const isCurrent = currentStep === 5 ? idx === 0 : idx === 5;
               return (
                 <div key={m.id} className={`milestone-step ${isPassed ? 'completed' : ''} ${isCurrent ? 'current' : ''}`}>
                   <div className="step-marker">
@@ -542,3 +513,5 @@ export function WorkflowStory({ creators }: WorkflowStoryProps) {
     </div>
   );
 }
+
+export default WorkflowStory;

@@ -73,9 +73,10 @@ export function AnimatedAccordion({
               id={`accordion-panel-${idx}`}
               role="region"
               aria-labelledby={`accordion-btn-${idx}`}
+              aria-hidden={!isOpen}
               className={cn('accordion-content-panel', isOpen ? 'open' : 'closed')}
             >
-              <div className="accordion-content-inner">
+              <div className="accordion-content-inner" aria-hidden={!isOpen}>
                 {typeof bodyContent === 'string' ? (
                   <p className="accordion-answer-text">{bodyContent}</p>
                 ) : (
