@@ -771,16 +771,16 @@ export async function handle(req: Request, path: string[]) {
             let allowed = user?.userId === f.owner;
             let isPublic = false;
             const rows = await all('SELECT data FROM profiles WHERE published=1 UNION ALL SELECT data FROM portfolios WHERE published=1');
-            isPublic = rows.some(r => { const d = JSON.parse(r.data); return d.avatar === f.id || d.cover === f.id || d.media?.includes(f.id); });
+            isPublic = rows.some(r => { const d = parseJsonSafe(r.data) || {}; return d.avatar === f.id || d.cover === f.id || d.media?.includes(f.id); });
             allowed = allowed || isPublic;
             if (!allowed && user) {
                 const admins = String((env as any).ADMIN_USER_IDS || '').split(',');
                 if (admins.includes(user.userId))
                     allowed = true;
                 const events = await all('SELECT ev.data FROM events ev JOIN engagements e ON e.id=ev.engagement WHERE e.brand=? OR e.creator=?', user.userId, user.userId);
-                allowed = allowed || events.some(r => JSON.parse(r.data).files?.includes(f.id));
+                allowed = allowed || events.some(r => parseJsonSafe(r.data)?.files?.includes(f.id));
                 const cs = await all('SELECT c.data FROM campaigns c JOIN engagements e ON e.campaign=c.id WHERE e.creator=?', user.userId);
-                allowed = allowed || cs.some(r => JSON.parse(r.data).assets?.includes(f.id));
+                allowed = allowed || cs.some(r => parseJsonSafe(r.data)?.assets?.includes(f.id));
             }
             if (!allowed)
                 fail('You do not have access to this file.', 403);
