@@ -144,48 +144,58 @@ function UnifiedCreatorCard({ item, match: score }: any) {
     if (isRef) {
         const ref = item;
         return (
-            <article className="creator-card unified-creator-card" key={ref.id} style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-                <a href={'/creators/' + ref.slug} className="creator-cover" style={{ aspectRatio: '16/10', position: 'relative' }}>
-                    <img
-                        src={ref.fallbackCover || `/creator-fallbacks/${ref.slug}.svg`}
-                        alt=""
-                        loading="lazy"
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    />
-                    <span className="badge" style={{ position: 'absolute', top: 12, left: 12, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(4px)', color: 'var(--accent)', border: '1px solid rgba(255,255,255,0.15)', fontSize: 10 }}>
-                        Editorial Reference
-                    </span>
-                    <span className="card-arrow"><ArrowUpRight size={20}/></span>
-                </a>
-                <div className="creator-meta">
-                    <CreatorAvatar
-                        avatarUrl={ref.avatarUrl}
-                        name={ref.name}
-                    />
-                    <div>
-                        <a href={'/creators/' + ref.slug}><h3>{ref.name}</h3></a>
-                        <p>{ref.specialization}</p>
+            <article className="editorial-creator-card" key={ref.id || ref.slug}>
+                <div>
+                    <div className="editorial-card-header">
+                        <div className="editorial-avatar-wrap">
+                            <img
+                                src={ref.avatarUrl}
+                                alt={ref.name}
+                                loading="lazy"
+                                onError={(e: any) => { e.currentTarget.src = `/creator-avatars/${ref.slug}.svg`; }}
+                            />
+                        </div>
+                        <div className="editorial-meta-wrap">
+                            <div className="editorial-badges-row">
+                                <span className="editorial-badge-pill">Editorial Reference</span>
+                                {ref.location && (
+                                    <span className="editorial-location-pill">{ref.location}</span>
+                                )}
+                            </div>
+                            <h3 className="editorial-artist-name">
+                                <a href={'/creators/' + ref.slug}>{ref.name}</a>
+                                <ArrowUpRight size={15} style={{ opacity: 0.6 }} />
+                            </h3>
+                            <p className="editorial-specialization" title={ref.specialization}>
+                                {ref.specialization}
+                            </p>
+                        </div>
+                    </div>
+
+                    <p className="editorial-bio-text">
+                        {ref.bioSummary}
+                    </p>
+
+                    <div className="editorial-tools-strip">
+                        {ref.documentedTools.slice(0, 4).map((t: string) => (
+                            <span key={t} className="editorial-tool-badge">{t}</span>
+                        ))}
                     </div>
                 </div>
-                <p className="card-bio" style={{ padding: '0 20px', fontSize: 12, color: 'var(--muted)', margin: '0 0 12px', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', flex: '0 0 auto' }}>
-                    {ref.bioSummary}
-                </p>
-                <div className="tags" style={{ padding: '0 20px 14px', flex: '1 0 auto' }}>
-                    {ref.documentedTools.slice(0, 3).map((t: string) => <Badge key={t}>{t}</Badge>)}
-                </div>
-                <div className="card-bottom" style={{ marginTop: 'auto' }}>
-                    <span style={{ fontSize: 11, color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <Globe size={13} style={{ color: 'var(--accent)' }} />
-                        Documented Portfolio
-                    </span>
-                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                        <Button href={'/creators/' + ref.slug} secondary style={{ fontSize: 11, padding: '6px 12px', minHeight: 32 }}>
-                            Explore Works ({ref.featuredWorks.length})
-                        </Button>
-                        <a href={ref.portfolioUrl || ref.officialWebsite} target="_blank" rel="noopener noreferrer" className="icon-btn" aria-label={'Official website for ' + ref.name} title="Official Artist Website" style={{ minWidth: 32, minHeight: 32 }}>
-                            <ExternalLink size={14} />
-                        </a>
-                    </div>
+
+                <div className="editorial-card-bottom">
+                    <Button href={'/creators/' + ref.slug} secondary className="editorial-explore-btn">
+                        Explore Works ({ref.featuredWorks.length})
+                    </Button>
+                    <a
+                        href={ref.portfolioUrl || ref.officialWebsite}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="editorial-portfolio-link"
+                        aria-label={'Official website for ' + ref.name}
+                    >
+                        Official Portfolio <ArrowUpRight size={13} />
+                    </a>
                 </div>
             </article>
         );
@@ -259,6 +269,7 @@ function CreatorCard({ p, match: score }: any) {
     return <UnifiedCreatorCard item={p} match={score} />;
 }
 function Discover() {
+    const [directoryTab, setDirectoryTab] = useState<'all' | 'references' | 'registered'>('all');
     const [q, setQ] = useState(''), [debounced, setDebounced] = useState(''), [page, setPage] = useState(1), [filters, setFilters] = useState<Obj>({}), [sort, setSort] = useState('recent'), [open, setOpen] = useState(false), [saved, setSaved] = useState(false);
     const { me } = useApp();
     useEffect(() => { const id = setTimeout(() => setDebounced(q), 250); return () => clearTimeout(id); }, [q]);
@@ -324,6 +335,12 @@ function Discover() {
 
     const totalCount = allCreators.length;
 
+    const displayedCreators = directoryTab === 'references'
+        ? filteredReferences
+        : directoryTab === 'registered'
+        ? registeredResults
+        : allCreators;
+
     return <div className="page discovery">
         <div className="page-intro">
             <span className="eyebrow">THE UNIFIED CREATIVE DIRECTORY</span>
@@ -371,25 +388,76 @@ function Discover() {
             )}
 
             <div>
-                <div className="results-heading" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                    <span>
-                        {r.loading ? 'Searching…' : `${totalCount} Creative Partner${totalCount === 1 ? '' : 's'}`}
-                        <span style={{ color: 'var(--muted)', fontSize: 11, marginLeft: 8 }}>
-                            ({registeredResults.length} registered · {filteredReferences.length} editorial references)
-                        </span>
-                    </span>
-                    <span className="micro">HUMAN VISION · AI CAPABILITY · ORIGINAL PROVENANCE</span>
+                {/* Segmented Directory View Selector */}
+                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 22 }}>
+                    <button
+                        type="button"
+                        onClick={() => setDirectoryTab('all')}
+                        className={`button ${directoryTab === 'all' ? '' : 'secondary'}`}
+                        style={{ fontSize: 12, padding: '8px 18px', minHeight: 38, borderRadius: 24, fontWeight: 600 }}
+                    >
+                        All Creative Partners ({totalCount})
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setDirectoryTab('references')}
+                        className={`button ${directoryTab === 'references' ? '' : 'secondary'}`}
+                        style={{ fontSize: 12, padding: '8px 18px', minHeight: 38, borderRadius: 24, fontWeight: 600 }}
+                    >
+                        10 Genuine AI Creators ({filteredReferences.length})
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setDirectoryTab('registered')}
+                        className={`button ${directoryTab === 'registered' ? '' : 'secondary'}`}
+                        style={{ fontSize: 12, padding: '8px 18px', minHeight: 38, borderRadius: 24, fontWeight: 600 }}
+                    >
+                        Registered Creators ({registeredResults.length})
+                    </button>
                 </div>
+
+                {directoryTab === 'references' ? (
+                    <div className="results-heading" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 22 }}>
+                        <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <span className="live-dot" style={{ width: 8, height: 8 }} />
+                            {filteredReferences.length} Genuine AI Creators Documented
+                        </span>
+                        <span className="micro" style={{ letterSpacing: '0.12em', color: 'var(--accent)', fontWeight: 700 }}>
+                            PRIMARY SOURCES & OFFICIAL WEBSITES
+                        </span>
+                    </div>
+                ) : directoryTab === 'registered' ? (
+                    <div className="results-heading" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 22 }}>
+                        <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--text)' }}>
+                            {registeredResults.length} Registered Creator{registeredResults.length === 1 ? '' : 's'}
+                        </span>
+                        <span className="micro" style={{ letterSpacing: '0.12em', color: 'var(--muted)', fontWeight: 600 }}>
+                            AVAILABLE FOR HIRE & DIRECT INVITATION
+                        </span>
+                    </div>
+                ) : (
+                    <div className="results-heading" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 22 }}>
+                        <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--text)' }}>
+                            {r.loading ? 'Searching…' : `${totalCount} Creative Partner${totalCount === 1 ? '' : 's'}`}
+                            <span style={{ color: 'var(--muted)', fontSize: 12, fontWeight: 400, marginLeft: 10 }}>
+                                ({registeredResults.length} registered · {filteredReferences.length} documented references)
+                            </span>
+                        </span>
+                        <span className="micro" style={{ letterSpacing: '0.12em', color: 'var(--accent)', fontWeight: 700 }}>
+                            HUMAN VISION · AI CAPABILITY · ORIGINAL PROVENANCE
+                        </span>
+                    </div>
+                )}
 
                 <div className="selected-filters">{Object.entries(filters).filter(([k, v]) => Array.isArray(v)).flatMap(([k, v]: any) => v.map((s: string) => <button key={k + s} onClick={() => set(k, v.filter((a: string) => a !== s))}>{s}<X size={13}/></button>))}</div>
 
-                {r.loading && !allCreators.length ? (
+                {r.loading && !displayedCreators.length ? (
                     <Loading />
-                ) : r.error && !allCreators.length ? (
+                ) : r.error && !displayedCreators.length ? (
                     <ErrorBox message={r.error} retry={r.refresh}/>
-                ) : allCreators.length > 0 ? (
+                ) : displayedCreators.length > 0 ? (
                     <div className="creator-grid">
-                        {allCreators.map((item: any) => (
+                        {displayedCreators.map((item: any) => (
                             <UnifiedCreatorCard key={item.id || item.slug} item={item} />
                         ))}
                     </div>

@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" role="img" aria-label="Karen X. Cheng Editorial Avatar">
+  <defs>
+    <linearGradient id="kcGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2d0d16"/>
+      <stop offset="50%" stop-color="#18070c"/>
+      <stop offset="100%" stop-color="#080204"/>
+    </linearGradient>
+    <radialGradient id="kcGlow" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#f43f5e" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#f43f5e" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="200" height="200" rx="100" fill="url(#kcGrad)"/>
+  <circle cx="100" cy="100" r="99" fill="url(#kcGlow)"/>
+  
+  <!-- Kinetic Motion Orbit Arc -->
+  <circle cx="100" cy="100" r="94" fill="none" stroke="#f43f5e" stroke-width="1.5" stroke-opacity="0.35" stroke-dasharray="8 4"/>
+  <circle cx="100" cy="100" r="82" fill="none" stroke="#871c32" stroke-width="1" stroke-opacity="0.4"/>
+  <path d="M 40 100 A 60 60 0 0 1 160 100" fill="none" stroke="#f43f5e" stroke-width="1.5" stroke-opacity="0.5"/>
+
+  <!-- Monogram -->
+  <text x="100" y="116" font-family="'Inter', -apple-system, BlinkMacSystemFont, sans-serif" font-weight="800" font-size="52" fill="#FFFFFF" text-anchor="middle" letter-spacing="-1">KC</text>
+  
+  <!-- Subtitle Pill -->
+  <rect x="42" y="138" width="116" height="20" rx="10" fill="#2d0d16" stroke="#f43f5e" stroke-width="1" stroke-opacity="0.6"/>
+  <text x="100" y="152" font-family="'Inter', monospace, sans-serif" font-weight="700" font-size="8.5" fill="#f43f5e" text-anchor="middle" letter-spacing="1.2">CREATIVE DIR</text>
+</svg>

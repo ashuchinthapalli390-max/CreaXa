@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" role="img" aria-label="niceaunties Editorial Avatar">
+  <defs>
+    <linearGradient id="naGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2d1033"/>
+      <stop offset="50%" stop-color="#19091d"/>
+      <stop offset="100%" stop-color="#09030a"/>
+    </linearGradient>
+    <radialGradient id="naGlow" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#eda5ca" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#eda5ca" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="200" height="200" rx="100" fill="url(#naGrad)"/>
+  <circle cx="100" cy="100" r="99" fill="url(#naGlow)"/>
+  
+  <!-- Surrealist Concentric Echo Rings -->
+  <circle cx="100" cy="100" r="94" fill="none" stroke="#eda5ca" stroke-width="1.5" stroke-opacity="0.35" stroke-dasharray="6 4"/>
+  <circle cx="100" cy="100" r="82" fill="none" stroke="#7e326b" stroke-width="1" stroke-opacity="0.4"/>
+  <circle cx="100" cy="100" r="70" fill="none" stroke="#eda5ca" stroke-width="0.75" stroke-opacity="0.2"/>
+
+  <!-- Monogram -->
+  <text x="100" y="116" font-family="'Inter', -apple-system, BlinkMacSystemFont, sans-serif" font-weight="800" font-size="50" fill="#FFFFFF" text-anchor="middle" letter-spacing="-1">NA</text>
+  
+  <!-- Subtitle Pill -->
+  <rect x="45" y="138" width="110" height="20" rx="10" fill="#2d1033" stroke="#eda5ca" stroke-width="1" stroke-opacity="0.6"/>
+  <text x="100" y="152" font-family="'Inter', monospace, sans-serif" font-weight="700" font-size="8.5" fill="#eda5ca" text-anchor="middle" letter-spacing="1.2">AUNTIEVERSE</text>
+</svg>

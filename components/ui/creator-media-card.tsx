@@ -26,7 +26,12 @@ export function CreatorAvatar({ avatarUrl, name = 'Creator', className = 'avatar
   const [hasError, setHasError] = useState(false);
   const initial = (name || 'C').trim().slice(0, 1).toUpperCase();
 
-  if (!avatarUrl || hasError) {
+  let resolvedSrc = avatarUrl;
+  if (resolvedSrc && resolvedSrc.includes('/creator-fallbacks/')) {
+    resolvedSrc = resolvedSrc.replace('/creator-fallbacks/', '/creator-avatars/');
+  }
+
+  if (!resolvedSrc || hasError) {
     return (
       <div className={`avatar ${className} avatar-fallback`} style={style} aria-label={name}>
         <span>{initial}</span>
@@ -37,7 +42,7 @@ export function CreatorAvatar({ avatarUrl, name = 'Creator', className = 'avatar
   return (
     <div className={`avatar ${className}`} style={style}>
       <img
-        src={avatarUrl}
+        src={resolvedSrc}
         alt=""
         onError={() => setHasError(true)}
         loading="lazy"

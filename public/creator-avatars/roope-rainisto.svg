@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" role="img" aria-label="Roope Rainisto Editorial Avatar">
+  <defs>
+    <linearGradient id="rrGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1f1810"/>
+      <stop offset="50%" stop-color="#120e09"/>
+      <stop offset="100%" stop-color="#070503"/>
+    </linearGradient>
+    <radialGradient id="rrGlow" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#d4a373" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#d4a373" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="200" height="200" rx="100" fill="url(#rrGrad)"/>
+  <circle cx="100" cy="100" r="99" fill="url(#rrGlow)"/>
+  
+  <!-- Post-Photography Viewfinder Framing -->
+  <circle cx="100" cy="100" r="94" fill="none" stroke="#d4a373" stroke-width="1.5" stroke-opacity="0.35"/>
+  <circle cx="100" cy="100" r="82" fill="none" stroke="#664d30" stroke-width="1" stroke-opacity="0.4"/>
+  <path d="M 60 70 L 60 60 L 70 60" fill="none" stroke="#d4a373" stroke-width="2" stroke-opacity="0.7"/>
+  <path d="M 140 70 L 140 60 L 130 60" fill="none" stroke="#d4a373" stroke-width="2" stroke-opacity="0.7"/>
+  <path d="M 60 130 L 60 140 L 70 140" fill="none" stroke="#d4a373" stroke-width="2" stroke-opacity="0.7"/>
+  <path d="M 140 130 L 140 140 L 130 140" fill="none" stroke="#d4a373" stroke-width="2" stroke-opacity="0.7"/>
+
+  <!-- Monogram -->
+  <text x="100" y="116" font-family="'Inter', -apple-system, BlinkMacSystemFont, sans-serif" font-weight="800" font-size="52" fill="#F8F6F0" text-anchor="middle" letter-spacing="-1">RR</text>
+  
+  <!-- Subtitle Pill -->
+  <rect x="42" y="146" width="116" height="20" rx="10" fill="#1f1810" stroke="#d4a373" stroke-width="1" stroke-opacity="0.6"/>
+  <text x="100" y="160" font-family="'Inter', monospace, sans-serif" font-weight="700" font-size="8.5" fill="#d4a373" text-anchor="middle" letter-spacing="1.2">POST-PHOTO</text>
+</svg>

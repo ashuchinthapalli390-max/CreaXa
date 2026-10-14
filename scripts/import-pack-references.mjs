@@ -29,6 +29,19 @@ const mediumToContentType = {
   creative_video: 'Creative Direction'
 };
 
+const creatorLocations = {
+  'paul-trillo': 'Los Angeles, California, USA',
+  'refik-anadol': 'Los Angeles, California, USA',
+  'niceaunties': 'Singapore',
+  'claire-silver': 'USA (Pseudonymous)',
+  'roope-rainisto': 'Helsinki, Finland',
+  'sasha-stiles': 'New York, USA',
+  'kris-kashtanova': 'New York, USA',
+  'anna-ridler': 'London, UK',
+  'sougwen-chung': 'New York / London',
+  'karen-x-cheng': 'San Francisco, California, USA'
+};
+
 const processedCreators = creators.map((c) => {
   const cWorks = works.filter((w) => w.artistSlug === c.slug);
   const allTools = Array.from(new Set(cWorks.flatMap((w) => w.documentedTools || [])));
@@ -67,12 +80,13 @@ const processedCreators = creators.map((c) => {
 
   const portraitRecord = portraitSources.find(p => p.creatorSlug === c.slug);
   const hasVerifiedPortrait = portraitRecord?.verifiedReuseTerms && portraitRecord?.expectedFile && fs.existsSync(path.join('public', 'licensed-portraits', path.basename(portraitRecord.expectedFile)));
-  const resolvedAvatar = hasVerifiedPortrait ? `/licensed-portraits/${path.basename(portraitRecord.expectedFile)}` : `/creator-fallbacks/${c.slug}.svg`;
+  const resolvedAvatar = hasVerifiedPortrait ? `/licensed-portraits/${path.basename(portraitRecord.expectedFile)}` : `/creator-avatars/${c.slug}.svg`;
 
   return {
     id: `ref-${c.slug}`,
     slug: c.slug,
     name: c.name,
+    location: creatorLocations[c.slug] || 'Verified Global Archive',
     specialization: c.specializations.join(' · '),
     headline: c.headline,
     bioSummary: c.bio,

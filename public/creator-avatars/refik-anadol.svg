@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" role="img" aria-label="Refik Anadol Editorial Avatar">
+  <defs>
+    <linearGradient id="raGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a1f2e"/>
+      <stop offset="50%" stop-color="#05101a"/>
+      <stop offset="100%" stop-color="#020509"/>
+    </linearGradient>
+    <radialGradient id="raGlow" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#38bdf8" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="200" height="200" rx="100" fill="url(#raGrad)"/>
+  <circle cx="100" cy="100" r="99" fill="url(#raGlow)"/>
+  <circle cx="100" cy="100" r="94" fill="none" stroke="#38bdf8" stroke-width="1.5" stroke-opacity="0.35" stroke-dasharray="6 4"/>
+  <circle cx="100" cy="100" r="82" fill="none" stroke="#0e4368" stroke-width="1" stroke-opacity="0.4"/>
+  <text x="100" y="116" font-family="'Inter', -apple-system, BlinkMacSystemFont, sans-serif" font-weight="800" font-size="52" fill="#FFFFFF" text-anchor="middle" letter-spacing="-1">RA</text>
+  <rect x="46" y="138" width="108" height="20" rx="10" fill="#0a1f2e" stroke="#38bdf8" stroke-width="1" stroke-opacity="0.6"/>
+  <text x="100" y="152" font-family="'Inter', monospace, sans-serif" font-weight="700" font-size="8.5" fill="#38bdf8" text-anchor="middle" letter-spacing="1.2">DATA ART</text>
+</svg>
