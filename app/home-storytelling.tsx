@@ -24,6 +24,7 @@ import { ImageWipe } from '../components/motion/ImageWipe';
 import { WorkflowStory } from '../components/marketing/workflow-story';
 import { AnimatedCounter } from '../components/ui/animated-counter';
 import { CinematicIntro } from '../components/marketing/cinematic-intro';
+import { CinematicHero } from '../components/marketing/cinematic-hero';
 
 interface HomeStorytellingProps {
   creators: any[];
@@ -109,133 +110,12 @@ export function HomeStorytelling({ creators, creatorsLoading }: HomeStorytelling
       {/* =========================================================================
           SECTION 01 — EDITORIAL HERO (NO THREE.JS / 100% 2D HIGH-PERFORMANCE)
           ========================================================================= */}
-      <section className="editorial-hero" aria-label="Editorial Homepage Hero">
-        <div className="hero-meta-bar">
-          <div className="editorial-meta-pill">
-            <span className="editorial-meta-tag">CREATIVE TALENT • CURATED DIRECTORY</span>
-          </div>
-          <span className="hero-coordinate">CX / 2026 EDITORIAL 01</span>
-        </div>
-
-        <div className="hero-editorial-layout">
-          {/* Left Column: Asymmetrical Typography & CTAs */}
-          <div className="hero-typography-col">
-            <RevealHeadline
-              as="h1"
-              lines={['CREATIVE TALENT.', 'WITHOUT THE <em>GUESSWORK.</em>']}
-              subtitle="Discover AI filmmakers, generative artists and creative specialists. Build clearer briefs, evaluate authentic workflows and collaborate from concept to final delivery."
-              staggerMs={100}
-              delayMs={50}
-            />
-
-            <div className="hero-action-cluster">
-              <a href="/discover" className="button hero-primary-btn" id="hero-discover-btn">
-                <span>Discover Creators</span>
-                <ArrowUpRight size={18} className="btn-icon" />
-              </a>
-              <a href="/app/brand/campaigns/new" className="text-link hero-secondary-btn" id="hero-campaign-btn">
-                <span>Start a Campaign</span>
-                <ArrowRight size={17} className="btn-icon" />
-              </a>
-            </div>
-
-            <div className="hero-stats-strip">
-              <div className="stat-unit">
-                <strong>
-                  <AnimatedCounter value={Math.max(creators?.length || 1, 1)} />
-                </strong>
-                <span>Verified Creator{creators?.length === 1 ? '' : 's'}</span>
-              </div>
-              <div className="stat-divider" />
-              <div className="stat-unit">
-                <strong>
-                  <AnimatedCounter value={5} />
-                </strong>
-                <span>Curated Works</span>
-              </div>
-              <div className="stat-divider" />
-              <div className="stat-unit">
-                <strong>
-                  <AnimatedCounter value={100} suffix="%" />
-                </strong>
-                <span>Declared Rights</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column: Asymmetric Curated Gallery Showcase */}
-          <div className="hero-visual-col">
-            <div className="hero-card-asymmetric">
-              <ImageWipe
-                src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1000&q=80"
-                alt="Neon Odyssey by Alice Wonder"
-                aspectRatio="16 / 10"
-                variant="colorPanel"
-                delayMs={200}
-                priority={true}
-              >
-                <div className="visual-curated-badge">
-                  <Sparkles size={13} />
-                  <span>FEATURED WORKROOM</span>
-                </div>
-                <div className="visual-credit-card">
-                  <div>
-                    <strong>Neon Odyssey: Act I</strong>
-                    <span>Alice Wonder • Runway Gen-3 + Midjourney</span>
-                  </div>
-                  <a href="/creators/alice-wonder" className="credit-arrow" aria-label="View Alice Wonder profile">
-                    <ArrowUpRight size={17} />
-                  </a>
-                </div>
-              </ImageWipe>
-
-              <div className="hero-subcard-grid">
-                <div className="hero-mini-card">
-                  <div className="mini-card-head">
-                    <Sliders size={14} className="accent-icon" />
-                    <span>WORKFLOW VERIFIED</span>
-                  </div>
-                  <p>LoRA training, ComfyUI nodes, and raw prompt history audited before publication.</p>
-                </div>
-                <div className="hero-mini-card">
-                  <div className="mini-card-head">
-                    <Shield size={14} className="accent-icon" />
-                    <span>COMMERCIAL USE CLEAR</span>
-                  </div>
-                  <p>Every brief locks worldwide digital rights, territorial scope, and revision limits.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Hero Bottom Bar */}
-        <div className="hero-bottom-bar">
-          <a href="#discovery-problem" className="scroll-cue-link">
-            <span className="scroll-indicator-circle">↓</span>
-            <span>SCROLL TO EXPLORE THE NARRATIVE</span>
-          </a>
-          <span className="hero-chapter-num">01 / 07 — EDITORIAL HERO</span>
-        </div>
-      </section>
-
-      {/* Marquee Discipline Strip */}
-      <div className="editorial-ticker-strip">
-        <div className="ticker-inner">
-          {['AI FILMMAKING', 'GENERATIVE ART', 'NEURAL 3D & MOTION', 'COMMERCIAL VFX', 'SYNTHETIC FASHION', 'PROMPT ARCHITECTURE'].map((d, i) => (
-            <span key={i} className="ticker-item">
-              <span className="ticker-bullet">✳</span>
-              {d}
-            </span>
-          ))}
-          {['AI FILMMAKING', 'GENERATIVE ART', 'NEURAL 3D & MOTION', 'COMMERCIAL VFX', 'SYNTHETIC FASHION', 'PROMPT ARCHITECTURE'].map((d, i) => (
-            <span key={'dup-' + i} className="ticker-item">
-              <span className="ticker-bullet">✳</span>
-              {d}
-            </span>
-          ))}
-        </div>
-      </div>
+      {/* =========================================================================
+          SECTION 01 — CINEMATIC DARK-LIME HERO (EDITORIAL MARKETPLACE)
+          Inspired by high-end design reference with layered 3D collage,
+          magnetic-ready parallax, continuous orbital paths, and infinite marquee
+          ========================================================================= */}
+      <CinematicHero creatorCount={creators?.length || 10} />
 
       {/* =========================================================================
           SECTION 02 — THE DISCOVERY PROBLEM
