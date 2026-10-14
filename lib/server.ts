@@ -7,7 +7,7 @@ import { handleEnhancements } from './enhancements';
 import { dbService } from './database';
 import { EXTERNAL_CREATOR_REFERENCES } from './creators/external-references';
 import { createOtpChallenge, verifyOtpChallenge, type OtpPurpose } from './email/otp';
-import { sendSignupVerificationOTP, sendLoginStepUpOTP } from './email/resend';
+import { sendSignupVerificationOTP, sendLoginStepUpOTP, sendContactEmailVerificationOTP } from './email/resend';
 import { verifyResendWebhookSignature, handleResendWebhookEvent } from './email/webhook';
 const now = () => Date.now();
 const uid = () => crypto.randomUUID();
@@ -199,7 +199,7 @@ export async function handle(req: Request, path: string[]) {
         if (method === 'POST' && route === 'auth/otp/send') {
             const b = z.object({
                 email: z.string().email(),
-                purpose: z.enum(['signup_email_verification', 'login_step_up', 'email_change_verification', 'sensitive_account_action']).default('signup_email_verification'),
+                purpose: z.enum(['signup_email_verification', 'login_step_up', 'email_change_verification', 'sensitive_account_action', 'contact_email_verification']).default('contact_email_verification'),
                 firebaseUid: z.string().optional()
             }).parse(await body(req));
 
@@ -215,7 +215,9 @@ export async function handle(req: Request, path: string[]) {
 
             // Deliver code via Resend
             let sendRes;
-            if (b.purpose === 'signup_email_verification') {
+            if (b.purpose === 'contact_email_verification') {
+                sendRes = await sendContactEmailVerificationOTP(b.email, challengeRes.code!);
+            } else if (b.purpose === 'signup_email_verification') {
                 sendRes = await sendSignupVerificationOTP(b.email, challengeRes.code!);
             } else {
                 sendRes = await sendLoginStepUpOTP(b.email, challengeRes.code!);
@@ -234,7 +236,7 @@ export async function handle(req: Request, path: string[]) {
         if (method === 'POST' && route === 'auth/otp/verify') {
             const b = z.object({
                 email: z.string().email(),
-                purpose: z.enum(['signup_email_verification', 'login_step_up', 'email_change_verification', 'sensitive_account_action']).default('signup_email_verification'),
+                purpose: z.enum(['signup_email_verification', 'login_step_up', 'email_change_verification', 'sensitive_account_action', 'contact_email_verification']).default('contact_email_verification'),
                 code: z.string().min(6).max(6),
                 firebaseUid: z.string().optional()
             }).parse(await body(req));
@@ -248,6 +250,53 @@ export async function handle(req: Request, path: string[]) {
 
             if (!verifyRes.success) {
                 fail(verifyRes.error || 'Verification code failed.', 400);
+            }
+
+            // If contact email verification, persist verified contact email to Supabase
+            if (b.purpose === 'contact_email_verification') {
+                const user = await resolveUser(req);
+                const targetUid = user?.userId || b.firebaseUid;
+                if (targetUid) {
+                    const existingAcc = await getAccountRecord(targetUid);
+                    if (existingAcc) {
+                        const existingData = typeof existingAcc.data === 'object' && existingAcc.data !== null ? existingAcc.data : {};
+                        const updatedData = {
+                            ...existingData,
+                            contactEmail: b.email.toLowerCase().trim(),
+                            contactEmailVerified: true,
+                            contactEmailVerifiedAt: Date.now(),
+                            isPrimaryNotificationAddress: true
+                        };
+                        await dbService.upsertAccount({
+                            id: targetUid,
+                            email: existingAcc.email,
+                            name: existingAcc.name,
+                            role: existingAcc.role,
+                            data: updatedData,
+                            created: existingAcc.created || Date.now(),
+                            updated: Date.now()
+                        });
+                        console.info(`[CreaXa Auth] Contact email verified & recorded for UID: ${targetUid}`);
+
+                        // Also attempt recording to user_contact_emails table if available (Section 9)
+                        if (dbService.isSupabase()) {
+                            try {
+                                const sb = (await import('./supabase')).getSupabaseAdmin();
+                                if (sb) {
+                                    await sb.from('user_contact_emails').upsert({
+                                        id: crypto.randomUUID(),
+                                        firebase_uid: targetUid,
+                                        email: b.email.toLowerCase().trim(),
+                                        verified_at: Date.now(),
+                                        is_primary_notification_address: true,
+                                        created_at: Date.now(),
+                                        updated_at: Date.now()
+                                    });
+                                }
+                            } catch {}
+                        }
+                    }
+                }
             }
 
             return json({

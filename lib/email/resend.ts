@@ -7,11 +7,13 @@
 
 import {
   renderVerificationOtpEmail,
+  renderContactEmailOtpEmail,
   renderLoginStepUpOtpEmail,
   renderWelcomeEmail,
   renderInvitationEmail,
   type EmailRenderOutput,
 } from './templates.ts';
+
 
 export interface SendEmailOptions {
   to: string | string[];
@@ -134,6 +136,28 @@ export async function sendSignupVerificationOTP(
     text: rendered.text,
     tags: [{ name: 'category', value: 'signup_otp' }],
     idempotencyKey: `otp_signup_${email}_${Date.now()}`,
+  });
+}
+
+/**
+ * Send 6-Digit Contact Email Verification OTP (Section 5 & 6)
+ */
+export async function sendContactEmailVerificationOTP(
+  email: string,
+  code: string,
+  expiresInMinutes = 5
+): Promise<SendEmailResult> {
+  const { fromAuth } = getResendConfig();
+  const rendered = renderContactEmailOtpEmail(code, expiresInMinutes);
+
+  return sendEmail({
+    to: email,
+    from: fromAuth,
+    subject: rendered.subject,
+    html: rendered.html,
+    text: rendered.text,
+    tags: [{ name: 'category', value: 'contact_email_otp' }],
+    idempotencyKey: `otp_contact_${email}_${Date.now()}`,
   });
 }
 

@@ -185,3 +185,49 @@ Log in to review the terms and structured brief: https://creaxa.com/app/creator/
 
   return { subject, html, text };
 }
+
+export function renderContactEmailOtpEmail(code: string, expiresInMinutes = 5): EmailRenderOutput {
+  const subject = `Your CreaXa Verification Code`;
+  const html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>${EMAIL_BASE_CSS}</style>
+</head>
+<body>
+  <div class="email-container">
+    <div class="header">
+      <a href="https://creaxa-pro.vercel.app" class="wordmark">CreaXa<span class="wordmark-dot">.</span></a>
+    </div>
+    <div class="content">
+      <h1>Your CreaXa Verification Code</h1>
+      <p>Use the following six-digit code to verify your email address.</p>
+      
+      <div class="otp-box">
+        <div class="otp-code">${code}</div>
+        <div class="otp-note">Valid for one-time verification only. Expires in ${expiresInMinutes} minutes.</div>
+      </div>
+
+      <p>This code confirms your contact and notification address for project collaboration, briefs, and marketplace updates. If you did not request this verification code, please ignore this email.</p>
+    </div>
+    <div class="footer">
+      © 2026 CreaXa • AI Content Creator Marketplace<br>
+      Security notice: CreaXa will never ask for your password or verification code.
+    </div>
+  </div>
+</body>
+</html>`;
+
+  const text = `Your CreaXa Verification Code: ${code}
+
+Use the following six-digit code to verify your email address.
+
+Code: ${code}
+
+This code expires in ${expiresInMinutes} minutes.
+If you did not request this, you can safely ignore this email.`;
+
+  return { subject, html, text };
+}
+

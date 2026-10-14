@@ -15,7 +15,8 @@ export type OtpPurpose =
   | 'signup_email_verification'
   | 'login_step_up'
   | 'email_change_verification'
-  | 'sensitive_account_action';
+  | 'sensitive_account_action'
+  | 'contact_email_verification';
 
 export interface OtpChallenge {
   id: string;
