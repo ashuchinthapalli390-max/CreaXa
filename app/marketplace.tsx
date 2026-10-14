@@ -14,6 +14,7 @@ import { AdminDashboard } from '../components/admin/admin-dashboard';
 import { EXTERNAL_CREATOR_REFERENCES } from '../lib/creators/external-references';
 import { VideoEmbed } from '../components/ui/video-embed';
 import { CreatorCoverMedia, CreatorAvatar } from '../components/ui/creator-media-card';
+import { ProfileHeroBanner } from '../components/ui/profile-hero-banner';
 import { ContactEmailModal } from '../components/auth/contact-email-modal';
 type Obj = Record<string, any>;
 const Context = createContext<any>(null);
@@ -136,58 +137,128 @@ function FaqList() {
   return <div className="faq-list"><AnimatedAccordion items={items} allowMultiple={true} /></div>; 
 }
 function Footer() { return <footer className="footer"><div className="footer-top"><Logo /><p>A new connection.<br />An original creation.</p><div><a href="/discover">Discover creators</a><a href="/for-brands">For brands</a><a href="/for-creators">For creators</a></div><div><a href="/work">The workroom</a><a href="/templates">Brief structures</a><a href="/resources">Field notes</a><a href="/about">About</a><a href="/faq">FAQs</a><a href="/contact">Contact</a></div></div><div className="footer-wordmark">CreaXa<span>↗</span></div><div className="footer-bottom"><span>© {new Date().getFullYear()} CreaXa</span><span>HUMAN VISION. AI CAPABILITY.</span><div><a href="/privacy">Privacy</a><a href="/terms">Terms</a></div></div></footer>; }
-function CreatorCard({ p, match: score }: any) {
+function UnifiedCreatorCard({ item, match: score }: any) {
     const { toast, me } = useApp();
-    const d = p.data;
+    const isRef = !!item.isExternalReference;
+
+    if (isRef) {
+        const ref = item;
+        return (
+            <article className="creator-card unified-creator-card" key={ref.id} style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                <a href={'/creators/' + ref.slug} className="creator-cover" style={{ aspectRatio: '16/10', position: 'relative' }}>
+                    <img
+                        src={ref.fallbackCover || `/creator-fallbacks/${ref.slug}.svg`}
+                        alt=""
+                        loading="lazy"
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                    <span className="badge" style={{ position: 'absolute', top: 12, left: 12, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(4px)', color: 'var(--accent)', border: '1px solid rgba(255,255,255,0.15)', fontSize: 10 }}>
+                        Editorial Reference
+                    </span>
+                    <span className="card-arrow"><ArrowUpRight size={20}/></span>
+                </a>
+                <div className="creator-meta">
+                    <CreatorAvatar
+                        avatarUrl={ref.avatarUrl}
+                        name={ref.name}
+                    />
+                    <div>
+                        <a href={'/creators/' + ref.slug}><h3>{ref.name}</h3></a>
+                        <p>{ref.specialization}</p>
+                    </div>
+                </div>
+                <p className="card-bio" style={{ padding: '0 20px', fontSize: 12, color: 'var(--muted)', margin: '0 0 12px', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', flex: '0 0 auto' }}>
+                    {ref.bioSummary}
+                </p>
+                <div className="tags" style={{ padding: '0 20px 14px', flex: '1 0 auto' }}>
+                    {ref.documentedTools.slice(0, 3).map((t: string) => <Badge key={t}>{t}</Badge>)}
+                </div>
+                <div className="card-bottom" style={{ marginTop: 'auto' }}>
+                    <span style={{ fontSize: 11, color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <Globe size={13} style={{ color: 'var(--accent)' }} />
+                        Documented Portfolio
+                    </span>
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                        <Button href={'/creators/' + ref.slug} secondary style={{ fontSize: 11, padding: '6px 12px', minHeight: 32 }}>
+                            Explore Works ({ref.featuredWorks.length})
+                        </Button>
+                        <a href={ref.portfolioUrl || ref.officialWebsite} target="_blank" rel="noopener noreferrer" className="icon-btn" aria-label={'Official website for ' + ref.name} title="Official Artist Website" style={{ minWidth: 32, minHeight: 32 }}>
+                            <ExternalLink size={14} />
+                        </a>
+                    </div>
+                </div>
+            </article>
+        );
+    }
+
+    const p = item;
+    const d = p.data || {};
+    const coverUrl = d.cover ? (d.cover.startsWith('http') ? d.cover : '/api/files/' + d.cover) : undefined;
+    const avatarUrl = d.avatar ? (d.avatar.startsWith('http') ? d.avatar : '/api/files/' + d.avatar) : undefined;
     return (
-      <article className="creator-card">
-        <a href={'/creators/' + p.slug} className="creator-cover">
-          <CreatorCoverMedia
-            coverUrl={d.cover ? '/api/files/' + d.cover : undefined}
-            name={d.name || 'AI Creator'}
-            specialization={list(d.specializations)[0] || 'AI creative'}
-          />
-          {score && <span className="match-badge">{score.score}% compatibility</span>}
-          <span className="card-arrow"><ArrowUpRight size={21}/></span>
-        </a>
-        <div className="creator-meta">
-          <CreatorAvatar
-            avatarUrl={d.avatar ? '/api/files/' + d.avatar : undefined}
-            name={d.name || 'Creator'}
-          />
-          <div>
-            <a href={'/creators/' + p.slug}><h3>{d.name}</h3></a>
-            <p>{d.headline}</p>
-          </div>
-          <button className="icon-btn" aria-label={'Save ' + d.name} onClick={async () => {
-            if (!me?.account) {
-                location.href = '/login';
-                return;
-            }
-            try {
-                const r = await api('favorite', { creator: p.id });
-                toast(r.saved ? 'Creator saved.' : 'Creator removed from saved.');
-            }
-            catch (e: any) {
-                toast(e.message);
-            }
-          }}><Heart size={18}/></button>
-        </div>
-        <div className="tags">{list(d.tools).slice(0, 3).map(t => <Badge key={t}>{t}</Badge>)}</div>
-        <CompareSelect slug={p.slug}/>
-        <div className="card-bottom">
-          <span>
-            <span className={'status-dot ' + (d.availability === 'Available' ? 'available' : '')}/>
-            {d.availability || 'Direct inquiry'}
-          </span>
-          <strong>{d.rate > 0 ? 'From ' + money(d.rate, d.currency) : 'Rate on request'}</strong>
-        </div>
-        {score && <details className="match-details"><summary>Why this match?<ChevronDown size={15}/></summary>{score.reasons.map((r: any) => <div key={r.label}><span>{r.label}</span><strong>{r.points}/{r.max}</strong></div>)}</details>}
-      </article>
+        <article className="creator-card unified-creator-card" key={p.id} style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+            <a href={'/creators/' + p.slug} className="creator-cover" style={{ aspectRatio: '16/10', position: 'relative' }}>
+                <CreatorCoverMedia
+                    coverUrl={coverUrl}
+                    name={d.name || 'AI Creator'}
+                    specialization={list(d.specializations)[0] || 'AI creative'}
+                />
+                {score ? (
+                    <span className="match-badge">{score.score}% compatibility</span>
+                ) : (
+                    <span className="badge" style={{ position: 'absolute', top: 12, left: 12, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(4px)', color: 'var(--text)', border: '1px solid rgba(255,255,255,0.15)', fontSize: 10 }}>
+                        Registered Creator
+                    </span>
+                )}
+                <span className="card-arrow"><ArrowUpRight size={20}/></span>
+            </a>
+            <div className="creator-meta">
+                <CreatorAvatar
+                    avatarUrl={avatarUrl}
+                    name={d.name || 'Creator'}
+                />
+                <div>
+                    <a href={'/creators/' + p.slug}><h3>{d.name}</h3></a>
+                    <p>{d.headline || list(d.specializations)[0] || 'Generative Specialist'}</p>
+                </div>
+                <button className="icon-btn" aria-label={'Save ' + d.name} onClick={async () => {
+                    if (!me?.account) {
+                        location.href = '/login';
+                        return;
+                    }
+                    try {
+                        const r = await api('favorite', { creator: p.id });
+                        toast(r.saved ? 'Creator saved.' : 'Creator removed from saved.');
+                    }
+                    catch (e: any) {
+                        toast(e.message);
+                    }
+                }}><Heart size={18}/></button>
+            </div>
+            {d.bio && (
+                <p className="card-bio" style={{ padding: '0 20px', fontSize: 12, color: 'var(--muted)', margin: '0 0 12px', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', flex: '0 0 auto' }}>
+                    {d.bio}
+                </p>
+            )}
+            <div className="tags" style={{ padding: '0 20px 14px', flex: '1 0 auto' }}>
+                {list(d.tools).slice(0, 3).map((t: string) => <Badge key={t}>{t}</Badge>)}
+            </div>
+            <CompareSelect slug={p.slug}/>
+            <div className="card-bottom" style={{ marginTop: 'auto' }}>
+                <span>
+                    <span className={'status-dot ' + (d.availability === 'Available' ? 'available' : '')}/>
+                    {d.availability || 'Direct inquiry'}
+                </span>
+                <strong>{d.rate > 0 ? 'From ' + money(d.rate, d.currency) : 'Rate on request'}</strong>
+            </div>
+            {score && <details className="match-details"><summary>Why this match?<ChevronDown size={15}/></summary>{score.reasons.map((r: any) => <div key={r.label}><span>{r.label}</span><strong>{r.points}/{r.max}</strong></div>)}</details>}
+        </article>
     );
 }
+function CreatorCard({ p, match: score }: any) {
+    return <UnifiedCreatorCard item={p} match={score} />;
+}
 function Discover() {
-    const [directoryMode, setDirectoryMode] = useState<'all' | 'references'>('all');
     const [q, setQ] = useState(''), [debounced, setDebounced] = useState(''), [page, setPage] = useState(1), [filters, setFilters] = useState<Obj>({}), [sort, setSort] = useState('recent'), [open, setOpen] = useState(false), [saved, setSaved] = useState(false);
     const { me } = useApp();
     useEffect(() => { const id = setTimeout(() => setDebounced(q), 250); return () => clearTimeout(id); }, [q]);
@@ -207,132 +278,133 @@ function Discover() {
         string,
         string[]
     ][] = [['specializations', 'Specialization', SPECIAL], ['tools', 'AI tools', TOOLS], ['contentTypes', 'Content type', TYPES], ['styles', 'Creative style', STYLES], ['aspectRatios', 'Aspect ratio', RATIOS], ['industries', 'Industry', INDUSTRIES], ['platforms', 'Platform', PLATFORMS]];
-    const result = r.data?.items || [];
+    const registeredResults = (r.data?.items || []).map((item: any) => ({ ...item, isExternalReference: false }));
     const set = (k: string, v: any) => setFilters({ ...filters, [k]: v });
 
     const filteredReferences = EXTERNAL_CREATOR_REFERENCES.filter(ref => {
-        if (!debounced) return true;
-        const needle = debounced.toLowerCase();
-        return (
-            ref.name.toLowerCase().includes(needle) ||
-            ref.specialization.toLowerCase().includes(needle) ||
-            ref.documentedTools.some(t => t.toLowerCase().includes(needle)) ||
-            ref.featuredWorks.some(w => w.title.toLowerCase().includes(needle))
-        );
-    });
+        if (debounced) {
+            const needle = debounced.toLowerCase();
+            const matchesText = (
+                ref.name.toLowerCase().includes(needle) ||
+                ref.specialization.toLowerCase().includes(needle) ||
+                ref.bioSummary.toLowerCase().includes(needle) ||
+                ref.documentedTools.some(t => t.toLowerCase().includes(needle)) ||
+                ref.featuredWorks.some(w => w.title.toLowerCase().includes(needle))
+            );
+            if (!matchesText) return false;
+        }
+        if (filters.tools && Array.isArray(filters.tools) && filters.tools.length > 0) {
+            const hasTool = filters.tools.some((t: string) => ref.documentedTools.some(dt => dt.toLowerCase().includes(t.toLowerCase())));
+            if (!hasTool) return false;
+        }
+        if (filters.specializations && Array.isArray(filters.specializations) && filters.specializations.length > 0) {
+            const hasSpec = filters.specializations.some((s: string) => ref.specialization.toLowerCase().includes(s.toLowerCase()) || ref.creativeStyles.some(cs => cs.toLowerCase().includes(s.toLowerCase())));
+            if (!hasSpec) return false;
+        }
+        if (filters.contentTypes && Array.isArray(filters.contentTypes) && filters.contentTypes.length > 0) {
+            const hasContent = filters.contentTypes.some((ct: string) => ref.contentTypes.some(c => c.toLowerCase().includes(ct.toLowerCase())));
+            if (!hasContent) return false;
+        }
+        // If user specifically filtered for "Available now" or price range or saved, exclude external references
+        if (filters.available || filters.min || filters.max || saved) {
+            return false;
+        }
+        return true;
+    }).map(ref => ({ ...ref, isExternalReference: true }));
+
+    // UNIFIED LIST: registered creators and external reference artists together!
+    let allCreators: any[] = [...registeredResults, ...filteredReferences];
+    if (sort === 'name') {
+        allCreators.sort((a, b) => {
+            const nameA = (a.isExternalReference ? a.name : a.data?.name || '').toLowerCase();
+            const nameB = (b.isExternalReference ? b.name : b.data?.name || '').toLowerCase();
+            return nameA.localeCompare(nameB);
+        });
+    }
+
+    const totalCount = allCreators.length;
 
     return <div className="page discovery">
         <div className="page-intro">
-            <span className="eyebrow">THE CREATIVE DIRECTORY</span>
+            <span className="eyebrow">THE UNIFIED CREATIVE DIRECTORY</span>
             <h1>Find your next<br /><em>creative partner.</em></h1>
-            <p>Explore the people, tools and perspectives behind the work.</p>
+            <p>Explore genuine registered creators and verified editorial AI artists in one unified directory.</p>
         </div>
 
-        <div style={{ display: 'flex', gap: 10, margin: '24px 0 20px', borderBottom: '1px solid var(--border)', paddingBottom: 16 }}>
-            <button
-                type="button"
-                className={'button ' + (directoryMode === 'all' ? '' : 'secondary')}
-                onClick={() => setDirectoryMode('all')}
-                style={{ fontSize: 13, padding: '8px 18px' }}
-            >
-                Registered Creators
-            </button>
-            <button
-                type="button"
-                className={'button ' + (directoryMode === 'references' ? '' : 'secondary')}
-                onClick={() => setDirectoryMode('references')}
-                style={{ fontSize: 13, padding: '8px 18px', display: 'flex', alignItems: 'center', gap: 6 }}
-            >
-                <Sparkles size={14} /> 10 Verified AI Creators (Editorial Reference Directory)
-            </button>
-        </div>
-
-        {directoryMode === 'references' ? (
-            <div>
-                <div style={{ background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: 8, padding: '16px 20px', marginBottom: 24, display: 'flex', gap: 14, alignItems: 'center' }}>
-                    <Shield size={22} style={{ color: 'var(--accent)', flexShrink: 0 }} />
-                    <div style={{ fontSize: 13, lineHeight: 1.5 }}>
-                        <strong>Editorial Reference Directory:</strong> Sourced profiles of 10 acclaimed AI artists and filmmakers for creative benchmarking and tool research. These artists are not registered marketplace users; in-app invitations link directly to their official portfolios.
-                    </div>
-                </div>
-
-                <div className="discovery-toolbar" style={{ marginBottom: 24 }}>
-                    <div className="search full" style={{ flex: 1 }}>
-                        <Search size={20}/>
-                        <input aria-label="Search reference creators" placeholder="Filter references by artist, tool (Sora, Runway, Midjourney) or project..." value={q} onChange={e => setQ(e.target.value)}/>
-                        {q && <button className="icon-btn" onClick={() => setQ('')} aria-label="Clear search"><X size={17}/></button>}
-                    </div>
-                </div>
-
-                <div className="results-heading">
-                    <span>{filteredReferences.length} Genuine AI Creators Documented</span>
-                    <span className="micro">PRIMARY SOURCES & OFFICIAL WEBSITES</span>
-                </div>
-
-                <div className="creator-grid">
-                    {filteredReferences.map((ref) => (
-                        <article className="creator-card" key={ref.id} style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                            <div>
-                                <a href={'/creators/' + ref.slug} style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}>
-                                    <div className="card-top">
-                                        <div className="avatar large" style={{ overflow: 'hidden' }}>
-                                            {ref.avatarUrl ? <img src={ref.avatarUrl} alt={ref.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : ref.name[0]}
-                                        </div>
-                                        <div>
-                                            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 4 }}>
-                                                <Badge>Editorial Reference</Badge>
-                                                {ref.location && <Badge>{ref.location}</Badge>}
-                                            </div>
-                                            <h2 style={{ fontSize: 18, margin: '4px 0 2px' }}>{ref.name} <ArrowUpRight size={15} style={{ verticalAlign: 'middle', opacity: 0.6 }} /></h2>
-                                            <p className="headline" style={{ fontSize: 13 }}>{ref.specialization}</p>
-                                        </div>
-                                    </div>
-                                    <p className="bio" style={{ fontSize: 13, color: 'var(--muted)', margin: '14px 0', lineHeight: 1.5 }}>{ref.bioSummary}</p>
-                                    <div className="tags">
-                                        {ref.documentedTools.slice(0, 4).map(t => <Badge key={t}>{t}</Badge>)}
-                                    </div>
-                                </a>
-                            </div>
-
-                            <div style={{ marginTop: 16, paddingTop: 14, borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <Button href={'/creators/' + ref.slug} secondary style={{ fontSize: 12, padding: '6px 12px' }}>
-                                    Explore Works ({ref.featuredWorks.length})
-                                </Button>
-                                <a href={ref.portfolioUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: 4, textDecoration: 'none' }}>
-                                    Official Portfolio <ExternalLink size={13} />
-                                </a>
-                            </div>
-                        </article>
-                    ))}
-                </div>
+        <div className="discovery-toolbar" style={{ marginBottom: 25 }}>
+            <div className="search" style={{ flex: 1 }}>
+                <Search size={20}/>
+                <input
+                    aria-label="Search all creators and artists"
+                    placeholder="Search creators, artists, models (Runway, Sora, Kling, Midjourney) or skills..."
+                    value={q}
+                    onChange={e => setQ(e.target.value)}
+                />
+                {q && <button className="icon-btn" onClick={() => setQ('')} aria-label="Clear search"><X size={17}/></button>}
             </div>
-        ) : (
-            <>
-                <div className="discovery-toolbar">
-                    <div className="search"><Search size={20}/><input aria-label="Search creators" placeholder="Search creators, skills, tools or specialties" value={q} onChange={e => setQ(e.target.value)}/>{q && <button className="icon-btn" onClick={() => setQ('')} aria-label="Clear search"><X size={17}/></button>}</div>
-                    <button className="filter-toggle" onClick={() => setOpen(!open)}><SlidersHorizontal size={18}/>Filters</button>
-                    <div style={{ minWidth: 200 }}><AppSelect ariaLabel="Sort creators" value={sort} onChange={v => setSort(v)} options={[{ value: 'recent', label: 'Recently updated' }, { value: 'name', label: 'Alphabetical' }, { value: 'rate', label: 'Starting rate: low to high' }]}/></div>
+            <button className="button secondary" onClick={() => setOpen(!open)} style={{ minHeight: 54, padding: '0 20px', gap: 8, fontSize: 13 }}>
+                <SlidersHorizontal size={18}/>
+                <span>{open ? 'Hide Filters' : 'Filters'}</span>
+                {(Object.values(filters).some(v => Array.isArray(v) ? v.length > 0 : !!v) || saved) && (
+                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--accent)' }} />
+                )}
+            </button>
+            <div style={{ minWidth: 200 }}>
+                <AppSelect ariaLabel="Sort creators" value={sort} onChange={v => setSort(v)} options={[{ value: 'recent', label: 'Recently updated' }, { value: 'name', label: 'Alphabetical' }, { value: 'rate', label: 'Starting rate: low to high' }]}/>
+            </div>
+        </div>
+
+        {/* Unified Search Tools if signed in */}
+        <SavedSearchTools signedIn={!!me?.account} current={{ ...filters, q, sort }} onApply={(values: Obj) => { setQ(values.q || ''); setSort(values.sort || 'recent'); const { q: search, sort: order, ...rest } = values; setFilters(rest); setPage(1); }}/>
+
+        <div className={open ? "discovery-layout" : ""}>
+            {open && (
+                <aside className={'filters filters-open'}>
+                    <div className="filter-heading"><strong>Refine your search</strong><button onClick={() => { setFilters({}); setQ(''); }}>Reset</button></div>
+                    <p className="micro">Any selection within a group. All selected groups must match.</p>
+                    {groups.map(([key, label, options]) => <details key={key} open={key === 'specializations' || key === 'tools'}><summary>{label}<ChevronDown size={15}/></summary><div style={{ display: 'flex', flexDirection: 'column', gap: 2, margin: '6px 0' }}>{options.map(option => <div key={option} style={{ padding: '3px 0' }}><AnimatedCheckbox label={option} checked={list(filters[key]).includes(option)} onChange={checked => set(key, checked ? [...list(filters[key]), option] : list(filters[key]).filter(v => v !== option))} ariaLabel={option}/></div>)}</div></details>)}
+                    <details open><summary>Starting rate ({filters.currency || 'INR'})<ChevronDown size={15}/></summary><div style={{ marginBottom: '8px' }}><AppSelect ariaLabel="Rate currency" value={filters.currency || 'INR'} onChange={v => set('currency', v)} options={[{ value: 'INR', label: 'INR (₹)' }, { value: 'USD', label: 'USD ($)' }, { value: 'EUR', label: 'EUR (€)' }]}/></div><div className="range"><input type="number" min="0" aria-label="Minimum rate" placeholder="Min" value={filters.min || ''} onChange={e => set('min', e.target.value)}/><span>–</span><input type="number" min="0" aria-label="Maximum rate" placeholder="Max" value={filters.max || ''} onChange={e => set('max', e.target.value)}/></div></details>
+                    <div style={{ padding: '6px 0' }}><AnimatedCheckbox label="Available now (Registered)" checked={!!filters.available} onChange={checked => set('available', checked)} ariaLabel="Available now"/></div>
+                    <div style={{ padding: '6px 0' }}><AnimatedCheckbox label="Verified claims" checked={!!filters.verified} onChange={checked => set('verified', checked)} ariaLabel="Verified claims"/></div>
+                    {me?.account && <div style={{ padding: '6px 0' }}><AnimatedCheckbox label="Saved creators" checked={saved} onChange={checked => setSaved(checked)} ariaLabel="Saved creators"/></div>}
+                </aside>
+            )}
+
+            <div>
+                <div className="results-heading" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                    <span>
+                        {r.loading ? 'Searching…' : `${totalCount} Creative Partner${totalCount === 1 ? '' : 's'}`}
+                        <span style={{ color: 'var(--muted)', fontSize: 11, marginLeft: 8 }}>
+                            ({registeredResults.length} registered · {filteredReferences.length} editorial references)
+                        </span>
+                    </span>
+                    <span className="micro">HUMAN VISION · AI CAPABILITY · ORIGINAL PROVENANCE</span>
                 </div>
-                <SavedSearchTools signedIn={!!me?.account} current={{ ...filters, q, sort }} onApply={(values: Obj) => { setQ(values.q || ''); setSort(values.sort || 'recent'); const { q: search, sort: order, ...rest } = values; setFilters(rest); setPage(1); }}/>
-                <div className="discovery-layout">
-                    <aside className={'filters ' + (open ? 'filters-open' : '')}>
-                        <div className="filter-heading"><strong>Refine your search</strong><button onClick={() => { setFilters({}); setQ(''); }}>Reset</button></div>
-                        <p className="micro">Any selection within a group. All selected groups must match.</p>
-                        {groups.map(([key, label, options]) => <details key={key} open={key === 'specializations' || key === 'tools'}><summary>{label}<ChevronDown size={15}/></summary><div style={{ display: 'flex', flexDirection: 'column', gap: 2, margin: '6px 0' }}>{options.map(option => <div key={option} style={{ padding: '3px 0' }}><AnimatedCheckbox label={option} checked={list(filters[key]).includes(option)} onChange={checked => set(key, checked ? [...list(filters[key]), option] : list(filters[key]).filter(v => v !== option))} ariaLabel={option}/></div>)}</div></details>)}
-                        <details open><summary>Starting rate ({filters.currency || 'INR'})<ChevronDown size={15}/></summary><div style={{ marginBottom: '8px' }}><AppSelect ariaLabel="Rate currency" value={filters.currency || 'INR'} onChange={v => set('currency', v)} options={[{ value: 'INR', label: 'INR (₹)' }, { value: 'USD', label: 'USD ($)' }, { value: 'EUR', label: 'EUR (€)' }]}/></div><div className="range"><input type="number" min="0" aria-label="Minimum rate" placeholder="Min" value={filters.min || ''} onChange={e => set('min', e.target.value)}/><span>–</span><input type="number" min="0" aria-label="Maximum rate" placeholder="Max" value={filters.max || ''} onChange={e => set('max', e.target.value)}/></div></details>
-                        <div style={{ padding: '6px 0' }}><AnimatedCheckbox label="Available now" checked={!!filters.available} onChange={checked => set('available', checked)} ariaLabel="Available now"/></div>
-                        <div style={{ padding: '6px 0' }}><AnimatedCheckbox label="Verified claims" checked={!!filters.verified} onChange={checked => set('verified', checked)} ariaLabel="Verified claims"/></div>
-                        {me?.account && <div style={{ padding: '6px 0' }}><AnimatedCheckbox label="Saved creators" checked={saved} onChange={checked => setSaved(checked)} ariaLabel="Saved creators"/></div>}
-                    </aside>
-                    <div>
-                        <div className="results-heading"><span>{r.loading ? 'Searching…' : `${r.data?.total || 0} creative${r.data?.total === 1 ? '' : 's'}`}</span><span className="micro">ORIGINAL PEOPLE. DISTINCT PERSPECTIVES.</span></div>
-                        <div className="selected-filters">{Object.entries(filters).filter(([k, v]) => Array.isArray(v)).flatMap(([k, v]: any) => v.map((s: string) => <button key={k + s} onClick={() => set(k, v.filter((a: string) => a !== s))}>{s}<X size={13}/></button>))}</div>
-                        {r.loading ? <Loading /> : r.error ? <ErrorBox message={r.error} retry={r.refresh}/> : result.length ? <div className="creator-grid">{result.map((p: any) => <CreatorCard key={p.id} p={p}/>)}</div> : <Empty icon={Users} title={(Object.values(filters).some(v => v && (!Array.isArray(v) || v.length)) || q || saved) ? 'No creators match these filters.' : 'The directory is ready for its first creators.'} description={(Object.values(filters).some(v => v && (!Array.isArray(v) || v.length)) || q || saved) ? 'Try fewer filters or a wider budget to explore more creative partners.' : 'Published creator profiles appear here. Share your real work, tools and creative process to become discoverable.'} action={(Object.values(filters).some(v => v && (!Array.isArray(v) || v.length)) || q || saved) ? undefined : 'Publish your creator profile'} href="/signup"/>}
-                        {r.data?.pages > 1 && <div className="pagination"><Button secondary disabled={page <= 1} onClick={() => setPage(page - 1)}><ArrowLeft size={15}/>Previous</Button><span>Page {page} of {r.data.pages}</span><Button secondary disabled={page >= r.data.pages} onClick={() => setPage(page + 1)}>Next<ArrowRight size={15}/></Button></div>}
+
+                <div className="selected-filters">{Object.entries(filters).filter(([k, v]) => Array.isArray(v)).flatMap(([k, v]: any) => v.map((s: string) => <button key={k + s} onClick={() => set(k, v.filter((a: string) => a !== s))}>{s}<X size={13}/></button>))}</div>
+
+                {r.loading && !allCreators.length ? (
+                    <Loading />
+                ) : r.error && !allCreators.length ? (
+                    <ErrorBox message={r.error} retry={r.refresh}/>
+                ) : allCreators.length > 0 ? (
+                    <div className="creator-grid">
+                        {allCreators.map((item: any) => (
+                            <UnifiedCreatorCard key={item.id || item.slug} item={item} />
+                        ))}
                     </div>
-                </div>
-            </>
-        )}
+                ) : (
+                    <Empty
+                        icon={Users}
+                        title={q || Object.values(filters).some(Boolean) ? 'No creators or artists match these filters.' : 'The directory is ready.'}
+                        description={q || Object.values(filters).some(Boolean) ? 'Try clearing your search query or broadening your selected filters.' : 'Explore published creator accounts and editorial references.'}
+                        action={q || Object.values(filters).some(Boolean) ? 'Clear filters' : 'Publish your creator profile'}
+                        href={q || Object.values(filters).some(Boolean) ? undefined : '/signup'}
+                        onClick={q || Object.values(filters).some(Boolean) ? () => { setQ(''); setFilters({}); } : undefined}
+                    />
+                )}
+            </div>
+        </div>
     </div>;
 }
 function Creator({ slug }: any) {
@@ -347,19 +419,18 @@ function Creator({ slug }: any) {
 
     return <div className="page profile-public">
         <a className="back-link" href="/discover"><ArrowLeft size={16}/>Back to discovery</a>
-        <div className="profile-cover">
-            {d.cover ? <img src={'/api/files/' + d.cover} alt=""/> : <div className="cover-empty"><Orbit size={130} strokeWidth={.5}/></div>}
-        </div>
+        <ProfileHeroBanner
+            coverUrl={d.cover}
+            name={d.name}
+            specialization={d.headline || d.specialization || (Array.isArray(d.specializations) ? d.specializations[0] : 'AI Creative')}
+            isExternalReference={isRef}
+        />
         <div className="profile-title">
-            <div className="avatar large" style={{ overflow: 'hidden' }}>
-                {d.avatar?.startsWith('http') ? (
-                    <img src={d.avatar} alt={d.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                ) : d.avatar ? (
-                    <img src={'/api/files/' + d.avatar} alt=""/>
-                ) : (
-                    d.name.slice(0, 1)
-                )}
-            </div>
+            <CreatorAvatar
+                avatarUrl={d.avatar?.startsWith('http') ? d.avatar : d.avatar ? '/api/files/' + d.avatar : undefined}
+                name={d.name}
+                className="large"
+            />
             <div>
                 <div className="tags">
                     {isRef ? (
@@ -469,7 +540,18 @@ function Creator({ slug }: any) {
                                 </div>
                             ) : (
                                 <a className="portfolio-card" key={proj.id} href={'/projects/' + proj.slug}>
-                                    <img src={'/api/files/' + proj.data.cover} alt={proj.data.title} loading="lazy"/>
+                                    {proj.data.cover ? (
+                                        <img 
+                                            src={proj.data.cover.startsWith('http') ? proj.data.cover : '/api/files/' + proj.data.cover} 
+                                            alt={proj.data.title} 
+                                            loading="lazy"
+                                            onError={(e: any) => { e.currentTarget.style.display = 'none'; }}
+                                        />
+                                    ) : (
+                                        <div className="cover-empty" style={{ aspectRatio: '1.6' }}>
+                                            <Orbit size={32} strokeWidth={0.8} />
+                                        </div>
+                                    )}
                                     <div>
                                         <Badge>{proj.data.contentType}</Badge>
                                         <h3>{proj.data.title}<ArrowUpRight size={18}/></h3>
@@ -824,7 +906,8 @@ function Project({ slug }: any) {
     if (p.isExternal || d.isExternal) {
         return <ArtistProjectDetail artistSlug={d.artistSlug || profile?.slug} projectSlug={slug} initialData={r.data} />;
     }
-    return <div className="page project-public"><a className="back-link" href={profile ? '/creators/' + profile.slug : '/discover'}><ArrowLeft size={16}/>Creator portfolio</a><span className="eyebrow">THE WORK. THE PROCESS. THE THINKING.</span><h1>{d.title}</h1><div className="tags"><Badge>{d.contentType}</Badge><Badge>{d.aspectRatio}</Badge>{d.industry && <Badge>{d.industry}</Badge>}</div><img className="project-hero" src={'/api/files/' + d.cover} alt={d.title}/><div className="profile-layout"><div><h2>The brief</h2><p className="preserve large-copy">{d.description}</p><h2>Creative workflow</h2><p className="preserve">{d.workflow}</p><h2>Creator contribution</h2><p className="preserve">{d.contribution}</p><div className="project-media">{d.media.map((id: string) => <Media key={id} id={id}/>)}</div></div><aside className="profile-facts"><h3>Project details</h3><div>Tools: {list(d.tools).join(', ')}</div><div>Skills: {list(d.skills).join(', ')}</div><div>Styles: {list(d.styles).join(', ')}</div><div>Resolution: {d.resolution || 'Not provided'}</div>{d.duration > 0 && <div>Duration: {d.duration} seconds</div>}<h4>Commercial-use declaration</h4><p>{d.commercialUse}</p><p className="micro">This is the creator’s declaration. Tool terms and third-party rights must be checked for your intended usage.</p>{d.externalLink && <a href={d.externalLink} target="_blank" rel="noopener noreferrer">Project link<ExternalLink size={15}/></a>}</aside></div></div>;
+    const heroSrc = d.cover?.startsWith('http') ? d.cover : d.cover ? '/api/files/' + d.cover : undefined;
+    return <div className="page project-public"><a className="back-link" href={profile ? '/creators/' + profile.slug : '/discover'}><ArrowLeft size={16}/>Creator portfolio</a><span className="eyebrow">THE WORK. THE PROCESS. THE THINKING.</span><h1>{d.title}</h1><div className="tags"><Badge>{d.contentType}</Badge><Badge>{d.aspectRatio}</Badge>{d.industry && <Badge>{d.industry}</Badge>}</div>{heroSrc && <img className="project-hero" src={heroSrc} alt={d.title} onError={(e: any) => { e.currentTarget.style.display = 'none'; }}/>}<div className="profile-layout"><div><h2>The brief</h2><p className="preserve large-copy">{d.description}</p><h2>Creative workflow</h2><p className="preserve">{d.workflow}</p><h2>Creator contribution</h2><p className="preserve">{d.contribution}</p><div className="project-media">{d.media.map((id: string) => <Media key={id} id={id}/>)}</div></div><aside className="profile-facts"><h3>Project details</h3><div>Tools: {list(d.tools).join(', ')}</div><div>Skills: {list(d.skills).join(', ')}</div><div>Styles: {list(d.styles).join(', ')}</div><div>Resolution: {d.resolution || 'Not provided'}</div>{d.duration > 0 && <div>Duration: {d.duration} seconds</div>}<h4>Commercial-use declaration</h4><p>{d.commercialUse}</p><p className="micro">This is the creator’s declaration. Tool terms and third-party rights must be checked for your intended usage.</p>{d.externalLink && <a href={d.externalLink} target="_blank" rel="noopener noreferrer">Project link<ExternalLink size={15}/></a>}</aside></div></div>;
 }
 function Media({ id }: any) {
     const [type, setType] = useState(''), [error, setError] = useState(false);

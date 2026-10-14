@@ -1,0 +1,272 @@
+[
+  {
+    "slug": "paul-trillo",
+    "name": "Paul Trillo",
+    "headline": "AI filmmaking, directing and experimental moving images",
+    "bio": "Filmmaker and director whose official portfolio documents experimental storytelling, music videos and AI-assisted moving-image production. Individual film pages identify the techniques used for specific works.",
+    "officialWebsite": "https://paultrillo.com/",
+    "specializations": [
+      "AI Filmmaking",
+      "Experimental Cinema",
+      "Music Videos"
+    ],
+    "portraitUrl": null,
+    "portraitRights": "not_cleared",
+    "heroImageUrl": null,
+    "heroImageRights": "not_cleared",
+    "socialLinks": [],
+    "sourceUrls": [
+      "https://paultrillo.com/"
+    ],
+    "kind": "external_editorial_reference",
+    "registeredOnCreaXa": false,
+    "availableForHire": null,
+    "verificationBadge": null,
+    "rate": null,
+    "visibility": "public_editorial",
+    "sourceReviewedAt": "2026-10-14"
+  },
+  {
+    "slug": "refik-anadol",
+    "name": "Refik Anadol",
+    "headline": "Machine-learning media art and immersive installation",
+    "bio": "Media artist and founder of Refik Anadol Studio, creating data-driven installations, performances and architecture-scale artworks. The studio documents custom machine-learning methods and archival-data work.",
+    "officialWebsite": "https://refikanadolstudio.com/",
+    "specializations": [
+      "Data Art",
+      "Machine Learning",
+      "Immersive Installation"
+    ],
+    "portraitUrl": null,
+    "portraitRights": "not_cleared",
+    "heroImageUrl": null,
+    "heroImageRights": "not_cleared",
+    "socialLinks": [],
+    "sourceUrls": [
+      "https://refikanadolstudio.com/studio/"
+    ],
+    "kind": "external_editorial_reference",
+    "registeredOnCreaXa": false,
+    "availableForHire": null,
+    "verificationBadge": null,
+    "rate": null,
+    "visibility": "public_editorial",
+    "sourceReviewedAt": "2026-10-14"
+  },
+  {
+    "slug": "niceaunties",
+    "name": "niceaunties (Wenhui Lim)",
+    "headline": "Surreal AI world-building and multimedia installation",
+    "bio": "Wenhui Lim uses AI and mixed media to develop the Auntieverse, exploring ageing, care and cultural identity through surreal visual narratives, installations and moving images.",
+    "officialWebsite": "https://www.niceaunties.com/",
+    "specializations": [
+      "AI Visual Storytelling",
+      "Installation",
+      "Mixed Media"
+    ],
+    "portraitUrl": null,
+    "portraitRights": "not_cleared",
+    "heroImageUrl": null,
+    "heroImageRights": "not_cleared",
+    "socialLinks": [],
+    "sourceUrls": [
+      "https://www.niceaunties.com/"
+    ],
+    "kind": "external_editorial_reference",
+    "registeredOnCreaXa": false,
+    "availableForHire": null,
+    "verificationBadge": null,
+    "rate": null,
+    "visibility": "public_editorial",
+    "sourceReviewedAt": "2026-10-14"
+  },
+  {
+    "slug": "claire-silver",
+    "name": "Claire Silver",
+    "headline": "AI-collaborative art and digital collections",
+    "bio": "AI-collaborative artist whose publicly documented collections explore visual storytelling, fashion, memory and the relationship between artistic intention and generative tools.",
+    "officialWebsite": "https://www.clairesilver.com/",
+    "specializations": [
+      "AI-Collaborative Art",
+      "Generative Fashion",
+      "Digital Art"
+    ],
+    "portraitUrl": null,
+    "portraitRights": "not_cleared",
+    "heroImageUrl": null,
+    "heroImageRights": "not_cleared",
+    "socialLinks": [],
+    "sourceUrls": [
+      "https://www.clairesilver.com/collections"
+    ],
+    "kind": "external_editorial_reference",
+    "registeredOnCreaXa": false,
+    "availableForHire": null,
+    "verificationBadge": null,
+    "rate": null,
+    "visibility": "public_editorial",
+    "sourceReviewedAt": "2026-10-14"
+  },
+  {
+    "slug": "roope-rainisto",
+    "name": "Roope Rainisto",
+    "headline": "AI post-photography and conceptual imagery",
+    "bio": "Helsinki-based artist working in AI-generated post-photography. His collections explore fictional memories and uncanny versions of familiar places and social life.",
+    "officialWebsite": "https://www.rooperainisto.com/",
+    "specializations": [
+      "AI Photography",
+      "Post-Photography",
+      "Conceptual Art"
+    ],
+    "portraitUrl": null,
+    "portraitRights": "not_cleared",
+    "heroImageUrl": null,
+    "heroImageRights": "not_cleared",
+    "socialLinks": [],
+    "sourceUrls": [
+      "https://www.rooperainisto.com/collections"
+    ],
+    "kind": "external_editorial_reference",
+    "registeredOnCreaXa": false,
+    "availableForHire": null,
+    "verificationBadge": null,
+    "rate": null,
+    "visibility": "public_editorial",
+    "sourceReviewedAt": "2026-10-14"
+  },
+  {
+    "slug": "sasha-stiles",
+    "name": "Sasha Stiles",
+    "headline": "AI poetry, computational language and media art",
+    "bio": "Poet and artist creating hybrid language systems, generative writing and media-rich works that investigate collaboration between human expression and computation.",
+    "officialWebsite": "https://www.sashastiles.com/",
+    "specializations": [
+      "AI Poetry",
+      "Generative Typography",
+      "Computational Literature"
+    ],
+    "portraitUrl": null,
+    "portraitRights": "not_cleared",
+    "heroImageUrl": null,
+    "heroImageRights": "not_cleared",
+    "socialLinks": [],
+    "sourceUrls": [
+      "https://www.sashastiles.com/projects"
+    ],
+    "kind": "external_editorial_reference",
+    "registeredOnCreaXa": false,
+    "availableForHire": null,
+    "verificationBadge": null,
+    "rate": null,
+    "visibility": "public_editorial",
+    "sourceReviewedAt": "2026-10-14"
+  },
+  {
+    "slug": "kris-kashtanova",
+    "name": "Kris Kashtanova",
+    "headline": "AI-assisted illustration, comics and video",
+    "bio": "AI artist whose official portfolio includes AI-assisted comics, visual experiments and short videos, with individual projects documenting Midjourney, Stable Diffusion and Runway techniques.",
+    "officialWebsite": "https://www.kris.art/portfolio-2",
+    "specializations": [
+      "AI Illustration",
+      "AI Comics",
+      "Generative Video"
+    ],
+    "portraitUrl": null,
+    "portraitRights": "not_cleared",
+    "heroImageUrl": null,
+    "heroImageRights": "not_cleared",
+    "socialLinks": [],
+    "sourceUrls": [
+      "https://www.kris.art/portfolio-2"
+    ],
+    "kind": "external_editorial_reference",
+    "registeredOnCreaXa": false,
+    "availableForHire": null,
+    "verificationBadge": null,
+    "rate": null,
+    "visibility": "public_editorial",
+    "sourceReviewedAt": "2026-10-14"
+  },
+  {
+    "slug": "anna-ridler",
+    "name": "Anna Ridler",
+    "headline": "Dataset-based machine-learning art",
+    "bio": "Artist working with self-assembled datasets and machine-learning processes, including tulip imagery and generated video installations. Her work emphasizes the labor and provenance of dataset construction.",
+    "officialWebsite": "https://annaridler.com/",
+    "specializations": [
+      "Dataset Art",
+      "Machine Learning",
+      "Generative Video"
+    ],
+    "portraitUrl": null,
+    "portraitRights": "not_cleared",
+    "heroImageUrl": null,
+    "heroImageRights": "not_cleared",
+    "socialLinks": [],
+    "sourceUrls": [
+      "https://annaridler.com/works"
+    ],
+    "kind": "external_editorial_reference",
+    "registeredOnCreaXa": false,
+    "availableForHire": null,
+    "verificationBadge": null,
+    "rate": null,
+    "visibility": "public_editorial",
+    "sourceReviewedAt": "2026-10-14"
+  },
+  {
+    "slug": "sougwen-chung",
+    "name": "Sougwen Chung",
+    "headline": "Robotic drawing and human-machine creative collaboration",
+    "bio": "Artist and researcher known for Drawing Operations, an evolving body of collaborative performances and artworks combining hand drawing, robotics and machine learning.",
+    "officialWebsite": "https://sougwen.com/",
+    "specializations": [
+      "Robotic Art",
+      "Human-Machine Collaboration",
+      "Generative Performance"
+    ],
+    "portraitUrl": null,
+    "portraitRights": "not_cleared",
+    "heroImageUrl": null,
+    "heroImageRights": "not_cleared",
+    "socialLinks": [],
+    "sourceUrls": [
+      "https://sougwen.com/archive"
+    ],
+    "kind": "external_editorial_reference",
+    "registeredOnCreaXa": false,
+    "availableForHire": null,
+    "verificationBadge": null,
+    "rate": null,
+    "visibility": "public_editorial",
+    "sourceReviewedAt": "2026-10-14"
+  },
+  {
+    "slug": "karen-x-cheng",
+    "name": "Karen X. Cheng",
+    "headline": "Creative direction, filmmaking and experimental video",
+    "bio": "Director and creative filmmaker known for inventive camera techniques and social video projects. Her public portfolio includes commercial films and experiments; AI involvement must be verified per project rather than assumed.",
+    "officialWebsite": "https://www.karenx.com/",
+    "specializations": [
+      "Creative Direction",
+      "Commercial Video",
+      "Practical VFX"
+    ],
+    "portraitUrl": null,
+    "portraitRights": "not_cleared",
+    "heroImageUrl": null,
+    "heroImageRights": "not_cleared",
+    "socialLinks": [],
+    "sourceUrls": [
+      "https://www.karenx.com/"
+    ],
+    "kind": "external_editorial_reference",
+    "registeredOnCreaXa": false,
+    "availableForHire": null,
+    "verificationBadge": null,
+    "rate": null,
+    "visibility": "public_editorial",
+    "sourceReviewedAt": "2026-10-14"
+  }
+]

@@ -1,13 +1,22 @@
 'use client';
 
 import React, { useRef, useEffect } from 'react';
+import { CheckCircle2, AlertCircle } from 'lucide-react';
+
+export type OtpClusterMode =
+  | 'idle'
+  | 'verifying'
+  | 'first_success'
+  | 'first_failure'
+  | 'second_success'
+  | 'second_failure';
 
 interface OtpInputProps {
   value: string;
   onChange: (value: string) => void;
   disabled?: boolean;
   hasError?: boolean;
-  isSuccess?: boolean;
+  mode?: OtpClusterMode;
   onComplete?: (code: string) => void;
 }
 
@@ -16,36 +25,35 @@ export function OtpInput({
   onChange,
   disabled = false,
   hasError = false,
-  isSuccess = false,
+  mode = 'idle',
   onComplete
 }: OtpInputProps) {
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const digits = Array.from({ length: 6 }, (_, i) => value[i] || '');
 
   useEffect(() => {
-    // Focus first empty box or first box on mount
-    const firstEmpty = digits.findIndex(d => !d);
-    const targetIdx = firstEmpty === -1 ? 5 : firstEmpty;
-    inputRefs.current[targetIdx]?.focus();
-  }, []);
+    if (mode === 'idle') {
+      const firstEmpty = digits.findIndex(d => !d);
+      const targetIdx = firstEmpty === -1 ? 5 : firstEmpty;
+      inputRefs.current[targetIdx]?.focus();
+    }
+  }, [mode]);
+
+  const isLocked = disabled || mode !== 'idle';
 
   const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (disabled || isSuccess) return;
+    if (isLocked) return;
 
     if (e.key === 'Backspace') {
       e.preventDefault();
       if (digits[index]) {
-        // Clear current digit
         const newDigits = [...digits];
         newDigits[index] = '';
-        const newValue = newDigits.join('').trim();
-        onChange(newValue);
+        onChange(newDigits.join('').trim());
       } else if (index > 0) {
-        // Move to previous and clear it
         const newDigits = [...digits];
         newDigits[index - 1] = '';
-        const newValue = newDigits.join('').trim();
-        onChange(newValue);
+        onChange(newDigits.join('').trim());
         inputRefs.current[index - 1]?.focus();
       }
     } else if (e.key === 'ArrowLeft' && index > 0) {
@@ -58,7 +66,7 @@ export function OtpInput({
   };
 
   const handleInput = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
-    if (disabled || isSuccess) return;
+    if (isLocked) return;
     const val = e.target.value.replace(/\D/g, '');
     if (!val) return;
 
@@ -78,7 +86,7 @@ export function OtpInput({
   };
 
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
-    if (disabled || isSuccess) return;
+    if (isLocked) return;
     e.preventDefault();
     const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
     if (!pasted) return;
@@ -92,34 +100,77 @@ export function OtpInput({
     }
   };
 
+  const clusterClass = `cinematic-otp-cluster is-${mode.replace('_', '-')} ${hasError ? 'otp-shake-error' : ''}`;
+
   return (
     <div
-      className={`otp-digit-cluster ${hasError ? 'otp-shake-error' : ''} ${isSuccess ? 'otp-success-glow' : ''}`}
+      className={clusterClass}
       role="group"
       aria-label="6-digit verification code"
     >
       {digits.map((digit, idx) => {
-        const isCurrentActive = digits.findIndex(d => !d) === idx;
+        const isCurrentActive = digits.findIndex(d => !d) === idx && mode === 'idle';
         return (
-          <div key={idx} className="otp-digit-wrapper">
-            <input
-              ref={el => { inputRefs.current[idx] = el; }}
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              autoComplete={idx === 0 ? 'one-time-code' : 'off'}
-              maxLength={1}
-              value={digit}
-              onChange={e => handleInput(idx, e)}
-              onKeyDown={e => handleKeyDown(idx, e)}
-              onPaste={handlePaste}
-              disabled={disabled}
-              className={`otp-digit-cell ${digit ? 'filled' : ''} ${isCurrentActive ? 'active' : ''} ${hasError ? 'error' : ''} ${isSuccess ? 'success' : ''}`}
-              aria-label={`Digit ${idx + 1} of 6`}
-            />
-          </div>
+          <input
+            key={idx}
+            ref={el => { inputRefs.current[idx] = el; }}
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            autoComplete={idx === 0 ? 'one-time-code' : 'off'}
+            maxLength={1}
+            value={digit}
+            onChange={e => handleInput(idx, e)}
+            onKeyDown={e => handleKeyDown(idx, e)}
+            onPaste={handlePaste}
+            disabled={isLocked}
+            style={{ '--cell-idx': idx } as React.CSSProperties}
+            className={`cinematic-otp-cell cell-idx-${idx} ${digit ? 'filled' : ''} ${isCurrentActive ? 'active' : ''}`}
+            aria-label={`Digit ${idx + 1} of 6`}
+          />
         );
       })}
+
+      {/* Cinematic Central Reveal Overlays */}
+      {mode === 'first_success' && (
+        <div className="cinematic-overlay-reveal" aria-live="assertive">
+          <div className="cinematic-overlay-badge success-badge">
+            <CheckCircle2 size={32} />
+          </div>
+          <h3 className="cinematic-overlay-title success-text">AUTH SUCCESS</h3>
+          <p className="cinematic-overlay-sub">Email verified successfully</p>
+        </div>
+      )}
+
+      {mode === 'second_success' && (
+        <div className="cinematic-overlay-reveal" aria-live="assertive">
+          <div className="cinematic-overlay-badge success-badge">
+            <CheckCircle2 size={34} />
+          </div>
+          <h3 className="cinematic-overlay-title success-text">2ND AUTH SUCCESS</h3>
+          <p className="cinematic-overlay-sub">Verification successful on your second attempt</p>
+        </div>
+      )}
+
+      {mode === 'first_failure' && (
+        <div className="cinematic-overlay-reveal" aria-live="assertive">
+          <div className="cinematic-overlay-badge failure-badge">
+            <AlertCircle size={30} />
+          </div>
+          <h3 className="cinematic-overlay-title failure-text">AUTH FAILED</h3>
+          <p className="cinematic-overlay-sub" style={{ letterSpacing: '0.12em', fontWeight: 700 }}>TRY AGAIN</p>
+        </div>
+      )}
+
+      {mode === 'second_failure' && (
+        <div className="cinematic-overlay-reveal" aria-live="assertive">
+          <div className="cinematic-overlay-badge failure-badge">
+            <AlertCircle size={32} />
+          </div>
+          <h3 className="cinematic-overlay-title failure-text">AUTH FAILED</h3>
+          <p className="cinematic-overlay-sub" style={{ color: '#ffb3b3', fontWeight: 600 }}>TRY AGAIN WITH NEW OTP</p>
+        </div>
+      )}
     </div>
   );
 }

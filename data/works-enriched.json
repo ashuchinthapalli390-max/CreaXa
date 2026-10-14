@@ -1,0 +1,1298 @@
+[
+  {
+    "id": "paul-trillo__washed-out-the-hardest-part",
+    "artistSlug": "paul-trillo",
+    "slug": "washed-out-the-hardest-part",
+    "title": "Washed Out — The Hardest Parts",
+    "medium": "music_video",
+    "year": 2024,
+    "summary": "Official Washed Out music video directed by Paul Trillo using OpenAI Sora, described on the filmmaker’s official site.",
+    "officialProjectUrl": "https://vimeo.com/941713443",
+    "sourceUrls": [
+      "https://vimeo.com/941713443"
+    ],
+    "documentedTools": [
+      "OpenAI Sora"
+    ],
+    "aiInvolvement": "documented",
+    "media": {
+      "imageUrl": null,
+      "imageRights": "not_cleared",
+      "videoEmbedUrl": "https://player.vimeo.com/video/941713443",
+      "videoEmbedStatus": "candidate_verify_in_browser",
+      "videoOnOfficialPage": true,
+      "videoRights": "original_provider_only",
+      "mediaType": "music_video"
+    },
+    "verifiedProjectMetadata": true,
+    "verifiedRights": false,
+    "sourceReviewedAt": "2026-10-14",
+    "thumbnailApprovalStatus": "requires_actual_correct_project_image_and_rights",
+    "sourceURLPendingLiveValidation": true
+  },
+  {
+    "id": "paul-trillo__thank-you-for-not-answering",
+    "artistSlug": "paul-trillo",
+    "slug": "thank-you-for-not-answering",
+    "title": "Thank You For Not Answering",
+    "medium": "short_film",
+    "year": 2023,
+    "summary": "An AI-generated short film about a voicemail and imagined memories; official portfolio identifies Runway Gen-2.",
+    "officialProjectUrl": "https://paultrillo.com/",
+    "sourceUrls": [
+      "https://paultrillo.com/"
+    ],
+    "documentedTools": [
+      "Runway Gen-2"
+    ],
+    "aiInvolvement": "documented",
+    "media": {
+      "imageUrl": null,
+      "imageRights": "not_cleared",
+      "videoEmbedUrl": "https://player.vimeo.com/video/821101511",
+      "videoEmbedStatus": "candidate_verify_in_browser",
+      "videoOnOfficialPage": true,
+      "videoRights": "original_provider_only",
+      "mediaType": "short_film"
+    },
+    "verifiedProjectMetadata": true,
+    "verifiedRights": false,
+    "sourceReviewedAt": "2026-10-14",
+    "thumbnailApprovalStatus": "requires_actual_correct_project_image_and_rights",
+    "sourceURLPendingLiveValidation": true
+  },
+  {
+    "id": "paul-trillo__gofundme-help-changes-everything",
+    "artistSlug": "paul-trillo",
+    "slug": "gofundme-help-changes-everything",
+    "title": "GoFundMe — Help Changes Everything",
+    "medium": "commercial_video",
+    "year": null,
+    "summary": "Commercial creative work featured in the director’s portfolio. Do not assign AI tools without project evidence.",
+    "officialProjectUrl": "https://paultrillo.com/",
+    "sourceUrls": [
+      "https://paultrillo.com/"
+    ],
+    "documentedTools": [],
+    "aiInvolvement": "unverified_for_this_project",
+    "media": {
+      "imageUrl": null,
+      "imageRights": "not_cleared",
+      "videoEmbedUrl": "https://player.vimeo.com/video/784821590",
+      "videoEmbedStatus": "official_portfolio_embed_candidate_browser_verification_required",
+      "videoOnOfficialPage": true,
+      "videoRights": "original_provider_only",
+      "mediaType": "commercial_video"
+    },
+    "verifiedProjectMetadata": true,
+    "verifiedRights": false,
+    "sourceReviewedAt": "2026-10-14",
+    "thumbnailApprovalStatus": "requires_actual_correct_project_image_and_rights",
+    "sourceURLPendingLiveValidation": true
+  },
+  {
+    "id": "refik-anadol__unsupervised-machine-hallucinations-moma",
+    "artistSlug": "refik-anadol",
+    "slug": "unsupervised-machine-hallucinations-moma",
+    "title": "Unsupervised — Machine Hallucinations — MoMA",
+    "medium": "installation_video",
+    "year": 2022,
+    "summary": "A data-driven, continuously evolving media installation involving MoMA collection material and custom machine-learning processes.",
+    "officialProjectUrl": "https://refikanadolstudio.com/projects/unsupervised-machine-hallucinations-moma/",
+    "sourceUrls": [
+      "https://refikanadolstudio.com/projects/unsupervised-machine-hallucinations-moma/"
+    ],
+    "documentedTools": [
+      "StyleGAN2 ADA",
+      "Custom Latent Space Browser"
+    ],
+    "aiInvolvement": "documented",
+    "media": {
+      "imageUrl": null,
+      "imageRights": "not_cleared",
+      "videoEmbedUrl": null,
+      "videoEmbedStatus": "none",
+      "videoOnOfficialPage": true,
+      "videoRights": "original_provider_only",
+      "mediaType": "installation_video"
+    },
+    "verifiedProjectMetadata": true,
+    "verifiedRights": false,
+    "sourceReviewedAt": "2026-10-14",
+    "thumbnailApprovalStatus": "requires_actual_correct_project_image_and_rights",
+    "sourceURLPendingLiveValidation": true
+  },
+  {
+    "id": "refik-anadol__living-architecture-casa-batll",
+    "artistSlug": "refik-anadol",
+    "slug": "living-architecture-casa-batll",
+    "title": "Living Architecture: Casa Batlló",
+    "medium": "installation_video",
+    "year": 2022,
+    "summary": "Audiovisual architectural installation and performance presented at Casa Batlló.",
+    "officialProjectUrl": "https://refikanadolstudio.com/projects/living-architecture-casa-batllo/",
+    "sourceUrls": [
+      "https://refikanadolstudio.com/projects/living-architecture-casa-batllo/"
+    ],
+    "documentedTools": [],
+    "aiInvolvement": "documented",
+    "media": {
+      "imageUrl": null,
+      "imageRights": "not_cleared",
+      "videoEmbedUrl": null,
+      "videoEmbedStatus": "none",
+      "videoOnOfficialPage": true,
+      "videoRights": "original_provider_only",
+      "mediaType": "installation_video"
+    },
+    "verifiedProjectMetadata": true,
+    "verifiedRights": false,
+    "sourceReviewedAt": "2026-10-14",
+    "thumbnailApprovalStatus": "requires_actual_correct_project_image_and_rights",
+    "sourceURLPendingLiveValidation": true
+  },
+  {
+    "id": "refik-anadol__wdch-dreams",
+    "artistSlug": "refik-anadol",
+    "slug": "wdch-dreams",
+    "title": "WDCH Dreams",
+    "medium": "installation_video",
+    "year": 2018,
+    "summary": "Archive- and machine-learning-based public artwork for the Walt Disney Concert Hall.",
+    "officialProjectUrl": "https://refikanadolstudio.com/projects/wdch-dreams/",
+    "sourceUrls": [
+      "https://refikanadolstudio.com/projects/wdch-dreams/"
+    ],
+    "documentedTools": [
+      "Archive + Machine Learning"
+    ],
+    "aiInvolvement": "documented",
+    "media": {
+      "imageUrl": null,
+      "imageRights": "not_cleared",
+      "videoEmbedUrl": null,
+      "videoEmbedStatus": "none",
+      "videoOnOfficialPage": true,
+      "videoRights": "original_provider_only",
+      "mediaType": "installation_video"
+    },
+    "verifiedProjectMetadata": true,
+    "verifiedRights": false,
+    "sourceReviewedAt": "2026-10-14",
+    "thumbnailApprovalStatus": "requires_actual_correct_project_image_and_rights",
+    "sourceURLPendingLiveValidation": true
+  },
+  {
+    "id": "refik-anadol__machine-hallucination",
+    "artistSlug": "refik-anadol",
+    "slug": "machine-hallucination",
+    "title": "Machine Hallucination",
+    "medium": "installation_video",
+    "year": 2019,
+    "summary": "Immersive machine-learning audiovisual installation series.",
+    "officialProjectUrl": "https://refikanadolstudio.com/projects/machine-hallucination/",
+    "sourceUrls": [
+      "https://refikanadolstudio.com/projects/machine-hallucination/"
+    ],
+    "documentedTools": [],
+    "aiInvolvement": "documented",
+    "media": {
+      "imageUrl": null,
+      "imageRights": "not_cleared",
+      "videoEmbedUrl": null,
+      "videoEmbedStatus": "none",
+      "videoOnOfficialPage": true,
+      "videoRights": "original_provider_only",
+      "mediaType": "installation_video"
+    },
+    "verifiedProjectMetadata": true,
+    "verifiedRights": false,
+    "sourceReviewedAt": "2026-10-14",
+    "thumbnailApprovalStatus": "requires_actual_correct_project_image_and_rights",
+    "sourceURLPendingLiveValidation": true
+  },
+  {
+    "id": "niceaunties__auntieverse",
+    "artistSlug": "niceaunties",
+    "slug": "auntieverse",
+    "title": "Auntieverse",
+    "medium": "mixed_media",
+    "year": 2023,
+    "summary": "Ongoing speculative world-building project with many series exploring auntie culture, ageing and identity.",
+    "officialProjectUrl": "https://www.niceaunties.com/projects-3",
+    "sourceUrls": [
+      "https://www.niceaunties.com/projects-3"
+    ],
+    "documentedTools": [],
+    "aiInvolvement": "documented",
+    "media": {
+      "imageUrl": null,
+      "imageRights": "not_cleared",
+      "videoEmbedUrl": null,
+      "videoEmbedStatus": "none",
+      "videoOnOfficialPage": true,
+      "videoRights": "original_provider_only",
+      "mediaType": "mixed_media"
+    },
+    "verifiedProjectMetadata": true,
+    "verifiedRights": false,
+    "sourceReviewedAt": "2026-10-14",
+    "thumbnailApprovalStatus": "requires_actual_correct_project_image_and_rights",
+    "sourceURLPendingLiveValidation": true
+  },
+  {
+    "id": "niceaunties__mirror-into-auntieverse",
+    "artistSlug": "niceaunties",
+    "slug": "mirror-into-auntieverse",
+    "title": "Mirror Into Auntieverse",
+    "medium": "interactive_installation",
+    "year": 2025,
+    "summary": "Interactive mirror project combining motion tracking, generative portraits and cultural storytelling.",
+    "officialProjectUrl": "https://www.niceaunties.com/mirror-into-auntieverse",
+    "sourceUrls": [
+      "https://www.niceaunties.com/mirror-into-auntieverse"
+    ],
+    "documentedTools": [
+      "Motion Tracking"
+    ],
+    "aiInvolvement": "documented",
+    "media": {
+      "imageUrl": null,
+      "imageRights": "not_cleared",
+      "videoEmbedUrl": null,
+      "videoEmbedStatus": "none",
+      "videoOnOfficialPage": true,
+      "videoRights": "original_provider_only",
+      "mediaType": "interactive_installation"
+    },
+    "verifiedProjectMetadata": true,
+    "verifiedRights": false,
+    "sourceReviewedAt": "2026-10-14",
+    "thumbnailApprovalStatus": "requires_actual_correct_project_image_and_rights",
+    "sourceURLPendingLiveValidation": true
+  },
+  {
+    "id": "niceaunties__aunties-in-dis-place",
+    "artistSlug": "niceaunties",
+    "slug": "aunties-in-dis-place",
+    "title": "Aunties in Dis Place",
+    "medium": "moving_image",
+    "year": 2024,
+    "summary": "Artist project listed in the official niceaunties project archive.",
+    "officialProjectUrl": "https://www.niceaunties.com/projects",
+    "sourceUrls": [
+      "https://www.niceaunties.com/projects"
+    ],
+    "documentedTools": [],
+    "aiInvolvement": "documented",
+    "media": {
+      "imageUrl": null,
+      "imageRights": "not_cleared",
+      "videoEmbedUrl": null,
+      "videoEmbedStatus": "none",
+      "videoOnOfficialPage": true,
+      "videoRights": "original_provider_only",
+      "mediaType": "moving_image"
+    },
+    "verifiedProjectMetadata": true,
+    "verifiedRights": false,
+    "sourceReviewedAt": "2026-10-14",
+    "thumbnailApprovalStatus": "requires_actual_correct_project_image_and_rights",
+    "sourceURLPendingLiveValidation": true
+  },
+  {
+    "id": "niceaunties__the-beauty-of-longevity",
+    "artistSlug": "niceaunties",
+    "slug": "the-beauty-of-longevity",
+    "title": "The Beauty of Longevity",
+    "medium": "installation",
+    "year": 2025,
+    "summary": "Mixed-media installation and commissioned showcase documented in the artist’s official archive.",
+    "officialProjectUrl": "https://www.niceaunties.com/projects",
+    "sourceUrls": [
+      "https://www.niceaunties.com/projects"
+    ],
+    "documentedTools": [],
+    "aiInvolvement": "documented",
+    "media": {
+      "imageUrl": null,
+      "imageRights": "not_cleared",
+      "videoEmbedUrl": null,
+      "videoEmbedStatus": "none",
+      "videoOnOfficialPage": true,
+      "videoRights": "original_provider_only",
+      "mediaType": "installation"
+    },
+    "verifiedProjectMetadata": true,
+    "verifiedRights": false,
+    "sourceReviewedAt": "2026-10-14",
+    "thumbnailApprovalStatus": "requires_actual_correct_project_image_and_rights",
+    "sourceURLPendingLiveValidation": true
+  },
+  {
+    "id": "claire-silver__ai-art-is-not-art",
+    "artistSlug": "claire-silver",
+    "slug": "ai-art-is-not-art",
+    "title": "AI Art is Not Art",
+    "medium": "image_collection",
+    "year": 2022,
+    "summary": "AI-collaborative artwork series built with multiple generative approaches and artistic interventions.",
+    "officialProjectUrl": "https://www.clairesilver.com/collections",
+    "sourceUrls": [
+      "https://www.clairesilver.com/collections"
+    ],
+    "documentedTools": [
+      "Artbreeder",
+      "Midjourney",
+      "DALL·E 2"
+    ],
+    "aiInvolvement": "documented",
+    "media": {
+      "imageUrl": null,
+      "imageRights": "not_cleared",
+      "videoEmbedUrl": null,
+      "videoEmbedStatus": "none",
+      "videoOnOfficialPage": false,
+      "videoRights": "original_provider_only",
+      "mediaType": "image_collection"
+    },
+    "verifiedProjectMetadata": true,
+    "verifiedRights": false,
+    "sourceReviewedAt": "2026-10-14",
+    "thumbnailApprovalStatus": "requires_actual_correct_project_image_and_rights",
+    "sourceURLPendingLiveValidation": true
+  },
+  {
+    "id": "claire-silver__corpo-real",
+    "artistSlug": "claire-silver",
+    "slug": "corpo-real",
+    "title": "corpo | real",
+    "medium": "image_collection",
+    "year": 2024,
+    "summary": "AI-collaborative fashion and embodiment-focused image collection.",
+    "officialProjectUrl": "https://www.clairesilver.com/corporeal",
+    "sourceUrls": [
+      "https://www.clairesilver.com/corporeal"
+    ],
+    "documentedTools": [],
+    "aiInvolvement": "documented",
+    "media": {
+      "imageUrl": null,
+      "imageRights": "not_cleared",
+      "videoEmbedUrl": null,
+      "videoEmbedStatus": "none",
+      "videoOnOfficialPage": false,
+      "videoRights": "original_provider_only",
+      "mediaType": "image_collection"
+    },
+    "verifiedProjectMetadata": true,
+    "verifiedRights": false,
+    "sourceReviewedAt": "2026-10-14",
+    "thumbnailApprovalStatus": "requires_actual_correct_project_image_and_rights",
+    "sourceURLPendingLiveValidation": true
+  },
+  {
+    "id": "claire-silver__genesis",
+    "artistSlug": "claire-silver",
+    "slug": "genesis",
+    "title": "Genesis",
+    "medium": "image_collection",
+    "year": 2020,
+    "summary": "An early AI image series arranged into a visual narrative.",
+    "officialProjectUrl": "https://www.clairesilver.com/collections",
+    "sourceUrls": [
+      "https://www.clairesilver.com/collections"
+    ],
+    "documentedTools": [],
+    "aiInvolvement": "documented",
+    "media": {
+      "imageUrl": null,
+      "imageRights": "not_cleared",
+      "videoEmbedUrl": null,
+      "videoEmbedStatus": "none",
+      "videoOnOfficialPage": false,
+      "videoRights": "original_provider_only",
+      "mediaType": "image_collection"
+    },
+    "verifiedProjectMetadata": true,
+    "verifiedRights": false,
+    "sourceReviewedAt": "2026-10-14",
+    "thumbnailApprovalStatus": "requires_actual_correct_project_image_and_rights",
+    "sourceURLPendingLiveValidation": true
+  },
+  {
+    "id": "claire-silver__in-this-house",
+    "artistSlug": "claire-silver",
+    "slug": "in-this-house",
+    "title": "in this house",
+    "medium": "image_collection",
+    "year": 2025,
+    "summary": "AI-focused experimental collection exploring recurring dream motifs.",
+    "officialProjectUrl": "https://www.clairesilver.com/collections",
+    "sourceUrls": [
+      "https://www.clairesilver.com/collections"
+    ],
+    "documentedTools": [],
+    "aiInvolvement": "documented",
+    "media": {
+      "imageUrl": null,
+      "imageRights": "not_cleared",
+      "videoEmbedUrl": null,
+      "videoEmbedStatus": "none",
+      "videoOnOfficialPage": false,
+      "videoRights": "original_provider_only",
+      "mediaType": "image_collection"
+    },
+    "verifiedProjectMetadata": true,
+    "verifiedRights": false,
+    "sourceReviewedAt": "2026-10-14",
+    "thumbnailApprovalStatus": "requires_actual_correct_project_image_and_rights",
+    "sourceURLPendingLiveValidation": true
+  },
+  {
+    "id": "claire-silver__paracosm",
+    "artistSlug": "claire-silver",
+    "slug": "paracosm",
+    "title": "paracosm",
+    "medium": "image_collection",
+    "year": 2023,
+    "summary": "Generative image collection exploring a personal invented world.",
+    "officialProjectUrl": "https://www.clairesilver.com/collections",
+    "sourceUrls": [
+      "https://www.clairesilver.com/collections"
+    ],
+    "documentedTools": [],
+    "aiInvolvement": "documented",
+    "media": {
+      "imageUrl": null,
+      "imageRights": "not_cleared",
+      "videoEmbedUrl": null,
+      "videoEmbedStatus": "none",
+      "videoOnOfficialPage": false,
+      "videoRights": "original_provider_only",
+      "mediaType": "image_collection"
+    },
+    "verifiedProjectMetadata": true,
+    "verifiedRights": false,
+    "sourceReviewedAt": "2026-10-14",
+    "thumbnailApprovalStatus": "requires_actual_correct_project_image_and_rights",
+    "sourceURLPendingLiveValidation": true
+  },
+  {
+    "id": "roope-rainisto__life-in-west-america",
+    "artistSlug": "roope-rainisto",
+    "slug": "life-in-west-america",
+    "title": "Life in West America",
+    "medium": "image_collection",
+    "year": 2023,
+    "summary": "AI post-photography series reimagining nostalgic American environments.",
+    "officialProjectUrl": "https://www.rooperainisto.com/collections",
+    "sourceUrls": [
+      "https://www.rooperainisto.com/collections"
+    ],
+    "documentedTools": [],
+    "aiInvolvement": "documented",
+    "media": {
+      "imageUrl": null,
+      "imageRights": "not_cleared",
+      "videoEmbedUrl": null,
+      "videoEmbedStatus": "none",
+      "videoOnOfficialPage": false,
+      "videoRights": "original_provider_only",
+      "mediaType": "image_collection"
+    },
+    "verifiedProjectMetadata": true,
+    "verifiedRights": false,
+    "sourceReviewedAt": "2026-10-14",
+    "thumbnailApprovalStatus": "requires_actual_correct_project_image_and_rights",
+    "sourceURLPendingLiveValidation": true
+  },
+  {
+    "id": "roope-rainisto__reworld",
+    "artistSlug": "roope-rainisto",
+    "slug": "reworld",
+    "title": "REWORLD",
+    "medium": "image_collection",
+    "year": 2023,
+    "summary": "Post-photographic collection imagining a shifted social and visual reality.",
+    "officialProjectUrl": "https://www.rooperainisto.com/collections",
+    "sourceUrls": [
+      "https://www.rooperainisto.com/collections"
+    ],
+    "documentedTools": [],
+    "aiInvolvement": "documented",
+    "media": {
+      "imageUrl": null,
+      "imageRights": "not_cleared",
+      "videoEmbedUrl": null,
+      "videoEmbedStatus": "none",
+      "videoOnOfficialPage": false,
+      "videoRights": "original_provider_only",
+      "mediaType": "image_collection"
+    },
+    "verifiedProjectMetadata": true,
+    "verifiedRights": false,
+    "sourceReviewedAt": "2026-10-14",
+    "thumbnailApprovalStatus": "requires_actual_correct_project_image_and_rights",
+    "sourceURLPendingLiveValidation": true
+  },
+  {
+    "id": "sasha-stiles__cursive-binary",
+    "artistSlug": "sasha-stiles",
+    "slug": "cursive-binary",
+    "title": "CURSIVE BINARY",
+    "medium": "generative_typography",
+    "year": null,
+    "summary": "Language-art project combining cursive handwriting with binary notation and poetic forms.",
+    "officialProjectUrl": "https://www.sashastiles.com/cursivebinary",
+    "sourceUrls": [
+      "https://www.sashastiles.com/cursivebinary"
+    ],
+    "documentedTools": [],
+    "aiInvolvement": "documented",
+    "media": {
+      "imageUrl": null,
+      "imageRights": "not_cleared",
+      "videoEmbedUrl": null,
+      "videoEmbedStatus": "none",
+      "videoOnOfficialPage": true,
+      "videoRights": "original_provider_only",
+      "mediaType": "generative_typography"
+    },
+    "verifiedProjectMetadata": true,
+    "verifiedRights": false,
+    "sourceReviewedAt": "2026-10-14",
+    "thumbnailApprovalStatus": "requires_actual_correct_project_image_and_rights",
+    "sourceURLPendingLiveValidation": true
+  },
+  {
+    "id": "sasha-stiles__repetae",
+    "artistSlug": "sasha-stiles",
+    "slug": "repetae",
+    "title": "REPETAE",
+    "medium": "multimedia_poetry",
+    "year": 2022,
+    "summary": "Generative poetry series exploring repetition, recursion and algorithmic language.",
+    "officialProjectUrl": "https://www.sashastiles.com/repetae",
+    "sourceUrls": [
+      "https://www.sashastiles.com/repetae"
+    ],
+    "documentedTools": [
+      "Generative Code"
+    ],
+    "aiInvolvement": "documented",
+    "media": {
+      "imageUrl": null,
+      "imageRights": "not_cleared",
+      "videoEmbedUrl": null,
+      "videoEmbedStatus": "none",
+      "videoOnOfficialPage": true,
+      "videoRights": "original_provider_only",
+      "mediaType": "multimedia_poetry"
+    },
+    "verifiedProjectMetadata": true,
+    "verifiedRights": false,
+    "sourceReviewedAt": "2026-10-14",
+    "thumbnailApprovalStatus": "requires_actual_correct_project_image_and_rights",
+    "sourceURLPendingLiveValidation": true
+  },
+  {
+    "id": "sasha-stiles__repetae-again-again",
+    "artistSlug": "sasha-stiles",
+    "slug": "repetae-again-again",
+    "title": "REPETAE: Again, Again",
+    "medium": "video_poetry",
+    "year": 2023,
+    "summary": "Media-rich poem published in partnership with Gucci; official project listing documents a 2:45 video.",
+    "officialProjectUrl": "https://www.sashastiles.com/projects",
+    "sourceUrls": [
+      "https://www.sashastiles.com/projects"
+    ],
+    "documentedTools": [
+      "Custom Text Generator"
+    ],
+    "aiInvolvement": "documented",
+    "media": {
+      "imageUrl": null,
+      "imageRights": "not_cleared",
+      "videoEmbedUrl": null,
+      "videoEmbedStatus": "none",
+      "videoOnOfficialPage": true,
+      "videoRights": "original_provider_only",
+      "mediaType": "video_poetry"
+    },
+    "verifiedProjectMetadata": true,
+    "verifiedRights": false,
+    "sourceReviewedAt": "2026-10-14",
+    "thumbnailApprovalStatus": "requires_actual_correct_project_image_and_rights",
+    "sourceURLPendingLiveValidation": true
+  },
+  {
+    "id": "sasha-stiles__dear-data",
+    "artistSlug": "sasha-stiles",
+    "slug": "dear-data",
+    "title": "DEAR [DATA]",
+    "medium": "installation",
+    "year": 2025,
+    "summary": "Real-time generative poem installation using displays and a language system.",
+    "officialProjectUrl": "https://www.sashastiles.com/projects",
+    "sourceUrls": [
+      "https://www.sashastiles.com/projects"
+    ],
+    "documentedTools": [],
+    "aiInvolvement": "documented",
+    "media": {
+      "imageUrl": null,
+      "imageRights": "not_cleared",
+      "videoEmbedUrl": null,
+      "videoEmbedStatus": "none",
+      "videoOnOfficialPage": true,
+      "videoRights": "original_provider_only",
+      "mediaType": "installation"
+    },
+    "verifiedProjectMetadata": true,
+    "verifiedRights": false,
+    "sourceReviewedAt": "2026-10-14",
+    "thumbnailApprovalStatus": "requires_actual_correct_project_image_and_rights",
+    "sourceURLPendingLiveValidation": true
+  },
+  {
+    "id": "kris-kashtanova__zarya-of-the-dawn",
+    "artistSlug": "kris-kashtanova",
+    "slug": "zarya-of-the-dawn",
+    "title": "Zarya of the Dawn",
+    "medium": "ai_comic",
+    "year": 2022,
+    "summary": "AI-assisted comic project listed in the official artist portfolio.",
+    "officialProjectUrl": "https://www.kris.art/portfolio-2/project-one-ephnc-jamy8",
+    "sourceUrls": [
+      "https://www.kris.art/portfolio-2/project-one-ephnc-jamy8"
+    ],
+    "documentedTools": [
+      "Midjourney"
+    ],
+    "aiInvolvement": "documented",
+    "media": {
+      "imageUrl": null,
+      "imageRights": "not_cleared",
+      "videoEmbedUrl": null,
+      "videoEmbedStatus": "none",
+      "videoOnOfficialPage": false,
+      "videoRights": "original_provider_only",
+      "mediaType": "ai_comic"
+    },
+    "verifiedProjectMetadata": true,
+    "verifiedRights": false,
+    "sourceReviewedAt": "2026-10-14",
+    "thumbnailApprovalStatus": "requires_actual_correct_project_image_and_rights",
+    "sourceURLPendingLiveValidation": true
+  },
+  {
+    "id": "kris-kashtanova__rose-enigma",
+    "artistSlug": "kris-kashtanova",
+    "slug": "rose-enigma",
+    "title": "Rose Enigma",
+    "medium": "image_collection",
+    "year": 2023,
+    "summary": "Artwork combining human input and AI-assisted image production documented by the artist.",
+    "officialProjectUrl": "https://www.kris.art/portfolio-2/rose-enigma",
+    "sourceUrls": [
+      "https://www.kris.art/portfolio-2/rose-enigma"
+    ],
+    "documentedTools": [
+      "Stable Diffusion"
+    ],
+    "aiInvolvement": "documented",
+    "media": {
+      "imageUrl": null,
+      "imageRights": "not_cleared",
+      "videoEmbedUrl": null,
+      "videoEmbedStatus": "none",
+      "videoOnOfficialPage": false,
+      "videoRights": "original_provider_only",
+      "mediaType": "image_collection"
+    },
+    "verifiedProjectMetadata": true,
+    "verifiedRights": false,
+    "sourceReviewedAt": "2026-10-14",
+    "thumbnailApprovalStatus": "requires_actual_correct_project_image_and_rights",
+    "sourceURLPendingLiveValidation": true
+  },
+  {
+    "id": "kris-kashtanova__ai-burning-man",
+    "artistSlug": "kris-kashtanova",
+    "slug": "ai-burning-man",
+    "title": "AI Burning Man",
+    "medium": "ai_video",
+    "year": 2023,
+    "summary": "Video assembled from Runway Gen-2 clips generated using text prompts, with AI soundtrack.",
+    "officialProjectUrl": "https://www.kris.art/portfolio-2/ai-burning-man-gen2-runwayml",
+    "sourceUrls": [
+      "https://www.kris.art/portfolio-2/ai-burning-man-gen2-runwayml"
+    ],
+    "documentedTools": [
+      "Runway Gen-2"
+    ],
+    "aiInvolvement": "documented",
+    "media": {
+      "imageUrl": null,
+      "imageRights": "not_cleared",
+      "videoEmbedUrl": null,
+      "videoEmbedStatus": "none",
+      "videoOnOfficialPage": true,
+      "videoRights": "original_provider_only",
+      "mediaType": "ai_video"
+    },
+    "verifiedProjectMetadata": true,
+    "verifiedRights": false,
+    "sourceReviewedAt": "2026-10-14",
+    "thumbnailApprovalStatus": "requires_actual_correct_project_image_and_rights",
+    "sourceURLPendingLiveValidation": true
+  },
+  {
+    "id": "kris-kashtanova__kaiber-ai-animations",
+    "artistSlug": "kris-kashtanova",
+    "slug": "kaiber-ai-animations",
+    "title": "Kaiber AI Animations",
+    "medium": "ai_video",
+    "year": null,
+    "summary": "Official portfolio collection of AI animation experiments.",
+    "officialProjectUrl": "https://www.kris.art/portfolio-2/project-four-yjynj-2fnpj",
+    "sourceUrls": [
+      "https://www.kris.art/portfolio-2/project-four-yjynj-2fnpj"
+    ],
+    "documentedTools": [
+      "Kaiber AI",
+      "RunwayML"
+    ],
+    "aiInvolvement": "documented",
+    "media": {
+      "imageUrl": null,
+      "imageRights": "not_cleared",
+      "videoEmbedUrl": null,
+      "videoEmbedStatus": "none",
+      "videoOnOfficialPage": true,
+      "videoRights": "original_provider_only",
+      "mediaType": "ai_video"
+    },
+    "verifiedProjectMetadata": true,
+    "verifiedRights": false,
+    "sourceReviewedAt": "2026-10-14",
+    "thumbnailApprovalStatus": "requires_actual_correct_project_image_and_rights",
+    "sourceURLPendingLiveValidation": true
+  },
+  {
+    "id": "anna-ridler__mosaic-virus-2019",
+    "artistSlug": "anna-ridler",
+    "slug": "mosaic-virus-2019",
+    "title": "Mosaic Virus 2019",
+    "medium": "generative_video",
+    "year": 2019,
+    "summary": "Three-screen GAN-based tulip video installation linked conceptually to speculative-market dynamics.",
+    "officialProjectUrl": "https://annaridler.com/works/mosaic-2019",
+    "sourceUrls": [
+      "https://annaridler.com/works/mosaic-2019"
+    ],
+    "documentedTools": [
+      "GAN"
+    ],
+    "aiInvolvement": "documented",
+    "media": {
+      "imageUrl": null,
+      "imageRights": "not_cleared",
+      "videoEmbedUrl": null,
+      "videoEmbedStatus": "none",
+      "videoOnOfficialPage": true,
+      "videoRights": "original_provider_only",
+      "mediaType": "generative_video"
+    },
+    "verifiedProjectMetadata": true,
+    "verifiedRights": false,
+    "sourceReviewedAt": "2026-10-14",
+    "thumbnailApprovalStatus": "requires_actual_correct_project_image_and_rights",
+    "sourceURLPendingLiveValidation": true
+  },
+  {
+    "id": "anna-ridler__myriad-tulips",
+    "artistSlug": "anna-ridler",
+    "slug": "myriad-tulips",
+    "title": "Myriad (Tulips)",
+    "medium": "dataset_installation",
+    "year": 2018,
+    "summary": "Thousands of hand-labelled tulip photographs presented as artwork and dataset.",
+    "officialProjectUrl": "https://annaridler.com/works/myriad-tulips",
+    "sourceUrls": [
+      "https://annaridler.com/works/myriad-tulips"
+    ],
+    "documentedTools": [],
+    "aiInvolvement": "documented",
+    "media": {
+      "imageUrl": null,
+      "imageRights": "not_cleared",
+      "videoEmbedUrl": null,
+      "videoEmbedStatus": "none",
+      "videoOnOfficialPage": false,
+      "videoRights": "original_provider_only",
+      "mediaType": "dataset_installation"
+    },
+    "verifiedProjectMetadata": true,
+    "verifiedRights": false,
+    "sourceReviewedAt": "2026-10-14",
+    "thumbnailApprovalStatus": "requires_actual_correct_project_image_and_rights",
+    "sourceURLPendingLiveValidation": true
+  },
+  {
+    "id": "anna-ridler__mosaic-virus-2018",
+    "artistSlug": "anna-ridler",
+    "slug": "mosaic-virus-2018",
+    "title": "Mosaic Virus 2018",
+    "medium": "generative_video",
+    "year": 2018,
+    "summary": "GAN-generated visual installation of tulip imagery using an artist-built dataset.",
+    "officialProjectUrl": "https://annaridler.com/works/mosaic-2018",
+    "sourceUrls": [
+      "https://annaridler.com/works/mosaic-2018"
+    ],
+    "documentedTools": [
+      "GAN"
+    ],
+    "aiInvolvement": "documented",
+    "media": {
+      "imageUrl": null,
+      "imageRights": "not_cleared",
+      "videoEmbedUrl": null,
+      "videoEmbedStatus": "none",
+      "videoOnOfficialPage": true,
+      "videoRights": "original_provider_only",
+      "mediaType": "generative_video"
+    },
+    "verifiedProjectMetadata": true,
+    "verifiedRights": false,
+    "sourceReviewedAt": "2026-10-14",
+    "thumbnailApprovalStatus": "requires_actual_correct_project_image_and_rights",
+    "sourceURLPendingLiveValidation": true
+  },
+  {
+    "id": "anna-ridler__bloemenveiling",
+    "artistSlug": "anna-ridler",
+    "slug": "bloemenveiling",
+    "title": "Bloemenveiling",
+    "medium": "generative_art",
+    "year": 2019,
+    "summary": "Project listed in the official artist work archive; validate additional media specifics before publishing.",
+    "officialProjectUrl": "https://annaridler.com/works",
+    "sourceUrls": [
+      "https://annaridler.com/works"
+    ],
+    "documentedTools": [],
+    "aiInvolvement": "documented",
+    "media": {
+      "imageUrl": null,
+      "imageRights": "not_cleared",
+      "videoEmbedUrl": null,
+      "videoEmbedStatus": "none",
+      "videoOnOfficialPage": false,
+      "videoRights": "original_provider_only",
+      "mediaType": "generative_art"
+    },
+    "verifiedProjectMetadata": true,
+    "verifiedRights": false,
+    "sourceReviewedAt": "2026-10-14",
+    "thumbnailApprovalStatus": "requires_actual_correct_project_image_and_rights",
+    "sourceURLPendingLiveValidation": true
+  },
+  {
+    "id": "sougwen-chung__mimicry-drawing-operations",
+    "artistSlug": "sougwen-chung",
+    "slug": "mimicry-drawing-operations",
+    "title": "MIMICRY — Drawing Operations",
+    "medium": "robotic_performance",
+    "year": 2015,
+    "summary": "First generation of human-and-robot collaborative drawing, tracking the artist’s gesture in real time.",
+    "officialProjectUrl": "https://sougwen.com/work/mimicry-drawing-operations",
+    "sourceUrls": [
+      "https://sougwen.com/work/mimicry-drawing-operations"
+    ],
+    "documentedTools": [
+      "Computer Vision",
+      "Robotic Arm"
+    ],
+    "aiInvolvement": "documented",
+    "media": {
+      "imageUrl": null,
+      "imageRights": "not_cleared",
+      "videoEmbedUrl": null,
+      "videoEmbedStatus": "none",
+      "videoOnOfficialPage": true,
+      "videoRights": "original_provider_only",
+      "mediaType": "robotic_performance"
+    },
+    "verifiedProjectMetadata": true,
+    "verifiedRights": false,
+    "sourceReviewedAt": "2026-10-14",
+    "thumbnailApprovalStatus": "requires_actual_correct_project_image_and_rights",
+    "sourceURLPendingLiveValidation": true
+  },
+  {
+    "id": "sougwen-chung__memory-drawing-operations",
+    "artistSlug": "sougwen-chung",
+    "slug": "memory-drawing-operations",
+    "title": "MEMORY — Drawing Operations",
+    "medium": "robotic_performance",
+    "year": 2017,
+    "summary": "Second-generation drawing system trained on the artist’s own archived drawings.",
+    "officialProjectUrl": "https://sougwen.com/work/memory-drawing-operations",
+    "sourceUrls": [
+      "https://sougwen.com/work/memory-drawing-operations"
+    ],
+    "documentedTools": [
+      "Neural Networks",
+      "Robotics"
+    ],
+    "aiInvolvement": "documented",
+    "media": {
+      "imageUrl": null,
+      "imageRights": "not_cleared",
+      "videoEmbedUrl": null,
+      "videoEmbedStatus": "none",
+      "videoOnOfficialPage": true,
+      "videoRights": "original_provider_only",
+      "mediaType": "robotic_performance"
+    },
+    "verifiedProjectMetadata": true,
+    "verifiedRights": false,
+    "sourceReviewedAt": "2026-10-14",
+    "thumbnailApprovalStatus": "requires_actual_correct_project_image_and_rights",
+    "sourceURLPendingLiveValidation": true
+  },
+  {
+    "id": "sougwen-chung__collectivity-omnia-per-omnia",
+    "artistSlug": "sougwen-chung",
+    "slug": "collectivity-omnia-per-omnia",
+    "title": "COLLECTIVITY — Omnia per Omnia",
+    "medium": "robotic_performance",
+    "year": 2018,
+    "summary": "Human-machine drawing performance involving multiple robotic systems and city motion data.",
+    "officialProjectUrl": "https://sougwen.com/work/collectivity-drawing-operations",
+    "sourceUrls": [
+      "https://sougwen.com/work/collectivity-drawing-operations"
+    ],
+    "documentedTools": [
+      "Robotics",
+      "Optical Flow"
+    ],
+    "aiInvolvement": "documented",
+    "media": {
+      "imageUrl": null,
+      "imageRights": "not_cleared",
+      "videoEmbedUrl": null,
+      "videoEmbedStatus": "none",
+      "videoOnOfficialPage": true,
+      "videoRights": "original_provider_only",
+      "mediaType": "robotic_performance"
+    },
+    "verifiedProjectMetadata": true,
+    "verifiedRights": false,
+    "sourceReviewedAt": "2026-10-14",
+    "thumbnailApprovalStatus": "requires_actual_correct_project_image_and_rights",
+    "sourceURLPendingLiveValidation": true
+  },
+  {
+    "id": "sougwen-chung__assembly-lines",
+    "artistSlug": "sougwen-chung",
+    "slug": "assembly-lines",
+    "title": "Assembly Lines",
+    "medium": "robotic_performance",
+    "year": 2022,
+    "summary": "Live multi-robotic painting performance using EEG biofeedback and spatial sound.",
+    "officialProjectUrl": "https://sougwen.com/work/assembly-drawing-operations",
+    "sourceUrls": [
+      "https://sougwen.com/work/assembly-drawing-operations"
+    ],
+    "documentedTools": [
+      "EEG",
+      "Robotics"
+    ],
+    "aiInvolvement": "documented",
+    "media": {
+      "imageUrl": null,
+      "imageRights": "not_cleared",
+      "videoEmbedUrl": null,
+      "videoEmbedStatus": "none",
+      "videoOnOfficialPage": true,
+      "videoRights": "original_provider_only",
+      "mediaType": "robotic_performance"
+    },
+    "verifiedProjectMetadata": true,
+    "verifiedRights": false,
+    "sourceReviewedAt": "2026-10-14",
+    "thumbnailApprovalStatus": "requires_actual_correct_project_image_and_rights",
+    "sourceURLPendingLiveValidation": true
+  },
+  {
+    "id": "karen-x-cheng__pass-the-pencil-challenge",
+    "artistSlug": "karen-x-cheng",
+    "slug": "pass-the-pencil-challenge",
+    "title": "Pass The Pencil Challenge",
+    "medium": "creative_video",
+    "year": null,
+    "summary": "Collaborative visual challenge involving sequential pencil handoffs across footage. No AI use established.",
+    "officialProjectUrl": "https://www.karenx.com/pencil",
+    "sourceUrls": [
+      "https://www.karenx.com/pencil"
+    ],
+    "documentedTools": [],
+    "aiInvolvement": "unverified_for_this_project",
+    "media": {
+      "imageUrl": null,
+      "imageRights": "not_cleared",
+      "videoEmbedUrl": null,
+      "videoEmbedStatus": "none",
+      "videoOnOfficialPage": true,
+      "videoRights": "original_provider_only",
+      "mediaType": "creative_video"
+    },
+    "verifiedProjectMetadata": true,
+    "verifiedRights": false,
+    "sourceReviewedAt": "2026-10-14",
+    "thumbnailApprovalStatus": "requires_actual_correct_project_image_and_rights",
+    "sourceURLPendingLiveValidation": true
+  },
+  {
+    "id": "karen-x-cheng__puma-shemovesus-video",
+    "artistSlug": "karen-x-cheng",
+    "slug": "puma-shemovesus-video",
+    "title": "PUMA — SheMovesUs Video",
+    "medium": "commercial_video",
+    "year": null,
+    "summary": "Commercial campaign documented by the filmmaker; no AI use established on cited page.",
+    "officialProjectUrl": "https://www.karenx.com/",
+    "sourceUrls": [
+      "https://www.karenx.com/"
+    ],
+    "documentedTools": [],
+    "aiInvolvement": "unverified_for_this_project",
+    "media": {
+      "imageUrl": null,
+      "imageRights": "not_cleared",
+      "videoEmbedUrl": null,
+      "videoEmbedStatus": "none",
+      "videoOnOfficialPage": true,
+      "videoRights": "original_provider_only",
+      "mediaType": "commercial_video"
+    },
+    "verifiedProjectMetadata": true,
+    "verifiedRights": false,
+    "sourceReviewedAt": "2026-10-14",
+    "thumbnailApprovalStatus": "requires_actual_correct_project_image_and_rights",
+    "sourceURLPendingLiveValidation": true
+  },
+  {
+    "id": "karen-x-cheng__lego-rebuild-the-world",
+    "artistSlug": "karen-x-cheng",
+    "slug": "lego-rebuild-the-world",
+    "title": "LEGO — Rebuild The World",
+    "medium": "commercial_video",
+    "year": null,
+    "summary": "Creative LEGO brand video project documented by the director; no AI use established on cited page.",
+    "officialProjectUrl": "https://www.karenx.com/",
+    "sourceUrls": [
+      "https://www.karenx.com/"
+    ],
+    "documentedTools": [],
+    "aiInvolvement": "unverified_for_this_project",
+    "media": {
+      "imageUrl": null,
+      "imageRights": "not_cleared",
+      "videoEmbedUrl": null,
+      "videoEmbedStatus": "none",
+      "videoOnOfficialPage": true,
+      "videoRights": "original_provider_only",
+      "mediaType": "commercial_video"
+    },
+    "verifiedProjectMetadata": true,
+    "verifiedRights": false,
+    "sourceReviewedAt": "2026-10-14",
+    "thumbnailApprovalStatus": "requires_actual_correct_project_image_and_rights",
+    "sourceURLPendingLiveValidation": true
+  },
+  {
+    "id": "karen-x-cheng__creative-fake-drone-video-series",
+    "artistSlug": "karen-x-cheng",
+    "slug": "creative-fake-drone-video-series",
+    "title": "Creative Fake Drone Video Series",
+    "medium": "creative_video",
+    "year": null,
+    "summary": "Practical camera-technique series documented by the filmmaker; do not claim AI generation.",
+    "officialProjectUrl": "https://www.karenx.com/",
+    "sourceUrls": [
+      "https://www.karenx.com/"
+    ],
+    "documentedTools": [],
+    "aiInvolvement": "unverified_for_this_project",
+    "media": {
+      "imageUrl": null,
+      "imageRights": "not_cleared",
+      "videoEmbedUrl": null,
+      "videoEmbedStatus": "none",
+      "videoOnOfficialPage": true,
+      "videoRights": "original_provider_only",
+      "mediaType": "creative_video"
+    },
+    "verifiedProjectMetadata": true,
+    "verifiedRights": false,
+    "sourceReviewedAt": "2026-10-14",
+    "thumbnailApprovalStatus": "requires_actual_correct_project_image_and_rights",
+    "sourceURLPendingLiveValidation": true
+  },
+  {
+    "id": "paul-trillo__notes-to-my-future-self",
+    "artistSlug": "paul-trillo",
+    "slug": "notes-to-my-future-self",
+    "title": "Notes to My Future Self",
+    "medium": "film_or_video",
+    "year": null,
+    "summary": "Official portfolio video, AI usage not independently classified",
+    "officialProjectUrl": "https://vimeo.com/938911283",
+    "sourceUrls": [
+      "https://paultrillo.com/",
+      "https://vimeo.com/938911283"
+    ],
+    "documentedTools": [],
+    "aiInvolvement": "not_established",
+    "media": {
+      "imageUrl": null,
+      "imageRights": "not_cleared",
+      "videoEmbedUrl": "https://player.vimeo.com/video/938911283",
+      "videoEmbedStatus": "official_portfolio_embed_candidate_browser_verification_required",
+      "videoOnOfficialPage": true,
+      "videoRights": "original_provider_only",
+      "mediaType": "video"
+    },
+    "verifiedProjectMetadata": true,
+    "verifiedRights": false,
+    "sourceReviewedAt": "2026-10-14",
+    "thumbnailApprovalStatus": "requires_actual_correct_project_image_and_rights",
+    "sourceURLPendingLiveValidation": true
+  },
+  {
+    "id": "paul-trillo__jacques-absolve",
+    "artistSlug": "paul-trillo",
+    "slug": "jacques-absolve",
+    "title": "Jacques — Absolve",
+    "medium": "film_or_video",
+    "year": null,
+    "summary": "Official film with documented AI-assisted VFX",
+    "officialProjectUrl": "https://vimeo.com/874986396",
+    "sourceUrls": [
+      "https://paultrillo.com/",
+      "https://vimeo.com/874986396"
+    ],
+    "documentedTools": [],
+    "aiInvolvement": "documented",
+    "media": {
+      "imageUrl": null,
+      "imageRights": "not_cleared",
+      "videoEmbedUrl": "https://player.vimeo.com/video/874986396",
+      "videoEmbedStatus": "official_portfolio_embed_candidate_browser_verification_required",
+      "videoOnOfficialPage": true,
+      "videoRights": "original_provider_only",
+      "mediaType": "video"
+    },
+    "verifiedProjectMetadata": true,
+    "verifiedRights": false,
+    "sourceReviewedAt": "2026-10-14",
+    "thumbnailApprovalStatus": "requires_actual_correct_project_image_and_rights",
+    "sourceURLPendingLiveValidation": true
+  },
+  {
+    "id": "paul-trillo__ascension-derivation-irradiation",
+    "artistSlug": "paul-trillo",
+    "slug": "ascension-derivation-irradiation",
+    "title": "ascension.derivation.irradiation.",
+    "medium": "film_or_video",
+    "year": null,
+    "summary": "Official portfolio describes live action and AI",
+    "officialProjectUrl": "https://vimeo.com/852504029",
+    "sourceUrls": [
+      "https://paultrillo.com/",
+      "https://vimeo.com/852504029"
+    ],
+    "documentedTools": [],
+    "aiInvolvement": "documented",
+    "media": {
+      "imageUrl": null,
+      "imageRights": "not_cleared",
+      "videoEmbedUrl": "https://player.vimeo.com/video/852504029",
+      "videoEmbedStatus": "official_portfolio_embed_candidate_browser_verification_required",
+      "videoOnOfficialPage": true,
+      "videoRights": "original_provider_only",
+      "mediaType": "video"
+    },
+    "verifiedProjectMetadata": true,
+    "verifiedRights": false,
+    "sourceReviewedAt": "2026-10-14",
+    "thumbnailApprovalStatus": "requires_actual_correct_project_image_and_rights",
+    "sourceURLPendingLiveValidation": true
+  },
+  {
+    "id": "paul-trillo__go-daddy-pro-expand-time",
+    "artistSlug": "paul-trillo",
+    "slug": "go-daddy-pro-expand-time",
+    "title": "GoDaddy Pro — Expand Time",
+    "medium": "film_or_video",
+    "year": null,
+    "summary": "Commercial film; do NOT automatically classify as generative AI",
+    "officialProjectUrl": "https://vimeo.com/510938844",
+    "sourceUrls": [
+      "https://paultrillo.com/",
+      "https://vimeo.com/510938844"
+    ],
+    "documentedTools": [],
+    "aiInvolvement": "not_established",
+    "media": {
+      "imageUrl": null,
+      "imageRights": "not_cleared",
+      "videoEmbedUrl": "https://player.vimeo.com/video/510938844",
+      "videoEmbedStatus": "official_portfolio_embed_candidate_browser_verification_required",
+      "videoOnOfficialPage": true,
+      "videoRights": "original_provider_only",
+      "mediaType": "video"
+    },
+    "verifiedProjectMetadata": true,
+    "verifiedRights": false,
+    "sourceReviewedAt": "2026-10-14",
+    "thumbnailApprovalStatus": "requires_actual_correct_project_image_and_rights",
+    "sourceURLPendingLiveValidation": true
+  },
+  {
+    "id": "paul-trillo__great-divide",
+    "artistSlug": "paul-trillo",
+    "slug": "great-divide",
+    "title": "The Shins — The Great Divide",
+    "medium": "film_or_video",
+    "year": null,
+    "summary": "Official music video; do NOT automatically classify as generative AI",
+    "officialProjectUrl": "https://vimeo.com/461473136",
+    "sourceUrls": [
+      "https://paultrillo.com/",
+      "https://vimeo.com/461473136"
+    ],
+    "documentedTools": [],
+    "aiInvolvement": "not_established",
+    "media": {
+      "imageUrl": null,
+      "imageRights": "not_cleared",
+      "videoEmbedUrl": "https://player.vimeo.com/video/461473136",
+      "videoEmbedStatus": "official_portfolio_embed_candidate_browser_verification_required",
+      "videoOnOfficialPage": true,
+      "videoRights": "original_provider_only",
+      "mediaType": "video"
+    },
+    "verifiedProjectMetadata": true,
+    "verifiedRights": false,
+    "sourceReviewedAt": "2026-10-14",
+    "thumbnailApprovalStatus": "requires_actual_correct_project_image_and_rights",
+    "sourceURLPendingLiveValidation": true
+  }
+]

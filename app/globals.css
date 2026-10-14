@@ -773,24 +773,94 @@ html[data-theme='9']{--bg:#0d2526;--surface:#153133;--raised:#214044;--text:#e7f
   justify-content: center;
 }
 
+/* Section 05: Layer 1 Artist Selector Rail */
+.artist-showcase-nav-rail {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 4px 2px 20px;
+  margin-bottom: 24px;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.artist-showcase-nav-rail::-webkit-scrollbar {
+  display: none;
+}
+.artist-nav-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  padding: 7px 15px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.artist-nav-chip:hover {
+  color: var(--text);
+  border-color: var(--accent);
+  background: var(--raised);
+  transform: translateY(-1px);
+}
+.artist-nav-chip.active {
+  color: var(--on-accent, #0a0e0b);
+  background: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--accent) 30%, transparent);
+}
+.artist-nav-chip.active .artist-chip-name {
+  color: var(--on-accent, #0a0e0b);
+  font-weight: 600;
+}
+
+/* Section 05: Layer 2 Portfolio Carousel Track */
 .portfolio-track-wrap {
   display: flex;
-  gap: 28px;
+  gap: 24px;
   overflow-x: auto;
+  overflow-y: hidden;
   scroll-snap-type: x mandatory;
-  padding-bottom: 20px;
+  padding: 6px 2px 24px;
   scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
 }
 
 .gallery-project-card {
-  min-width: 400px;
-  max-width: 440px;
+  width: calc((100% - 48px) / 3);
+  min-width: 340px;
+  max-width: 460px;
   flex-shrink: 0;
   scroll-snap-align: start;
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+.gallery-project-card:hover {
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
+  transform: translateY(-2px);
+}
+@media (max-width: 1100px) {
+  .gallery-project-card {
+    width: calc((100% - 24px) / 2);
+    min-width: 320px;
+  }
+}
+@media (max-width: 680px) {
+  .gallery-project-card {
+    width: 88%;
+    min-width: 290px;
+  }
 }
 
 .project-media-wrap {

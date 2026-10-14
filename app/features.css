@@ -1718,14 +1718,430 @@
   .contact-email-modal-card {
     padding: 28px 20px 24px;
   }
-  .otp-digit-cell {
+  .otp-digit-cell, .cinematic-otp-cell {
     width: 40px;
     height: 50px;
     font-size: 20px;
   }
-  .otp-digit-cluster {
+  .otp-digit-cluster, .cinematic-otp-cluster {
     gap: 6px;
   }
+}
+
+/* ==============================================================================
+   PHASE 10: FIELD NOTES SOPHISTICATED CARD ANIMATION SYSTEM
+   ============================================================================== */
+.field-note-card {
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.3s ease,
+              box-shadow 0.3s ease,
+              background 0.3s ease;
+  animation: fieldNoteEntrance 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--card-idx, 0) * 80ms);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  text-decoration: none;
+  color: inherit;
+  outline: none;
+  display: flex;
+  flex-direction: column;
+  padding: 30px;
+}
+
+@keyframes fieldNoteEntrance {
+  0% {
+    opacity: 0;
+    transform: translateY(18px);
+    border-color: transparent;
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    border-color: var(--line);
+  }
+}
+
+.field-note-card:hover,
+.field-note-card:focus-visible {
+  transform: translateY(-4px);
+  border-color: var(--accent, #c7f23c);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35), 0 0 20px rgba(199, 242, 60, 0.12);
+  background: radial-gradient(circle at 50% 0%, rgba(199, 242, 60, 0.05), var(--surface) 75%);
+}
+
+.field-note-card:focus-visible {
+  outline: 2px solid var(--accent, #c7f23c);
+  outline-offset: 2px;
+}
+
+.field-note-card h3 {
+  transition: transform 0.25s ease, color 0.25s ease;
+}
+
+.field-note-card:hover h3,
+.field-note-card:focus-visible h3 {
+  transform: translateX(3px);
+  color: var(--text);
+}
+
+.field-note-card .text-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.2s ease;
+  margin-top: 15px;
+  align-self: flex-start;
+  font-size: 12px;
+}
+
+.field-note-card .text-link::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0%;
+  height: 1px;
+  background: var(--accent, #c7f23c);
+  transition: width 0.3s ease;
+}
+
+.field-note-card:hover .text-link::after,
+.field-note-card:focus-visible .text-link::after {
+  width: 100%;
+}
+
+.field-note-card .card-arrow-icon {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.field-note-card:hover .card-arrow-icon,
+.field-note-card:focus-visible .card-arrow-icon {
+  transform: translate(3px, -3px);
+  color: var(--accent, #c7f23c);
+}
+
+/* PER-TOPIC ICON ANIMATIONS */
+.field-note-icon-wrap {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: var(--accent, #c7f23c);
+  margin-bottom: 24px;
+  transition: transform 0.3s ease, border-color 0.3s ease, background 0.3s ease;
+}
+
+.field-note-card:hover .field-note-icon-wrap,
+.field-note-card:focus-visible .field-note-icon-wrap {
+  border-color: rgba(199, 242, 60, 0.3);
+  background: rgba(199, 242, 60, 0.08);
+}
+
+/* Briefing: Document icon drawing effect */
+.field-note-card.topic-briefing:hover .field-note-icon-wrap svg,
+.field-note-card.topic-briefing:focus-visible .field-note-icon-wrap svg {
+  animation: docDrawEffect 0.5s ease-out forwards;
+}
+@keyframes docDrawEffect {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); stroke: #ffffff; }
+  100% { transform: scale(1.05); }
+}
+
+/* Portfolio: Folder opens subtly */
+.field-note-card.topic-portfolio:hover .field-note-icon-wrap svg,
+.field-note-card.topic-portfolio:focus-visible .field-note-icon-wrap svg {
+  transform: rotate(-8deg) scale(1.08);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Discovery: People connection icon animates gently */
+.field-note-card.topic-discovery:hover .field-note-icon-wrap svg,
+.field-note-card.topic-discovery:focus-visible .field-note-icon-wrap svg {
+  transform: scale(1.1);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Collaboration: Target crosshair traces / rotates 45deg */
+.field-note-card.topic-collaboration:hover .field-note-icon-wrap svg,
+.field-note-card.topic-collaboration:focus-visible .field-note-icon-wrap svg {
+  transform: rotate(45deg) scale(1.08);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Trust: Shield outline draws with restrained highlight */
+.field-note-card.topic-trust:hover .field-note-icon-wrap svg,
+.field-note-card.topic-trust:focus-visible .field-note-icon-wrap svg {
+  filter: drop-shadow(0 0 10px rgba(199, 242, 60, 0.5));
+  transform: scale(1.06);
+  transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+/* Delivery: Checkmark strokes into place */
+.field-note-card.topic-delivery:hover .field-note-icon-wrap svg,
+.field-note-card.topic-delivery:focus-visible .field-note-icon-wrap svg {
+  transform: scale(1.12);
+  filter: drop-shadow(0 0 8px rgba(199, 242, 60, 0.4));
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), filter 0.3s ease;
+}
+
+/* ==============================================================================
+   PHASE 11-19: CINEMATIC 6-DIGIT OTP VERIFICATION & MERGE ANIMATIONS
+   ============================================================================== */
+.cinematic-otp-cluster {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  position: relative;
+  min-height: 70px;
+  margin: 24px 0 16px;
+}
+
+.cinematic-otp-cell {
+  width: 48px;
+  height: 58px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #fff;
+  font-family: var(--mono, monospace);
+  font-size: 24px;
+  font-weight: 700;
+  text-align: center;
+  outline: none;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s, box-shadow 0.25s, opacity 0.25s;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  animation: cellStaggerEntrance 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--cell-idx, 0) * 50ms);
+}
+
+@keyframes cellStaggerEntrance {
+  0% {
+    opacity: 0;
+    transform: translateY(14px) scale(0.92);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.cinematic-otp-cell:focus,
+.cinematic-otp-cell.active {
+  border-color: var(--accent, #c7f23c);
+  box-shadow: 0 0 0 2px rgba(199, 242, 60, 0.3), 0 0 20px rgba(199, 242, 60, 0.25);
+  background: rgba(199, 242, 60, 0.04);
+}
+
+.cinematic-otp-cell.filled {
+  border-color: rgba(199, 242, 60, 0.45);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* Verifying pulse sweep */
+.cinematic-otp-cluster.is-verifying .cinematic-otp-cell {
+  animation: cellVerifyingPulse 1.2s ease-in-out infinite;
+  animation-delay: calc(var(--cell-idx, 0) * 120ms);
+  border-color: rgba(199, 242, 60, 0.6);
+}
+
+@keyframes cellVerifyingPulse {
+  0%, 100% {
+    box-shadow: 0 0 8px rgba(199, 242, 60, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 24px rgba(199, 242, 60, 0.5), inset 0 0 10px rgba(199, 242, 60, 0.2);
+    border-color: var(--accent, #c7f23c);
+  }
+}
+
+/* SUCCESS (1st & 2nd Attempt): 6 cells glide to center and merge */
+.cinematic-otp-cluster.is-first-success .cinematic-otp-cell,
+.cinematic-otp-cluster.is-second-success .cinematic-otp-cell {
+  border-color: var(--accent, #c7f23c);
+  background: rgba(199, 242, 60, 0.15);
+  box-shadow: 0 0 28px rgba(199, 242, 60, 0.6);
+  color: transparent;
+  pointer-events: none;
+}
+
+.cinematic-otp-cluster.is-first-success .cell-idx-0,
+.cinematic-otp-cluster.is-second-success .cell-idx-0 {
+  animation: mergeCenter0 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.cinematic-otp-cluster.is-first-success .cell-idx-1,
+.cinematic-otp-cluster.is-second-success .cell-idx-1 {
+  animation: mergeCenter1 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.cinematic-otp-cluster.is-first-success .cell-idx-2,
+.cinematic-otp-cluster.is-second-success .cell-idx-2 {
+  animation: mergeCenter2 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.cinematic-otp-cluster.is-first-success .cell-idx-3,
+.cinematic-otp-cluster.is-second-success .cell-idx-3 {
+  animation: mergeCenter3 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.cinematic-otp-cluster.is-first-success .cell-idx-4,
+.cinematic-otp-cluster.is-second-success .cell-idx-4 {
+  animation: mergeCenter4 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.cinematic-otp-cluster.is-first-success .cell-idx-5,
+.cinematic-otp-cluster.is-second-success .cell-idx-5 {
+  animation: mergeCenter5 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes mergeCenter0 {
+  0% { transform: translateX(0); opacity: 1; }
+  70% { transform: translateX(145px) scaleX(0.4); opacity: 0.9; }
+  100% { transform: translateX(145px) scale(0); opacity: 0; }
+}
+@keyframes mergeCenter1 {
+  0% { transform: translateX(0); opacity: 1; }
+  70% { transform: translateX(87px) scaleX(0.6); opacity: 0.9; }
+  100% { transform: translateX(87px) scale(0); opacity: 0; }
+}
+@keyframes mergeCenter2 {
+  0% { transform: translateX(0); opacity: 1; }
+  70% { transform: translateX(29px) scaleX(0.8); opacity: 1; }
+  100% { transform: translateX(29px) scale(0); opacity: 0; }
+}
+@keyframes mergeCenter3 {
+  0% { transform: translateX(0); opacity: 1; }
+  70% { transform: translateX(-29px) scaleX(0.8); opacity: 1; }
+  100% { transform: translateX(-29px) scale(0); opacity: 0; }
+}
+@keyframes mergeCenter4 {
+  0% { transform: translateX(0); opacity: 1; }
+  70% { transform: translateX(-87px) scaleX(0.6); opacity: 0.9; }
+  100% { transform: translateX(-87px) scale(0); opacity: 0; }
+}
+@keyframes mergeCenter5 {
+  0% { transform: translateX(0); opacity: 1; }
+  70% { transform: translateX(-145px) scaleX(0.4); opacity: 0.9; }
+  100% { transform: translateX(-145px) scale(0); opacity: 0; }
+}
+
+/* FIRST FAILURE: cells turn red, interrupted merge, red pulse */
+.cinematic-otp-cluster.is-first-failure .cinematic-otp-cell {
+  border-color: #ff4d4d;
+  background: rgba(255, 77, 77, 0.1);
+  box-shadow: 0 0 20px rgba(255, 77, 77, 0.4);
+  color: #ff9999;
+}
+.cinematic-otp-cluster.is-first-failure .cell-idx-0 { transform: translateX(15px); }
+.cinematic-otp-cluster.is-first-failure .cell-idx-1 { transform: translateX(10px); }
+.cinematic-otp-cluster.is-first-failure .cell-idx-2 { transform: translateX(5px); }
+.cinematic-otp-cluster.is-first-failure .cell-idx-3 { transform: translateX(-5px); }
+.cinematic-otp-cluster.is-first-failure .cell-idx-4 { transform: translateX(-10px); }
+.cinematic-otp-cluster.is-first-failure .cell-idx-5 { transform: translateX(-15px); }
+
+/* SECOND FAILURE: boxes converge and invalidate */
+.cinematic-otp-cluster.is-second-failure .cinematic-otp-cell {
+  border-color: #ff3333;
+  background: rgba(255, 51, 51, 0.15);
+  box-shadow: 0 0 28px rgba(255, 51, 51, 0.6);
+  color: transparent;
+  pointer-events: none;
+}
+.cinematic-otp-cluster.is-second-failure .cell-idx-0 { animation: convergeFail0 0.5s forwards; }
+.cinematic-otp-cluster.is-second-failure .cell-idx-1 { animation: convergeFail1 0.5s forwards; }
+.cinematic-otp-cluster.is-second-failure .cell-idx-2 { animation: convergeFail2 0.5s forwards; }
+.cinematic-otp-cluster.is-second-failure .cell-idx-3 { animation: convergeFail3 0.5s forwards; }
+.cinematic-otp-cluster.is-second-failure .cell-idx-4 { animation: convergeFail4 0.5s forwards; }
+.cinematic-otp-cluster.is-second-failure .cell-idx-5 { animation: convergeFail5 0.5s forwards; }
+
+@keyframes convergeFail0 { to { transform: translateX(145px) scale(0); opacity: 0; } }
+@keyframes convergeFail1 { to { transform: translateX(87px) scale(0); opacity: 0; } }
+@keyframes convergeFail2 { to { transform: translateX(29px) scale(0); opacity: 0; } }
+@keyframes convergeFail3 { to { transform: translateX(-29px) scale(0); opacity: 0; } }
+@keyframes convergeFail4 { to { transform: translateX(-87px) scale(0); opacity: 0; } }
+@keyframes convergeFail5 { to { transform: translateX(-145px) scale(0); opacity: 0; } }
+
+/* CINEMATIC STATUS REVEAL OVERLAY */
+.cinematic-overlay-reveal {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 100%;
+  z-index: 10;
+  pointer-events: none;
+  animation: revealZoomFade 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes revealZoomFade {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.85);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+.cinematic-overlay-badge {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.cinematic-overlay-badge.success-badge {
+  background: rgba(199, 242, 60, 0.15);
+  border: 1px solid var(--accent, #c7f23c);
+  color: var(--accent, #c7f23c);
+  box-shadow: 0 0 30px rgba(199, 242, 60, 0.5);
+}
+
+.cinematic-overlay-badge.failure-badge {
+  background: rgba(255, 77, 77, 0.15);
+  border: 1px solid #ff4d4d;
+  color: #ff4d4d;
+  box-shadow: 0 0 30px rgba(255, 77, 77, 0.5);
+}
+
+.cinematic-overlay-title {
+  font-family: var(--mono, monospace);
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.cinematic-overlay-title.success-text {
+  color: var(--accent, #c7f23c);
+  text-shadow: 0 0 20px rgba(199, 242, 60, 0.6);
+}
+
+.cinematic-overlay-title.failure-text {
+  color: #ff4d4d;
+  text-shadow: 0 0 20px rgba(255, 77, 77, 0.6);
+}
+
+.cinematic-overlay-sub {
+  font-size: 13px;
+  color: #d0d5dd;
+  margin-top: 6px;
+  font-weight: 500;
 }
 
 

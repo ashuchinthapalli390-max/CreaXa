@@ -48,11 +48,13 @@ export interface VerifyOtpResult {
   challengeId?: string;
   error?: string;
   status: 'verified' | 'invalid_code' | 'expired' | 'attempts_exceeded' | 'already_consumed' | 'cooldown' | 'not_found';
+  attempts?: number;
+  remaining?: number;
 }
 
 const OTP_EXPIRY_MS = 5 * 60 * 1000; // 5 minutes
 const OTP_RESEND_COOLDOWN_MS = 60 * 1000; // 60 seconds
-const MAX_ATTEMPTS = 5;
+export const MAX_ATTEMPTS = 2; // Strict 2-attempt policy per challenge for cinematic verification UX
 
 // In-memory challenge cache fallback for rapid edge verification and test environments
 const challengeStore = new Map<string, OtpChallenge>();
@@ -328,6 +330,8 @@ export async function verifyOtpChallenge(params: {
     return {
       success: false,
       status: remaining <= 0 ? 'attempts_exceeded' : 'invalid_code',
+      attempts: challenge.attempts,
+      remaining: Math.max(0, remaining),
       error:
         remaining <= 0
           ? 'Too many incorrect attempts. Please request a new code.'
@@ -359,5 +363,7 @@ export async function verifyOtpChallenge(params: {
     success: true,
     challengeId: challenge.id,
     status: 'verified',
+    attempts: challenge.attempts,
+    remaining: Math.max(0, challenge.maxAttempts - challenge.attempts),
   };
 }

@@ -249,7 +249,13 @@ export async function handle(req: Request, path: string[]) {
             });
 
             if (!verifyRes.success) {
-                fail(verifyRes.error || 'Verification code failed.', 400);
+                return json({
+                    success: false,
+                    status: verifyRes.status,
+                    attempts: verifyRes.attempts,
+                    remaining: verifyRes.remaining,
+                    error: verifyRes.error || 'Verification code failed.'
+                }, 400);
             }
 
             // If contact email verification, persist verified contact email to Supabase
@@ -302,6 +308,7 @@ export async function handle(req: Request, path: string[]) {
             return json({
                 success: true,
                 status: 'verified',
+                attempts: verifyRes.attempts,
                 challengeId: verifyRes.challengeId,
                 message: 'Email address verified successfully.'
             });

@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useRef, createContext, useContext, useCallback } from 'react';
-import { ArrowUpRight, ArrowRight, ArrowLeft, Plus, X, Search, Check, CheckCircle2, Download, Copy, Star, Heart, FileText, FolderOpen, SlidersHorizontal, Command, Bookmark, Shield, Layers, Clock, Target, Users, Palette, Film, Image as ImageIcon, Box, RefreshCw, Sparkles, ExternalLink } from 'lucide-react';
+import { ArrowUpRight, ArrowRight, ArrowLeft, Plus, X, Search, Check, CheckCircle2, Download, Copy, Star, Heart, FileText, FolderOpen, SlidersHorizontal, Command, Bookmark, Shield, Layers, Clock, Target, Users, Palette, Film, Image as ImageIcon, Box, RefreshCw, Sparkles, ExternalLink, Play } from 'lucide-react';
 import { list } from '../lib/matching';
 import { AppSelect } from '../components/ui/app-select';
 import { AnimatedCheckbox } from '../components/ui/animated-checkbox';
@@ -74,201 +74,323 @@ catch (e: any) {
     setError(e.message);
 } }}><X size={13}/></button></div>)}</div>}</section>; }
 export function WorkGallery() { 
-  const [galleryMode, setGalleryMode] = useState<'featured' | 'registered'>('featured');
-  const [q, setQ] = useState(''), [type, setType] = useState(''), [page, setPage] = useState(1); 
-  const query = new URLSearchParams({ q, type, page: String(page) }); 
-  const r = useData('work?' + query); 
+  const [q, setQ] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All Works');
+  const [selectedArtist, setSelectedArtist] = useState('');
+  const [selectedTool, setSelectedTool] = useState('');
+  const [sort, setSort] = useState('featured');
+  const [visibleCount, setVisibleCount] = useState(12);
 
-  const contentTypeOptions = [
-    { value: '', label: 'All creative formats' },
-    { value: 'AI Video', label: 'AI Video' },
-    { value: 'AI Image', label: 'AI Image' },
-    { value: 'AI Animation', label: 'AI Animation' },
-    { value: 'Generative Art', label: 'Generative Art' },
-    { value: 'Installation', label: 'Installation' },
-    { value: 'AI Photography', label: 'AI Photography' }
-  ];
+  const r = useData('work'); 
 
-  // Flatten verified genuine works from the 10 real AI creators
-  const featuredArtistWorks = EXTERNAL_CREATOR_REFERENCES.flatMap(ref => 
+  // Helper to categorize works
+  const getCategory = (contentType: string = '', medium: string = '') => {
+    const m = `${medium} ${contentType}`.toLowerCase();
+    if (m.includes('music_video') || m.includes('short_film') || m.includes('commercial_video') || m.includes('installation_video') || m.includes('moving_image') || m.includes('ai_video') || m.includes('generative_video') || m.includes('creative_video') || m.includes('video') || m.includes('film')) return 'Films and Videos';
+    if (m.includes('generative_art') || m.includes('generative_typography') || m.includes('dataset_installation') || m.includes('image_collection') || m.includes('generative')) return 'Generative Art';
+    if (m.includes('installation') || m.includes('interactive_installation') || m.includes('mixed_media')) return 'Installations';
+    if (m.includes('robotic') || m.includes('drawing_operation') || m.includes('robotic_performance')) return 'Robotic Performance';
+    if (m.includes('poetry') || m.includes('video_poetry') || m.includes('multimedia_poetry')) return 'Multimedia Poetry';
+    if (m.includes('comic') || m.includes('animation')) return 'Animation';
+    if (m.includes('photography')) return 'Photography';
+    return 'Generative Art';
+  };
+
+  // 1. Flatten all 38 verified works from the 10 external artists
+  const allExternalWorks = EXTERNAL_CREATOR_REFERENCES.flatMap(ref => 
     ref.featuredWorks.map(w => ({
       ...w,
       creatorName: ref.name,
       creatorSlug: ref.slug,
-      creatorAvatar: ref.avatarUrl
+      creatorAvatar: ref.avatarUrl,
+      category: getCategory(w.contentType, w.contentType),
+      isExternal: true
     }))
-  ).filter(work => {
-    if (type && work.contentType !== type) return false;
+  );
+
+  // 2. Incorporate registered creator projects from API
+  const registeredWorks = (r.data?.items || []).map((p: any) => ({
+    id: p.id,
+    slug: p.slug,
+    title: p.data?.title || 'Project',
+    year: p.data?.year ? String(p.data.year) : undefined,
+    description: p.data?.description || '',
+    contentType: p.data?.contentType || 'AI Work',
+    tools: list(p.data?.tools),
+    thumbnailUrl: p.data?.cover ? (p.data.cover.startsWith('http') ? p.data.cover : '/api/files/' + p.data.cover) : undefined,
+    creatorName: p.creator_name || 'Creator',
+    creatorSlug: p.creator_slug || 'creator',
+    category: getCategory(p.data?.contentType, p.data?.medium),
+    isExternal: false
+  }));
+
+  // Combine
+  const combinedWorks = [...allExternalWorks, ...registeredWorks];
+
+  // Verified moving image works for video-first spotlight
+  const verifiedVideoSpotlight = allExternalWorks.filter(w => !!w.videoEmbedUrl);
+
+  // Dynamic categories that actually exist in records
+  const categoryCounts: Record<string, number> = { 'All Works': combinedWorks.length };
+  combinedWorks.forEach(w => {
+    categoryCounts[w.category] = (categoryCounts[w.category] || 0) + 1;
+  });
+
+  const availableCategories = [
+    'All Works',
+    'Films and Videos',
+    'Generative Art',
+    'Installations',
+    'Animation',
+    'Photography',
+    'Robotic Performance',
+    'Multimedia Poetry'
+  ].filter(c => c === 'All Works' || (categoryCounts[c] && categoryCounts[c] > 0));
+
+  // Unique artists for filter
+  const artistOptions = [
+    { value: '', label: 'All artists' },
+    ...Array.from(new Set(combinedWorks.map(w => w.creatorName))).sort().map(name => ({ value: name, label: name }))
+  ];
+
+  // Unique tools for filter
+  const toolOptions = [
+    { value: '', label: 'All documented tools' },
+    ...Array.from(new Set(combinedWorks.flatMap(w => w.tools || []))).sort().map(t => ({ value: t, label: t }))
+  ];
+
+  // Filter works
+  let filteredWorks = combinedWorks.filter(work => {
+    if (selectedCategory !== 'All Works' && work.category !== selectedCategory) return false;
+    if (selectedArtist && work.creatorName !== selectedArtist) return false;
+    if (selectedTool && !work.tools?.some(t => t.toLowerCase() === selectedTool.toLowerCase())) return false;
     if (q) {
       const needle = q.toLowerCase();
-      return (
+      const match = (
         work.title.toLowerCase().includes(needle) ||
         work.description.toLowerCase().includes(needle) ||
         work.creatorName.toLowerCase().includes(needle) ||
-        work.tools.some(t => t.toLowerCase().includes(needle))
+        work.tools?.some(t => t.toLowerCase().includes(needle))
       );
+      if (!match) return false;
     }
     return true;
   });
 
+  // Sort
+  if (sort === 'title') {
+    filteredWorks.sort((a, b) => a.title.localeCompare(b.title));
+  } else if (sort === 'artist') {
+    filteredWorks.sort((a, b) => a.creatorName.localeCompare(b.creatorName));
+  } else if (sort === 'year') {
+    filteredWorks.sort((a, b) => (Number(b.year) || 0) - (Number(a.year) || 0));
+  }
+
+  const hasActiveFilters = q || selectedCategory !== 'All Works' || selectedArtist || selectedTool || sort !== 'featured';
+  const resetFilters = () => {
+    setQ('');
+    setSelectedCategory('All Works');
+    setSelectedArtist('');
+    setSelectedTool('');
+    setSort('featured');
+    setVisibleCount(12);
+  };
+
+  const paginatedWorks = filteredWorks.slice(0, visibleCount);
+
   return (
     <div className="page">
-      <span className="eyebrow">ORIGINAL WORK. OPEN PERSPECTIVES.</span>
-      <h1>The creative<br /><em>workroom.</em></h1>
-      <p className="large-copy">Explore original projects from genuine AI artists and registered marketplace creators.</p>
-      
-      <div style={{ display: 'flex', gap: 10, margin: '24px 0 20px', borderBottom: '1px solid var(--border)', paddingBottom: 16 }}>
-        <button
-          type="button"
-          className={'button ' + (galleryMode === 'featured' ? '' : 'secondary')}
-          onClick={() => setGalleryMode('featured')}
-          style={{ fontSize: 13, padding: '8px 18px', display: 'flex', alignItems: 'center', gap: 6 }}
-        >
-          <Sparkles size={14} /> Featured AI Artist Works (10 Genuine Creators)
-        </button>
-        <button
-          type="button"
-          className={'button ' + (galleryMode === 'registered' ? '' : 'secondary')}
-          onClick={() => setGalleryMode('registered')}
-          style={{ fontSize: 13, padding: '8px 18px' }}
-        >
-          Registered Creator Portfolios
-        </button>
+      <span className="eyebrow">THE VERIFIED WORKROOM</span>
+      <h1>Original work.<br /><em>Open perspectives.</em></h1>
+      <p className="large-copy">
+        Explore genuine original productions from acclaimed AI filmmakers, robotic artists, and registered marketplace creators with documented model pipelines.
+      </p>
+
+      {/* SECTION 1: VIDEO-FIRST MOVING IMAGE SPOTLIGHT */}
+      {(selectedCategory === 'All Works' || selectedCategory === 'Films and Videos') && !q && !selectedArtist && !selectedTool && (
+        <section style={{ margin: '36px 0 50px', background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '28px 24px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 10 }}>
+            <div>
+              <span className="eyebrow" style={{ color: 'var(--accent)', marginBottom: 6 }}>01 / SPOTLIGHT: VERIFIED MOVING IMAGES</span>
+              <h2 style={{ fontSize: 22, margin: 0 }}>Playable AI Cinema & Music Videos</h2>
+            </div>
+            <span className="badge" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Play size={12} fill="currentColor" style={{ color: 'var(--accent)' }} />
+              Official Vimeo Video Streams
+            </span>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 24 }}>
+            {verifiedVideoSpotlight.map(video => (
+              <div key={video.id} style={{ background: 'var(--bg)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ position: 'relative', width: '100%', aspectRatio: '16/9' }}>
+                  <VideoEmbed
+                    title={video.title}
+                    videoEmbedUrl={video.videoEmbedUrl}
+                    videoPlatform={video.videoPlatform || 'vimeo'}
+                    externalUrl={video.externalUrl}
+                    aspectRatio="16/9"
+                    attribution={video.attribution}
+                  />
+                </div>
+                <div style={{ padding: '18px 20px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 12 }}>
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                      <span className="badge" style={{ fontSize: 10 }}>{video.contentType} · {video.year}</span>
+                      <a href={`/creators/${video.creatorSlug}`} style={{ fontSize: 12, color: 'var(--muted)', textDecoration: 'none' }}>
+                        By <strong style={{ color: 'var(--text)' }}>{video.creatorName}</strong>
+                      </a>
+                    </div>
+                    <h3 style={{ fontSize: 16, margin: '6px 0 8px' }}>
+                      <a href={`/creators/${video.creatorSlug}/works/${video.slug}`} style={{ color: 'var(--text)', textDecoration: 'none' }}>
+                        {video.title}
+                      </a>
+                    </h3>
+                    <p style={{ fontSize: 12, color: 'var(--muted)', margin: 0, lineHeight: 1.5 }}>
+                      {video.description}
+                    </p>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--line)', paddingTop: 12 }}>
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      {video.tools.slice(0, 2).map((t: string) => (
+                        <span key={t} className="tool-pill" style={{ fontSize: 10 }}>{t}</span>
+                      ))}
+                    </div>
+                    <a href={`/creators/${video.creatorSlug}/works/${video.slug}`} className="text-link" style={{ fontSize: 11, border: 0 }}>
+                      View Curatorial Breakdown →
+                    </a>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* SECTION 2: CATEGORY SELECTOR CHIPS */}
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', margin: '24px 0 20px' }}>
+        {availableCategories.map(cat => (
+          <button
+            key={cat}
+            type="button"
+            className={`button ${selectedCategory === cat ? '' : 'secondary'}`}
+            onClick={() => { setSelectedCategory(cat); setVisibleCount(12); }}
+            style={{ fontSize: 12, padding: '8px 16px', minHeight: 36 }}
+          >
+            {cat} ({categoryCounts[cat] || 0})
+          </button>
+        ))}
       </div>
 
-      <div className="work-toolbar">
-        <div className="search">
+      {/* SECTION 3: TOOLBAR CONTROLS */}
+      <div className="work-toolbar" style={{ display: 'flex', gap: 14, flexWrap: 'wrap', alignItems: 'center', marginBottom: 28 }}>
+        <div className="search" style={{ flex: 1, minWidth: 260 }}>
           <Search size={19}/>
           <input 
             aria-label="Search portfolio work" 
-            placeholder="Search project titles, tools or creators..." 
+            placeholder="Search titles, tools (Sora, Runway, ComfyUI), or artists..." 
             value={q} 
-            onChange={e => { setQ(e.target.value); setPage(1); }}
+            onChange={e => { setQ(e.target.value); setVisibleCount(12); }}
           />
+          {q && <button className="icon-btn" onClick={() => setQ('')} aria-label="Clear search"><X size={16}/></button>}
         </div>
-        <div style={{ minWidth: '220px' }}>
+
+        <div style={{ minWidth: 180 }}>
           <AppSelect 
-            value={type} 
-            onChange={v => { setType(v); setPage(1); }} 
-            options={contentTypeOptions} 
-            placeholder="All creative formats" 
-            ariaLabel="Filter work by content type"
+            value={selectedArtist} 
+            onChange={v => { setSelectedArtist(v); setVisibleCount(12); }} 
+            options={artistOptions} 
+            placeholder="Filter by artist" 
+            ariaLabel="Filter work by artist"
           />
         </div>
+
+        <div style={{ minWidth: 180 }}>
+          <AppSelect 
+            value={selectedTool} 
+            onChange={v => { setSelectedTool(v); setVisibleCount(12); }} 
+            options={toolOptions} 
+            placeholder="Filter by tool" 
+            ariaLabel="Filter work by AI tool"
+          />
+        </div>
+
+        <div style={{ minWidth: 170 }}>
+          <AppSelect 
+            value={sort} 
+            onChange={v => setSort(v)} 
+            options={[
+              { value: 'featured', label: 'Curated Order' },
+              { value: 'title', label: 'Title (A–Z)' },
+              { value: 'artist', label: 'Artist Name' },
+              { value: 'year', label: 'Release Year' }
+            ]} 
+            ariaLabel="Sort portfolio works"
+          />
+        </div>
+
+        {hasActiveFilters && (
+          <button className="button secondary" onClick={resetFilters} style={{ minHeight: 44, padding: '0 14px', fontSize: 12 }}>
+            Reset Filters
+          </button>
+        )}
       </div>
 
-      {galleryMode === 'featured' ? (
-        <>
-          <div className="results-heading">
-            <span>{featuredArtistWorks.length} Editorial Works</span>
-            <span className="micro">PRIMARY SOURCES & OFFICIAL MEDIA</span>
-          </div>
+      {/* RESULTS HEADER */}
+      <div className="results-heading" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+        <span>
+          Showing {paginatedWorks.length} of {filteredWorks.length} Project{filteredWorks.length === 1 ? '' : 's'}
+          {selectedCategory !== 'All Works' && ` · ${selectedCategory}`}
+        </span>
+        <span className="micro">PRIMARY SOURCES & VERIFIED ARCHIVES</span>
+      </div>
 
-          {featuredArtistWorks.length ? (
-            <div className="portfolio-grid work-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 24 }}>
-              {featuredArtistWorks.map(w => (
-                <WorkCard key={w.id} work={w} />
-              ))}
-            </div>
-          ) : (
-            <div className="empty">
-              <div className="empty-icon"><Search size={28}/></div>
-              <h3>No featured works match your search.</h3>
-              <p>Try searching for Paul Trillo, Refik Anadol, Sora, or Runway.</p>
-              {q && <button className="button secondary" onClick={() => setQ('')}>Clear search</button>}
-            </div>
-          )}
-        </>
-      ) : r.error ? (
-        <div className="workroom-error-card" role="alert">
+      {/* SECTION 4: WORKS GRID */}
+      {r.error && !combinedWorks.length ? (
+        <div className="workroom-error-card" role="alert" style={{ background: 'var(--surface)', border: '1px solid var(--line)', padding: 30, borderRadius: 'var(--radius)' }}>
           <div className="error-badge">WORKROOM TEMPORARILY UNAVAILABLE</div>
-          <h3>Couldn't load the workroom.</h3>
-          <p>Please try again. If the issue persists, check your network connection.</p>
+          <h3>Couldn't load the workroom database.</h3>
+          <p>Please check your connection and retry.</p>
           <button className="button retry-btn" onClick={() => r.refresh()}>
             <RefreshCw size={14} />
             Retry request
           </button>
         </div>
-      ) : r.loading ? (
+      ) : paginatedWorks.length > 0 ? (
         <>
-          <div className="results-heading"><span>Loading published work…</span></div>
-          <div className="portfolio-grid work-grid loading-grid" aria-busy="true">
-            {[1, 2, 3, 4, 5, 6].map(i => (
-              <div key={i} className="skeleton-card">
-                <div className="skeleton-media" />
-                <div className="skeleton-text-wrap">
-                  <div className="skeleton-line short" />
-                  <div className="skeleton-line title" />
-                  <div className="skeleton-line" />
-                </div>
-              </div>
+          <div className="portfolio-grid work-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 24 }}>
+            {paginatedWorks.map(w => (
+              <WorkCard key={w.id} work={w} />
             ))}
           </div>
+
+          {visibleCount < filteredWorks.length && (
+            <div style={{ textAlign: 'center', marginTop: 40 }}>
+              <button
+                type="button"
+                className="button secondary"
+                onClick={() => setVisibleCount(c => c + 12)}
+                style={{ minWidth: 200 }}
+              >
+                Load More Projects ({filteredWorks.length - visibleCount} remaining)
+              </button>
+            </div>
+          )}
         </>
       ) : (
-        <>
-          <div className="results-heading">
-            <span>{r.data?.total || 0} published project{r.data?.total === 1 ? '' : 's'}</span>
-          </div>
-
-          {r.data?.items?.length ? (
-            <div className="portfolio-grid work-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 24 }}>
-              {r.data.items.map((p: any) => (
-                <a className="portfolio-card" key={p.id} href={'/projects/' + p.slug} style={{ display: 'flex', flexDirection: 'column' }}>
-                  {p.data.cover ? (
-                    <img
-                      src={'/api/files/' + p.data.cover}
-                      alt=""
-                      loading="lazy"
-                      onError={(e: any) => { e.currentTarget.style.display = 'none'; }}
-                      style={{ width: '100%', aspectRatio: '16/10', objectFit: 'cover' }}
-                    />
-                  ) : (
-                    <WorkMediaFallback
-                      title={p.data.title}
-                      contentType={p.data.contentType || 'AI Work'}
-                      creatorName={p.creator_name || 'Creator'}
-                      aspectRatio="16/10"
-                    />
-                  )}
-                  <div style={{ padding: '16px 20px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                    <span className="badge">{p.data.contentType}</span>
-                    <h3 style={{ margin: '8px 0', fontSize: 16 }}>{p.data.title}<ArrowUpRight size={18}/></h3>
-                    <p style={{ fontSize: 12, color: 'var(--muted)', margin: 0 }}>{p.creator_name} · {list(p.data.tools).join(' / ')}</p>
-                  </div>
-                </a>
-              ))}
-            </div>
-          ) : (q || type) ? (
-            <div className="empty">
-              <div className="empty-icon"><Search size={28}/></div>
-              <h3>No projects match your search.</h3>
-              <p>Try searching with different terms or reset your creative format filter.</p>
-              <div className="empty-actions-row">
-                {q && <button className="button secondary" onClick={() => { setQ(''); setPage(1); }}>Clear search</button>}
-                {type && <button className="button secondary" onClick={() => { setType(''); setPage(1); }}>Clear format filter</button>}
-              </div>
-            </div>
-          ) : (
-            <NoItems 
-              title="Original work will find its home here." 
-              body="Published portfolios from discoverable creators appear here. Add your own work with the process and permissions behind it." 
-              href="/signup" 
-              action="Create a creator profile" 
-            />
+        <div className="empty">
+          <div className="empty-icon"><Search size={28}/></div>
+          <h3>No projects match your current filters.</h3>
+          <p>Try clearing your search query or selecting a different creative format or tool.</p>
+          {hasActiveFilters && (
+            <button className="button secondary" onClick={resetFilters}>
+              Reset All Filters
+            </button>
           )}
-
-          {r.data?.pages > 1 && (
-            <div className="pagination">
-              <Action secondary disabled={page === 1} onClick={() => setPage(page - 1)}>Previous</Action>
-              <span>{page} / {r.data.pages}</span>
-              <Action secondary disabled={page === r.data.pages} onClick={() => setPage(page + 1)}>Next</Action>
-            </div>
-          )}
-        </>
+        </div>
       )}
     </div>
-  ); 
+  );
 }
 export const RECIPES = [
     { id: 'social-video', name: 'Social-first film', icon: Film, tag: 'SHORT-FORM VIDEO', desc: 'Define a focused idea, a clear hook and a mobile-first delivery.', fields: { contentType: 'AI Video', platform: 'Instagram', aspectRatio: '9:16', format: 'MP4', duration: 30, quantity: 1, styles: ['Cinematic'], commercialUse: 'Organic social' }, check: ['Message in the opening seconds', 'Safe areas for platform overlays', 'Captions and language requirements', 'Final format and export resolution'] },
@@ -287,9 +409,40 @@ const GUIDES = [
     { id: 'rights-and-evidence', title: 'Keep rights and verification specific', tag: 'TRUST', icon: Shield, intro: 'A verified tool claim, a commercial-use declaration and an agreed license answer different questions.', sections: [['Separate the questions', 'Tool access does not establish ownership of every output. A campaign’s rights request is not itself a license or transfer.'], ['Check the intended use', 'Review the relevant tool/model terms and permissions for supplied assets, likenesses, music and other third-party material.'], ['Understand evidence states', 'Self-declared, evidence submitted, under review, verified and rejected are distinct states. Read what specific capability was reviewed.'], ['Document the agreement', 'Keep territory, duration, distribution, attribution, confidentiality and usage terms with the project scope. Seek qualified advice for uncertain legal obligations.']] },
     { id: 'final-delivery', title: 'Prepare a complete handoff', tag: 'DELIVERY', icon: CheckCircle2, intro: 'A clear handoff connects the approved work to the practical files and expectations agreed at the start.', sections: [['Check the agreed deliverables', 'Confirm quantity, format, resolution, aspect ratio and any source-file requirement from the agreement.'], ['Keep version history intact', 'Deliver the approved version and retain earlier submissions and feedback in the workspace.'], ['Review supporting details', 'Include relevant usage information, asset disclosures and production notes when the scope requires them.'], ['Confirm completion', 'The creator marks delivery and the brand completes the workspace after review. Payments remain separately arranged.']] }
 ];
-export function ResourceHub({ slug }: any) { const guide = GUIDES.find(g => g.id === slug); if (slug && !guide)
-    return <div className="page"><NoItems title="Guide not found." body="Explore the creative field notes to continue." href="/resources" action="Open field notes"/></div>; if (guide)
-    return <div className="page info-page"><a className="back-link" href="/resources"><ArrowLeft size={15}/>All field notes</a><span className="eyebrow">{guide.tag} / CREAXA FIELD NOTES</span><h1>{guide.title}</h1><p className="large-copy">{guide.intro}</p>{guide.sections.map(([title, body], i) => <section key={title}><span className="eyebrow">0{i + 1}</span><h2>{title}</h2><p>{body}</p></section>)}<div className="info-cta"><Action href="/templates">Build a clearer brief<ArrowUpRight size={16}/></Action><Action secondary href="/discover">Discover creators<ArrowUpRight size={16}/></Action></div></div>; return <div className="page"><span className="eyebrow">CREAXA FIELD NOTES</span><h1>A little context.<br /><em>A better collaboration.</em></h1><p className="large-copy">Practical notes for briefing, choosing a partner, giving feedback and delivering work with clear expectations.</p><div className="resource-grid">{GUIDES.map(g => <a className="resource-card" href={'/resources/' + g.id} key={g.id}><g.icon size={32} strokeWidth={1}/><span className="eyebrow">{g.tag}</span><h3>{g.title}</h3><p>{g.intro}</p><span className="text-link">Read the field note<ArrowUpRight size={17}/></span></a>)}</div></div>; }
+export function ResourceHub({ slug }: any) {
+    const guide = GUIDES.find(g => g.id === slug);
+    if (slug && !guide)
+        return <div className="page"><NoItems title="Guide not found." body="Explore the creative field notes to continue." href="/resources" action="Open field notes"/></div>;
+    if (guide)
+        return <div className="page info-page"><a className="back-link" href="/resources"><ArrowLeft size={15}/>All field notes</a><span className="eyebrow">{guide.tag} / CREAXA FIELD NOTES</span><h1>{guide.title}</h1><p className="large-copy">{guide.intro}</p>{guide.sections.map(([title, body], i) => <section key={title}><span className="eyebrow">0{i + 1}</span><h2>{title}</h2><p>{body}</p></section>)}<div className="info-cta"><Action href="/templates">Build a clearer brief<ArrowUpRight size={16}/></Action><Action secondary href="/discover">Discover creators<ArrowUpRight size={16}/></Action></div></div>;
+    return (
+        <div className="page">
+            <span className="eyebrow">CREAXA FIELD NOTES</span>
+            <h1>A little context.<br /><em>A better collaboration.</em></h1>
+            <p className="large-copy">Practical notes for briefing, choosing a partner, giving feedback and delivering work with clear expectations.</p>
+            <div className="resource-grid">
+                {GUIDES.map((g, i) => (
+                    <a
+                        className={`field-note-card topic-${g.tag.toLowerCase()}`}
+                        href={'/resources/' + g.id}
+                        key={g.id}
+                        style={{ '--card-idx': i } as React.CSSProperties}
+                    >
+                        <div className="field-note-icon-wrap">
+                            <g.icon size={26} strokeWidth={1.5} />
+                        </div>
+                        <span className="eyebrow">{g.tag}</span>
+                        <h3>{g.title}</h3>
+                        <p>{g.intro}</p>
+                        <span className="text-link">
+                            Read the field note <ArrowUpRight className="card-arrow-icon" size={16} />
+                        </span>
+                    </a>
+                ))}
+            </div>
+        </div>
+    );
+}
 export function ProjectTasks({ id, viewer, status }: any) { const r = useData('tasks/' + id); const [title, setTitle] = useState(''), [due, setDue] = useState(''), [busy, setBusy] = useState(false), [error, setError] = useState(''); const tasks = r.data || [], done = tasks.filter((t: any) => t.completed).length; const mutate = async (data: any) => { setBusy(true); setError(''); try {
     await request('tasks/' + id, data);
     r.refresh();

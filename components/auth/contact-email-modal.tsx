@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Mail, CheckCircle2, ArrowRight, X, AlertCircle, RefreshCw, Sparkles, ShieldCheck } from 'lucide-react';
-import { OtpInput } from './otp-input';
+import React, { useState, useEffect, useRef } from 'react';
+import { Mail, CheckCircle2, ArrowRight, X, AlertCircle, RefreshCw, ShieldCheck, RotateCcw } from 'lucide-react';
+import { OtpInput, type OtpClusterMode } from './otp-input';
 
 interface ContactEmailModalProps {
   isOpen: boolean;
@@ -20,11 +20,14 @@ export function ContactEmailModal({
   isDismissable = true
 }: ContactEmailModalProps) {
   const [step, setStep] = useState<'enter_email' | 'verify_otp' | 'success'>('enter_email');
+  const [otpMode, setOtpMode] = useState<OtpClusterMode>('idle');
   const [email, setEmail] = useState(initialEmail);
   const [otpCode, setOtpCode] = useState('');
+  const [attemptCount, setAttemptCount] = useState(0);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [cooldown, setCooldown] = useState(0);
+  const animTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (initialEmail && !email) {
@@ -38,6 +41,12 @@ export function ContactEmailModal({
       return () => clearTimeout(timer);
     }
   }, [cooldown]);
+
+  useEffect(() => {
+    return () => {
+      if (animTimerRef.current) clearTimeout(animTimerRef.current);
+    };
+  }, []);
 
   if (!isOpen) return null;
 
@@ -64,6 +73,8 @@ export function ContactEmailModal({
         throw new Error(data.error || 'Failed to send verification code.');
       }
       setStep('verify_otp');
+      setOtpMode('idle');
+      setAttemptCount(0);
       setCooldown(60);
       setOtpCode('');
     } catch (err: any) {
@@ -79,8 +90,12 @@ export function ContactEmailModal({
       setError('Please enter the complete 6-digit verification code.');
       return;
     }
+    if (busy || otpMode !== 'idle') return;
+
     setBusy(true);
+    setOtpMode('verifying');
     setError('');
+
     try {
       const res = await fetch('/api/auth/otp/verify', {
         method: 'POST',
@@ -92,13 +107,41 @@ export function ContactEmailModal({
         })
       });
       const data: any = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || 'Invalid or expired verification code.');
+
+      if (res.ok && data.success) {
+        // Backend confirmed verification!
+        const isSecondAttemptSuccess = attemptCount > 0;
+        const targetMode: OtpClusterMode = isSecondAttemptSuccess ? 'second_success' : 'first_success';
+        setOtpMode(targetMode);
+
+        // Hold cinematic reveal readable (~1200ms) then advance to success state
+        animTimerRef.current = setTimeout(() => {
+          setStep('success');
+          onVerified?.(email.trim().toLowerCase());
+        }, 1250);
+      } else {
+        // Server rejected the code
+        const isFirstFailure = attemptCount === 0 && data.status !== 'attempts_exceeded';
+
+        if (isFirstFailure) {
+          // PHASE 13: FIRST FAILED OTP ANIMATION
+          setOtpMode('first_failure');
+          animTimerRef.current = setTimeout(() => {
+            setOtpMode('idle');
+            setOtpCode('');
+            setAttemptCount(1);
+            setError('Invalid code. 1 attempt remaining.');
+          }, 1300);
+        } else {
+          // PHASE 15: SECOND FAILED OTP ATTEMPT (Challenge invalidated)
+          setOtpMode('second_failure');
+          setAttemptCount(2);
+          setError('Challenge invalidated. Please request a new verification code.');
+        }
       }
-      setStep('success');
-      onVerified?.(email.trim().toLowerCase());
     } catch (err: any) {
-      setError(err.message || 'Verification failed. Please check the code.');
+      setOtpMode('idle');
+      setError(err.message || 'Verification connection failed. Please try again.');
     } finally {
       setBusy(false);
     }
@@ -114,7 +157,7 @@ export function ContactEmailModal({
   return (
     <div className="contact-email-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="contact-modal-title">
       <div className="contact-email-modal-card">
-        {/* Close/Dismiss Button if dismissable */}
+        {/* Close/Dismiss Button */}
         {isDismissable && step !== 'success' && (
           <button
             type="button"
@@ -193,7 +236,7 @@ export function ContactEmailModal({
           </form>
         )}
 
-        {/* STEP 2: VERIFY OTP */}
+        {/* STEP 2: VERIFY OTP WITH CINEMATIC ANIMATIONS */}
         {step === 'verify_otp' && (
           <div className="contact-modal-content step-verify-fade">
             <div className="contact-modal-icon-badge">
@@ -206,43 +249,58 @@ export function ContactEmailModal({
               Enter the six-digit code sent to <strong style={{ color: 'var(--text)' }}>{email}</strong> via Resend.
             </p>
 
-            {error && (
+            {error && otpMode === 'idle' && (
               <div className="contact-modal-error" role="alert">
                 <AlertCircle size={15} />
                 <span>{error}</span>
               </div>
             )}
 
-            {/* Accessible 6-Digit OTP Box Cluster */}
+            {/* Glowing Six-Digit OTP Cells with Cinematic Merging State Machine */}
             <div className="contact-modal-otp-area">
               <OtpInput
                 value={otpCode}
                 onChange={val => { setOtpCode(val); setError(''); }}
                 disabled={busy}
-                hasError={!!error}
+                hasError={otpMode === 'first_failure' || otpMode === 'second_failure'}
+                mode={otpMode}
                 onComplete={code => handleVerifyOtp(code)}
               />
             </div>
 
+            {/* Actions & Retry Logic */}
             <div className="contact-modal-actions">
-              <button
-                type="button"
-                onClick={() => handleVerifyOtp()}
-                disabled={busy || otpCode.length !== 6}
-                className="button full-button"
-              >
-                {busy ? (
-                  <>
-                    <RefreshCw size={15} className="spin" />
-                    <span>Verifying Code…</span>
-                  </>
-                ) : (
-                  <>
-                    <span>Verify Email</span>
-                    <ArrowRight size={15} />
-                  </>
-                )}
-              </button>
+              {otpMode === 'second_failure' ? (
+                <button
+                  type="button"
+                  onClick={() => handleSendCode()}
+                  disabled={busy || cooldown > 0}
+                  className="button full-button"
+                  style={{ background: 'var(--accent)', color: '#000' }}
+                >
+                  <RotateCcw size={15} />
+                  <span>{cooldown > 0 ? `Request New OTP (${cooldown}s)` : 'Request New OTP'}</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => handleVerifyOtp()}
+                  disabled={busy || otpCode.length !== 6 || otpMode !== 'idle'}
+                  className="button full-button"
+                >
+                  {otpMode === 'verifying' ? (
+                    <>
+                      <RefreshCw size={15} className="spin" />
+                      <span>Verifying Code…</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Verify Email</span>
+                      <ArrowRight size={15} />
+                    </>
+                  )}
+                </button>
+              )}
 
               <div className="contact-modal-otp-subactions">
                 <button
@@ -256,7 +314,7 @@ export function ContactEmailModal({
                 <span className="divider-dot">•</span>
                 <button
                   type="button"
-                  onClick={() => { setStep('enter_email'); setError(''); }}
+                  onClick={() => { setStep('enter_email'); setError(''); setOtpMode('idle'); }}
                   disabled={busy}
                   className="contact-modal-text-action"
                 >
@@ -267,7 +325,7 @@ export function ContactEmailModal({
           </div>
         )}
 
-        {/* STEP 3: SUCCESS ANIMATION */}
+        {/* STEP 3: FINAL CONFIRMATION */}
         {step === 'success' && (
           <div className="contact-modal-content step-success-fade">
             <div className="contact-modal-success-check">

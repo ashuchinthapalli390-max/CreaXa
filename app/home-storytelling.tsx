@@ -16,7 +16,10 @@ import {
   Cpu,
   Clock,
   Compass,
-  DollarSign
+  DollarSign,
+  Play,
+  Film,
+  ExternalLink
 } from 'lucide-react';
 import { RevealHeadline } from '../components/motion/RevealHeadline';
 import { ScrollSection } from '../components/motion/ScrollSection';
@@ -27,6 +30,8 @@ import { CinematicIntro } from '../components/marketing/cinematic-intro';
 import { CinematicHero } from '../components/marketing/cinematic-hero';
 import { CreatorCoverMedia, CreatorAvatar } from '../components/ui/creator-media-card';
 import { EXTERNAL_CREATOR_REFERENCES } from '../lib/creators/external-references';
+import { VideoEmbed } from '../components/ui/video-embed';
+import { WorkMediaFallback } from '../components/ui/work-card';
 
 interface HomeStorytellingProps {
   creators: any[];
@@ -41,66 +46,48 @@ export function HomeStorytelling({ creators, creatorsLoading }: HomeStorytelling
   // Selected filter showcase
   const [selectedDiscipline, setSelectedDiscipline] = useState('All');
 
-  // Featured Portfolio Items for Section 05 (10 Genuine AI Creators)
-  const PORTFOLIO_SHOWCASE = [
-    {
-      title: 'Washed Out — The Hardest Part',
-      creator: 'Paul Trillo',
-      creatorSlug: 'paul-trillo',
-      discipline: 'AI Filmmaking',
-      tools: 'OpenAI Sora • DaVinci Resolve',
-      aspectRatio: '16:9 Cinema',
-      workflow: 'First official music video created with OpenAI Sora, tracking an infinite zoom through decades of human memory.',
-      cover: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80',
-      link: '/creators/paul-trillo'
-    },
-    {
-      title: 'Unsupervised — Machine Hallucinations',
-      creator: 'Refik Anadol',
-      creatorSlug: 'refik-anadol',
-      discipline: 'Generative Art',
-      tools: 'Custom StyleGAN2 • CUDA',
-      aspectRatio: '16:9 Installation',
-      workflow: 'Trained on 384,000 public artworks from MoMA collection, interpreting modern art through fluid latent dynamics.',
-      cover: 'https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?auto=format&fit=crop&w=1200&q=80',
-      link: '/creators/refik-anadol'
-    },
-    {
-      title: 'The Auntieverse',
-      creator: 'niceaunties (Wenhui Lim)',
-      creatorSlug: 'niceaunties',
-      discipline: 'Surreal Visual Storytelling',
-      tools: 'Midjourney • Runway • Motion Tracking',
-      aspectRatio: '1:1 Square',
-      workflow: 'Surreal matriarchal world-building blending architectural drafting, food culture, and neural animation.',
-      cover: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1200&q=80',
-      link: '/creators/niceaunties'
-    },
-    {
-      title: 'corpo | real',
-      creator: 'Claire Silver',
-      creatorSlug: 'claire-silver',
-      discipline: 'Digital Couture & AI Art',
-      tools: 'Stable Diffusion • Artbreeder • Photoshop',
-      aspectRatio: '4:5 Editorial',
-      workflow: 'Exploration of physical textiles, bodily vulnerability, and generative couture fine-tuned on historical archives.',
-      cover: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80',
-      link: '/creators/claire-silver'
-    }
-  ];
+  // Featured Showcase of all 10 Genuine AI Creators (Mandatory Phase 2 requirement)
+  const ALL_10_ARTIST_SHOWCASE = EXTERNAL_CREATOR_REFERENCES.map((artist) => {
+    const primaryWork = artist.featuredWorks[0];
+    return {
+      artistName: artist.name,
+      artistSlug: artist.slug,
+      artistAvatar: artist.avatarUrl,
+      artistHeadline: artist.headline,
+      artistSpecialization: artist.specialization,
+      workId: primaryWork.id,
+      workSlug: primaryWork.slug,
+      title: primaryWork.title,
+      year: primaryWork.year,
+      contentType: primaryWork.contentType,
+      tools: primaryWork.tools || [primaryWork.documentedTech],
+      description: primaryWork.description,
+      workflowNotes: primaryWork.workflowNotes,
+      aspectRatio: primaryWork.aspectRatio || '16:9',
+      videoEmbedUrl: primaryWork.videoEmbedUrl,
+      videoPlatform: primaryWork.videoPlatform,
+      externalUrl: primaryWork.externalUrl,
+      attribution: primaryWork.attribution,
+      mediaType: primaryWork.mediaType,
+      caseStudyUrl: `/creators/${artist.slug}/works/${primaryWork.slug}`,
+      profileUrl: `/creators/${artist.slug}`
+    };
+  });
 
   const scrollCarousel = (direction: 'next' | 'prev') => {
     let nextIdx = direction === 'next' ? activeProjectIdx + 1 : activeProjectIdx - 1;
-    if (nextIdx < 0) nextIdx = PORTFOLIO_SHOWCASE.length - 1;
-    if (nextIdx >= PORTFOLIO_SHOWCASE.length) nextIdx = 0;
+    if (nextIdx < 0) nextIdx = ALL_10_ARTIST_SHOWCASE.length - 1;
+    if (nextIdx >= ALL_10_ARTIST_SHOWCASE.length) nextIdx = 0;
     setActiveProjectIdx(nextIdx);
 
     if (galleryTrackRef.current) {
-      const cardWidth = 420;
-      galleryTrackRef.current.scrollTo({
-        left: nextIdx * cardWidth,
-        behavior: 'smooth'
-      });
+      const card = galleryTrackRef.current.children[nextIdx] as HTMLElement;
+      if (card) {
+        galleryTrackRef.current.scrollTo({
+          left: card.offsetLeft - 24,
+          behavior: 'smooth'
+        });
+      }
     }
   };
 
@@ -231,7 +218,7 @@ export function HomeStorytelling({ creators, creatorsLoading }: HomeStorytelling
           ))}
         </div>
 
-        {/* Creators Grid */}
+        {/* Curated Creators Grid (Registered Marketplace Creators + All 10 Featured AI Artists) */}
         <div className="curated-creators-grid">
           {creatorsLoading ? (
             <div className="directory-loading-skeleton">
@@ -239,108 +226,159 @@ export function HomeStorytelling({ creators, creatorsLoading }: HomeStorytelling
               <div className="skeleton-card" />
               <div className="skeleton-card" />
             </div>
-          ) : creators && creators.length > 0 ? (
-            creators.slice(0, 3).map((c: any) => {
-              const d = c.data || {};
-              const rateDisplay = d.rate > 0 
-                ? `${new Intl.NumberFormat('en-IN', { style: 'currency', currency: d.currency || 'INR', maximumFractionDigits: 0 }).format(d.rate)} / starting`
-                : 'Rate on request';
-              return (
-                <article key={c.id || c.slug} className="creator-editorial-card">
-                  <a href={`/creators/${c.slug}`} className="card-cover-media">
-                    <CreatorCoverMedia
-                      coverUrl={d.cover ? `/api/files/${d.cover}` : undefined}
-                      name={d.name || 'AI Creator'}
-                      specialization={Array.isArray(d.specializations) ? d.specializations[0] : 'AI Creative'}
-                    />
-                    <div className="card-rate-pill">
-                      {rateDisplay}
-                    </div>
-                    <span className="card-hover-arrow">
-                      <ArrowUpRight size={19} />
-                    </span>
-                  </a>
-
-                  <div className="card-body">
-                    <div className="card-author-line">
-                      <CreatorAvatar
-                        avatarUrl={d.avatar ? `/api/files/${d.avatar}` : undefined}
-                        name={d.name || 'Creator'}
-                        className="author-avatar"
+          ) : (
+            <>
+              {/* 1. Authentic Registered Marketplace Creators (Active Accounts with Direct Inquiry) */}
+              {(creators || []).filter((c: any) => {
+                if (selectedDiscipline === 'All') return true;
+                const disc = selectedDiscipline.toLowerCase();
+                const d = c.data || {};
+                return (
+                  (Array.isArray(d.specializations) && d.specializations.some((s: string) => s.toLowerCase().includes(disc))) ||
+                  (Array.isArray(d.tools) && d.tools.some((t: string) => t.toLowerCase().includes(disc)))
+                );
+              }).map((c: any) => {
+                const d = c.data || {};
+                const rateDisplay = d.rate > 0 
+                  ? `${new Intl.NumberFormat('en-IN', { style: 'currency', currency: d.currency || 'INR', maximumFractionDigits: 0 }).format(d.rate)} / starting`
+                  : 'Rate on request';
+                const coverSrc = d.cover ? (d.cover.startsWith('http') ? d.cover : `/api/files/${d.cover}`) : undefined;
+                const avatarSrc = d.avatar ? (d.avatar.startsWith('http') ? d.avatar : `/api/files/${d.avatar}`) : undefined;
+                return (
+                  <article key={c.id || c.slug} className="creator-editorial-card">
+                    <a href={`/creators/${c.slug}`} className="card-cover-media">
+                      <CreatorCoverMedia
+                        coverUrl={coverSrc}
+                        name={d.name || 'AI Creator'}
+                        specialization={Array.isArray(d.specializations) ? d.specializations[0] : 'AI Creative'}
                       />
-                      <div>
-                        <a href={`/creators/${c.slug}`}>
-                          <h4>{d.name || 'AI Creator'}</h4>
+                      <div className="card-rate-pill">
+                        {rateDisplay}
+                      </div>
+                      <span className="card-hover-arrow">
+                        <ArrowUpRight size={19} />
+                      </span>
+                    </a>
+
+                    <div className="card-body">
+                      <div className="card-author-line">
+                        <CreatorAvatar
+                          avatarUrl={avatarSrc}
+                          name={d.name || 'Creator'}
+                          className="author-avatar"
+                        />
+                        <div>
+                          <a href={`/creators/${c.slug}`}>
+                            <h4>{d.name || 'AI Creator'}</h4>
+                          </a>
+                          <span className="author-headline">{d.headline || 'Generative Specialist'}</span>
+                        </div>
+                      </div>
+
+                      {d.bio && (
+                        <p className="author-bio-snippet" style={{ fontSize: 12, color: 'var(--muted)', margin: '8px 0 12px', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                          {d.bio}
+                        </p>
+                      )}
+
+                      <div className="author-tags-strip">
+                        {(Array.isArray(d.tools) && d.tools.length > 0 ? d.tools : ['Runway', 'Midjourney', 'ComfyUI']).slice(0, 3).map((t: string) => (
+                          <span key={t} className="tool-pill">{t}</span>
+                        ))}
+                      </div>
+
+                      <div className="card-foot-meta">
+                        <span className="status-label">
+                          <span className={`status-dot ${d.availability === 'Available' ? 'available' : ''}`} />
+                          {d.availability || 'Direct inquiry'}
+                        </span>
+                        <a href={`/creators/${c.slug}`} className="view-profile-link">
+                          View Portfolio →
                         </a>
-                        <span className="author-headline">{d.headline || 'Generative Specialist'}</span>
                       </div>
                     </div>
+                  </article>
+                );
+              })}
 
-                    <div className="author-tags-strip">
-                      {(Array.isArray(d.tools) && d.tools.length > 0 ? d.tools : ['Runway', 'Midjourney', 'ComfyUI']).slice(0, 3).map((t: string) => (
-                        <span key={t} className="tool-pill">{t}</span>
-                      ))}
-                    </div>
+              {/* 2. All 10 Genuine Featured AI Artists (Complete Editorial Reference Showcase) */}
+              {EXTERNAL_CREATOR_REFERENCES.filter((artist) => {
+                if (selectedDiscipline === 'All') return true;
+                const disc = selectedDiscipline.toLowerCase();
+                return (
+                  artist.specialization.toLowerCase().includes(disc) ||
+                  artist.documentedTools.some(t => t.toLowerCase().includes(disc)) ||
+                  artist.creativeStyles.some(s => s.toLowerCase().includes(disc))
+                );
+              }).map((artist) => {
+                const primaryWork = artist.featuredWorks[0];
+                return (
+                  <article key={artist.slug} className="creator-editorial-card">
+                    <a href={`/creators/${artist.slug}`} className="card-cover-media">
+                      <img
+                        src={artist.fallbackCover || `/creator-fallbacks/${artist.slug}.svg`}
+                        alt=""
+                        loading="lazy"
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
+                      <div className="card-rate-pill" style={{ background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(4px)', color: 'var(--accent)', border: '1px solid rgba(255,255,255,0.15)' }}>
+                        Editorial Reference
+                      </div>
+                      <span className="card-hover-arrow"><ArrowUpRight size={19} /></span>
+                    </a>
+                    <div className="card-body">
+                      <div className="card-author-line">
+                        <CreatorAvatar
+                          avatarUrl={artist.avatarUrl}
+                          name={artist.name}
+                          className="author-avatar"
+                        />
+                        <div>
+                          <a href={`/creators/${artist.slug}`}><h4>{artist.name}</h4></a>
+                          <span className="author-headline">{artist.specialization}</span>
+                        </div>
+                      </div>
 
-                    <div className="card-foot-meta">
-                      <span className="status-label">
-                        <span className={`status-dot ${d.availability === 'Available' ? 'available' : ''}`} />
-                        {d.availability || 'Direct inquiry'}
-                      </span>
-                      <a href={`/creators/${c.slug}`} className="view-profile-link">
-                        View Portfolio →
-                      </a>
+                      <p className="author-bio-snippet" style={{ fontSize: 12, color: 'var(--muted)', margin: '8px 0 12px', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                        {artist.bioSummary}
+                      </p>
+
+                      <div className="author-tags-strip">
+                        {artist.documentedTools.slice(0, 3).map((t) => (
+                          <span key={t} className="tool-pill">{t}</span>
+                        ))}
+                      </div>
+
+                      {primaryWork && (
+                        <div style={{ fontSize: 11, color: 'var(--muted)', background: 'var(--raised)', padding: '6px 10px', borderRadius: 4, marginBottom: 14 }}>
+                          Featured Work: <strong style={{ color: 'var(--text)' }}>{primaryWork.title}</strong>
+                        </div>
+                      )}
+
+                      <div className="card-foot-meta">
+                        <span className="status-label">
+                          <Globe size={13} style={{ color: 'var(--accent)' }} />
+                          {artist.featuredWorks.length} Original Works
+                        </span>
+                        <a href={`/creators/${artist.slug}`} className="view-profile-link">Explore Works →</a>
+                      </div>
                     </div>
-                  </div>
-                </article>
-              );
-            })
-          ) : (
-            /* Genuine Featured AI Artists Fallback when database is empty */
-            EXTERNAL_CREATOR_REFERENCES.slice(0, 3).map((artist) => (
-              <article key={artist.slug} className="creator-editorial-card">
-                <a href={`/creators/${artist.slug}`} className="card-cover-media">
-                  <CreatorCoverMedia
-                    coverUrl={artist.coverUrl}
-                    name={artist.name}
-                    specialization={artist.specialization}
-                  />
-                  <div className="card-rate-pill">Editorial Reference</div>
-                  <span className="card-hover-arrow"><ArrowUpRight size={19} /></span>
-                </a>
-                <div className="card-body">
-                  <div className="card-author-line">
-                    <CreatorAvatar
-                      avatarUrl={artist.avatarUrl}
-                      name={artist.name}
-                      className="author-avatar"
-                    />
-                    <div>
-                      <a href={`/creators/${artist.slug}`}><h4>{artist.name}</h4></a>
-                      <span className="author-headline">{artist.headline}</span>
-                    </div>
-                  </div>
-                  <div className="author-tags-strip">
-                    {artist.documentedTools.slice(0, 3).map((t) => (
-                      <span key={t} className="tool-pill">{t}</span>
-                    ))}
-                  </div>
-                  <div className="card-foot-meta">
-                    <span className="status-label">
-                      <span className="status-dot available" />
-                      Documented Portfolio
-                    </span>
-                    <a href={`/creators/${artist.slug}`} className="view-profile-link">View Projects →</a>
-                  </div>
-                </div>
-              </article>
-            ))
+                  </article>
+                );
+              })}
+            </>
           )}
         </div>
       </ScrollSection>
 
       {/* =========================================================================
-          SECTION 05 — AI PORTFOLIO GALLERY (THE WORK BEHIND THE WORK)
+          SECTION 05 — ALL 10 GENUINE AI ARTISTS SHOWCASE (THE PROOF OF WORK)
+          Preserves heading: "THE CRAFT BEHIND THE GENERATION."
+          Complete 4-Layer Architecture:
+          Layer 1: 10-Artist Navigation Rail / Selector
+          Layer 2: Featured Original Work Cards with Playable Video Embeds / Fallbacks
+          Layer 3: "Explore All Works" CTA (/work)
+          Layer 4: "Explore Featured Artists" CTA (/discover)
           ========================================================================= */}
       <ScrollSection id="work-gallery" className="story-section section-portfolio-gallery">
         <div className="gallery-header-bar">
@@ -349,7 +387,7 @@ export function HomeStorytelling({ creators, creatorsLoading }: HomeStorytelling
             <RevealHeadline
               as="h2"
               lines={['THE CRAFT BEHIND', 'THE <em>GENERATION.</em>']}
-              subtitle="Explore authentic published projects with exposed model architectures, prompt parameters, and workflow blueprints."
+              subtitle="Explore authentic published projects from all ten researched AI artists with exposed model architectures, documented pipelines, and verified original media."
             />
           </div>
           <div className="carousel-nav-controls">
@@ -370,33 +408,120 @@ export function HomeStorytelling({ creators, creatorsLoading }: HomeStorytelling
           </div>
         </div>
 
-        {/* Horizontal Editorial Track (Safe scroll that never traps vertical page scrolling) */}
-        <div className="portfolio-track-wrap" ref={galleryTrackRef}>
-          {PORTFOLIO_SHOWCASE.map((item, idx) => (
-            <article key={item.title} className="gallery-project-card">
-              <a href={item.link} className="project-media-wrap">
-                <img src={item.cover} alt={item.title} loading="lazy" />
-                <span className="aspect-badge">{item.aspectRatio}</span>
-                <div className="project-hover-curtain">
-                  <span>View Project Case Study</span>
-                  <ArrowUpRight size={18} />
-                </div>
-              </a>
+        {/* Layer 1: Accessible Horizontal Artist Navigation Rail across all 10 Genuine Artists */}
+        <div className="artist-showcase-nav-rail" role="tablist" aria-label="10 Featured AI Artists Selector">
+          {ALL_10_ARTIST_SHOWCASE.map((item, idx) => (
+            <button
+              key={item.artistSlug}
+              type="button"
+              role="tab"
+              aria-selected={activeProjectIdx === idx}
+              className={`artist-nav-chip ${activeProjectIdx === idx ? 'active' : ''}`}
+              onClick={() => {
+                setActiveProjectIdx(idx);
+                if (galleryTrackRef.current) {
+                  const card = galleryTrackRef.current.children[idx] as HTMLElement;
+                  if (card) {
+                    galleryTrackRef.current.scrollTo({
+                      left: card.offsetLeft - 24,
+                      behavior: 'smooth'
+                    });
+                  }
+                }
+              }}
+            >
+              <CreatorAvatar
+                avatarUrl={item.artistAvatar}
+                name={item.artistName}
+                style={{ width: 22, height: 22, borderRadius: '50%' }}
+              />
+              <span className="artist-chip-name">{item.artistName}</span>
+              {item.videoEmbedUrl && <Play size={10} fill="currentColor" style={{ color: 'var(--accent)', marginLeft: 2 }} />}
+            </button>
+          ))}
+        </div>
 
-              <div className="project-info-block">
-                <div className="project-category-row">
-                  <span className="category-label">{item.discipline}</span>
-                  <span className="author-label">by {item.creator}</span>
+        {/* Layer 2: Horizontal Project Showcase Carousel (One Clean Scroll Region, No Nested Vertical Scrollbars) */}
+        <div className="portfolio-track-wrap" ref={galleryTrackRef} tabIndex={0} aria-label="Projects carousel track">
+          {ALL_10_ARTIST_SHOWCASE.map((item) => (
+            <article key={item.workId || item.title} className="gallery-project-card unified-showcase-card">
+              {/* Media Region */}
+              <div className="project-media-wrap">
+                {item.videoEmbedUrl ? (
+                  <VideoEmbed
+                    title={item.title}
+                    videoEmbedUrl={item.videoEmbedUrl}
+                    videoPlatform={item.videoPlatform}
+                    externalUrl={item.externalUrl}
+                    aspectRatio="16/10"
+                    attribution={item.attribution}
+                  />
+                ) : (
+                  <a href={item.caseStudyUrl} style={{ display: 'block', textDecoration: 'none' }}>
+                    <WorkMediaFallback
+                      title={item.title}
+                      contentType={item.contentType}
+                      creatorName={item.artistName}
+                      year={item.year}
+                      aspectRatio="16/10"
+                    />
+                  </a>
+                )}
+              </div>
+
+              {/* Project Information */}
+              <div className="project-info-block" style={{ padding: '20px 22px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 12 }}>
+                <div>
+                  <div className="project-category-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                    <span className="category-label badge" style={{ fontSize: 10 }}>{item.contentType}</span>
+                    <a href={item.profileUrl} className="author-label" style={{ fontSize: 11, color: 'var(--muted)', textDecoration: 'none' }}>
+                      by <strong style={{ color: 'var(--text)' }}>{item.artistName}</strong>
+                    </a>
+                  </div>
+                  <h3 style={{ fontSize: 17, margin: '6px 0 8px', lineHeight: 1.3 }}>
+                    <a href={item.caseStudyUrl} style={{ color: 'var(--text)', textDecoration: 'none' }}>
+                      {item.title}
+                    </a>
+                  </h3>
+                  <div className="project-tools-row" style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
+                    {item.tools.slice(0, 3).map((t: string) => (
+                      <span key={t} className="tool-pill" style={{ fontSize: 10 }}>{t}</span>
+                    ))}
+                  </div>
+                  <p className="project-workflow-snippet" style={{ fontSize: 12, color: 'var(--muted)', margin: 0, lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                    {item.workflowNotes || item.description}
+                  </p>
                 </div>
-                <h3>{item.title}</h3>
-                <div className="project-tools-row">
-                  <span className="tools-lead">Pipeline:</span>
-                  <strong>{item.tools}</strong>
+
+                {/* Footer Attribution & Action Links */}
+                <div style={{ borderTop: '1px solid var(--line)', paddingTop: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span className="micro" style={{ fontSize: 10, color: 'var(--muted)' }}>
+                    {item.year || 'Documented Work'}
+                  </span>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <a href={item.caseStudyUrl} className="button secondary" style={{ fontSize: 11, padding: '5px 10px', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                      Case Study <ArrowUpRight size={12} />
+                    </a>
+                    <a href={item.profileUrl} className="button" style={{ fontSize: 11, padding: '5px 10px', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                      Artist Archive <ArrowRight size={12} />
+                    </a>
+                  </div>
                 </div>
-                <p className="project-workflow-snippet">{item.workflow}</p>
               </div>
             </article>
           ))}
+        </div>
+
+        {/* Layer 3 & 4: Clear CTAs to Explore All Works and Explore Featured Artists */}
+        <div className="gallery-section-ctas" style={{ display: 'flex', gap: 16, justifyContent: 'center', marginTop: 44, flexWrap: 'wrap' }}>
+          <a href="/work" className="button" style={{ display: 'inline-flex', alignItems: 'center', gap: 10, padding: '14px 24px' }}>
+            <span>Explore All Works (The Workroom)</span>
+            <ArrowRight size={16} />
+          </a>
+          <a href="/discover" className="button secondary" style={{ display: 'inline-flex', alignItems: 'center', gap: 10, padding: '14px 24px' }}>
+            <span>Explore Featured Artists (Editorial Directory)</span>
+            <ArrowUpRight size={16} />
+          </a>
         </div>
       </ScrollSection>
 
