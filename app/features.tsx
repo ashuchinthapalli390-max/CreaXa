@@ -168,14 +168,27 @@ export function WorkGallery() {
               {featuredArtistWorks.map(w => (
                 <div key={w.id} className="portfolio-card" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   {w.videoEmbedUrl ? (
-                    <VideoEmbed
-                      title={w.title}
-                      videoEmbedUrl={w.videoEmbedUrl}
-                      videoPlatform={w.videoPlatform}
-                      externalUrl={w.externalUrl}
-                      aspectRatio={w.aspectRatio || '16/9'}
-                      attribution={w.attribution}
-                    />
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      <VideoEmbed
+                        title={w.title}
+                        videoEmbedUrl={w.videoEmbedUrl}
+                        videoPlatform={w.videoPlatform}
+                        externalUrl={w.externalUrl}
+                        aspectRatio={w.aspectRatio || '16/9'}
+                        attribution={w.attribution}
+                      />
+                      <div style={{ padding: '12px 14px', background: 'var(--panel)', borderRadius: 6, border: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
+                        <div>
+                          <a href={'/creators/' + w.creatorSlug + '/works/' + w.slug} style={{ color: 'var(--text)', textDecoration: 'none', fontWeight: 600, fontSize: 14 }}>
+                            {w.title}
+                          </a>
+                          <div style={{ fontSize: 11, color: 'var(--accent)', marginTop: 2 }}>{w.tools.slice(0, 2).join(' · ')}</div>
+                        </div>
+                        <a href={'/creators/' + w.creatorSlug + '/works/' + w.slug} className="button" style={{ fontSize: 11, padding: '4px 10px', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                          Details <ArrowRight size={12} />
+                        </a>
+                      </div>
+                    </div>
                   ) : (
                     <div style={{ padding: '24px', background: 'var(--panel)', borderRadius: 8, border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%', minHeight: 220 }}>
                       <div>
@@ -183,18 +196,27 @@ export function WorkGallery() {
                           <span className="badge">{w.contentType}</span>
                           {w.year && <span className="micro">{w.year}</span>}
                         </div>
-                        <h3 style={{ marginTop: 12, fontSize: 16 }}>{w.title}</h3>
+                        <a href={'/creators/' + w.creatorSlug + '/works/' + w.slug} style={{ color: 'var(--text)', textDecoration: 'none' }}>
+                          <h3 style={{ marginTop: 12, fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            {w.title} <ArrowUpRight size={15} style={{ color: 'var(--accent)' }} />
+                          </h3>
+                        </a>
                         <p style={{ fontSize: 13, color: 'var(--muted)', marginTop: 8, lineHeight: 1.5 }}>{w.description}</p>
                       </div>
-                      <div style={{ marginTop: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border)', paddingTop: 12 }}>
+                      <div style={{ marginTop: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border)', paddingTop: 12, flexWrap: 'wrap', gap: 8 }}>
                         <span style={{ fontSize: 11, color: 'var(--accent)' }}>
                           {w.tools.join(' · ')}
                         </span>
-                        {w.externalUrl && (
-                          <a href={w.externalUrl} target="_blank" rel="noopener noreferrer" className="button secondary" style={{ fontSize: 11, padding: '4px 10px', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                            Archive <ExternalLink size={12} />
+                        <div style={{ display: 'flex', gap: 6 }}>
+                          <a href={'/creators/' + w.creatorSlug + '/works/' + w.slug} className="button" style={{ fontSize: 11, padding: '4px 10px', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                            Details <ArrowRight size={12} />
                           </a>
-                        )}
+                          {w.externalUrl && (
+                            <a href={w.externalUrl} target="_blank" rel="noopener noreferrer" className="button secondary" style={{ fontSize: 11, padding: '4px 8px', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                              Archive <ExternalLink size={11} />
+                            </a>
+                          )}
+                        </div>
                       </div>
                     </div>
                   )}

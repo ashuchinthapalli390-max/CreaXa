@@ -319,15 +319,17 @@ This document audits the **10 Genuine Publicly Documented AI Creators** incorpor
 
 ## Data Summary & Integrity Matrix
 
-| Creator | Official Site Verified | Social URLs Verified | Projects Sourced | Video Embed Configured | External Ref Status |
+| Creator | Official Site Verified | Social URLs Verified | Projects Sourced | Video Embed Configured | In-Website Detail Page |
 | :--- | :---: | :---: | :---: | :---: | :---: |
-| **Paul Trillo** | `paultrillo.com` | 4/4 | 3 | Yes (Vimeo 941713443, 821101511) | External Reference Only |
-| **Refik Anadol** | `refikanadol.com` | 4/4 | 3 | Archive fallback | External Reference Only |
-| **niceaunties** | `niceaunties.com` | 3/3 | 3 | Archive fallback | External Reference Only |
-| **Claire Silver** | `clairesilver.com` | 3/3 | 3 | Archive fallback | External Reference Only |
-| **Roope Rainisto**| `rooperainisto.com`| 4/4 | 2 | Archive fallback | External Reference Only |
-| **Sasha Stiles** | `sashastiles.com` | 3/3 | 3 | Archive fallback | External Reference Only |
-| **Kris Kashtanova**| `kris.art` | 3/3 | 3 | Archive fallback | External Reference Only |
-| **Anna Ridler** | `annaridler.com` | 3/3 | 3 | Archive fallback | External Reference Only |
-| **Sougwen Chung** | `sougwen.com` | 4/4 | 3 | Vimeo archive | External Reference Only |
-| **Karen X. Cheng**| `karenx.com` | 4/4 | 3 | YouTube archive | External Reference Only |
+| **Paul Trillo** | `paultrillo.com` | 4/4 | 6 | Yes (Vimeo 941713443, 821101511) | Yes (`/creators/paul-trillo/works/...`) |
+| **Refik Anadol** | `refikanadol.com` | 4/4 | 6 | Archive fallback | Yes (`/creators/refik-anadol/works/...`) |
+| **niceaunties** | `niceaunties.com` | 3/3 | 6 | Archive fallback | Yes (`/creators/niceaunties/works/...`) |
+| **Claire Silver** | `clairesilver.com` | 3/3 | 6 | Archive fallback | Yes (`/creators/claire-silver/works/...`) |
+| **Roope Rainisto**| `rooperainisto.com`| 4/4 | 5 | Archive fallback | Yes (`/creators/roope-rainisto/works/...`) |
+| **Sasha Stiles** | `sashastiles.com` | 3/3 | 6 | Archive fallback | Yes (`/creators/sasha-stiles/works/...`) |
+| **Kris Kashtanova**| `kris.art` | 3/3 | 6 | Archive fallback | Yes (`/creators/kris-kashtanova/works/...`) |
+| **Anna Ridler** | `annaridler.com` | 3/3 | 6 | Archive fallback | Yes (`/creators/anna-ridler/works/...`) |
+| **Sougwen Chung** | `sougwen.com` | 4/4 | 6 | Vimeo archive | Yes (`/creators/sougwen-chung/works/...`) |
+| **Karen X. Cheng**| `karenx.com` | 4/4 | 6 | YouTube archive | Yes (`/creators/karen-x-cheng/works/...`) |
+
+**Total:** 10/10 Verified Creators • 59 Documented Works • 35 Primary-Source Social Links • 100% In-Website Exploration Enabled

@@ -372,7 +372,71 @@ export async function handle(req: Request, path: string[]) {
         if (method === 'GET' && route === 'creators') {
             return json(decodedAll(await all('SELECT p.* FROM profiles p JOIN accounts a ON a.id=p.id WHERE p.published=1 ORDER BY p.updated DESC LIMIT 200')));
         }
-        if (method === 'GET' && path[0] === 'creators' && path[1]) {
+        if (method === 'GET' && (path[0] === 'creators' || path[0] === 'artists') && path[1]) {
+            // Check for nested project detail: /api/creators/:artistSlug/works/:workSlug
+            if (path[2] === 'works' && path[3]) {
+                const ref = EXTERNAL_CREATOR_REFERENCES.find(r => r.slug === path[1]);
+                if (ref) {
+                    const found = ref.featuredWorks.find(w => w.slug === path[3] || w.id === path[3] || `${ref.slug}-${w.slug}` === path[3]);
+                    if (found) {
+                        return json({
+                            project: {
+                                id: found.id,
+                                slug: found.slug,
+                                data: {
+                                    title: found.title,
+                                    year: found.year,
+                                    description: found.description,
+                                    fullDescription: found.fullDescription || found.description,
+                                    workflowNotes: found.workflowNotes || '',
+                                    credits: found.credits || '',
+                                    contentType: found.contentType || 'Editorial Showcase',
+                                    tools: found.tools || [found.documentedTech],
+                                    documentedTech: found.documentedTech,
+                                    externalLink: found.externalUrl,
+                                    videoEmbedUrl: found.videoEmbedUrl,
+                                    videoPlatform: found.videoPlatform,
+                                    aspectRatio: found.aspectRatio,
+                                    mediaType: found.mediaType,
+                                    attribution: found.attribution,
+                                    mediaRightsStatus: found.mediaRightsStatus,
+                                    isExternal: true,
+                                    artistSlug: ref.slug,
+                                    artistName: ref.name
+                                }
+                            },
+                            profile: {
+                                id: ref.id,
+                                slug: ref.slug,
+                                isExternalReference: true,
+                                data: {
+                                    name: ref.name,
+                                    headline: ref.headline,
+                                    bio: ref.fullBio || ref.bioSummary,
+                                    avatar: ref.avatarUrl,
+                                    cover: ref.coverUrl,
+                                    location: ref.location,
+                                    website: ref.officialWebsite,
+                                    portfolioUrl: ref.portfolioUrl,
+                                    socialLinks: ref.socialLinks || []
+                                }
+                            },
+                            relatedWorks: ref.featuredWorks.filter(w => w.id !== found.id).map(w => ({
+                                id: w.id,
+                                slug: w.slug,
+                                title: w.title,
+                                year: w.year,
+                                contentType: w.contentType,
+                                tools: w.tools,
+                                videoEmbedUrl: w.videoEmbedUrl,
+                                videoPlatform: w.videoPlatform,
+                                description: w.description
+                            }))
+                        });
+                    }
+                }
+            }
+
             let p = decoded(await one('SELECT * FROM profiles WHERE slug=? AND published=1', path[1]));
             if (!p) {
                 p = await dbService.getProfile(path[1], true);
@@ -412,12 +476,15 @@ export async function handle(req: Request, path: string[]) {
                             }
                         },
                         projects: ref.featuredWorks.map((w, idx) => ({
-                            id: `${ref.id}-work-${idx}`,
-                            slug: `${ref.slug}-${w.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+                            id: w.id || `${ref.id}-work-${idx}`,
+                            slug: w.slug || `${ref.slug}-${w.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
                             data: {
                                 title: w.title,
                                 year: w.year,
                                 description: w.description,
+                                fullDescription: w.fullDescription || w.description,
+                                workflowNotes: w.workflowNotes || '',
+                                credits: w.credits || '',
                                 contentType: w.contentType || 'Editorial Showcase',
                                 tools: w.tools || [w.documentedTech],
                                 documentedTech: w.documentedTech,
@@ -427,7 +494,10 @@ export async function handle(req: Request, path: string[]) {
                                 aspectRatio: w.aspectRatio,
                                 mediaType: w.mediaType,
                                 attribution: w.attribution,
+                                mediaRightsStatus: w.mediaRightsStatus,
                                 isExternal: true,
+                                artistSlug: ref.slug,
+                                artistName: ref.name,
                             }
                         }))
                     });
@@ -441,9 +511,70 @@ export async function handle(req: Request, path: string[]) {
             return json({ profile: p, projects });
         }
         if (method === 'GET' && path[0] === 'projects' && path[1]) {
-            const p = decoded(await one('SELECT * FROM portfolios WHERE slug=? AND published=1', path[1]));
-            if (!p)
+            let p = decoded(await one('SELECT * FROM portfolios WHERE slug=? AND published=1', path[1]));
+            if (!p) {
+                // Check if path[1] matches an external creator work slug
+                for (const ref of EXTERNAL_CREATOR_REFERENCES) {
+                    const found = ref.featuredWorks.find(w => w.slug === path[1] || `${ref.slug}-${w.slug}` === path[1] || `${ref.slug}-${w.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}` === path[1]);
+                    if (found) {
+                        return json({
+                            project: {
+                                id: found.id,
+                                slug: found.slug,
+                                data: {
+                                    title: found.title,
+                                    year: found.year,
+                                    description: found.description,
+                                    fullDescription: found.fullDescription || found.description,
+                                    workflowNotes: found.workflowNotes || '',
+                                    credits: found.credits || '',
+                                    contentType: found.contentType || 'Editorial Showcase',
+                                    tools: found.tools || [found.documentedTech],
+                                    documentedTech: found.documentedTech,
+                                    externalLink: found.externalUrl,
+                                    videoEmbedUrl: found.videoEmbedUrl,
+                                    videoPlatform: found.videoPlatform,
+                                    aspectRatio: found.aspectRatio,
+                                    mediaType: found.mediaType,
+                                    attribution: found.attribution,
+                                    mediaRightsStatus: found.mediaRightsStatus,
+                                    isExternal: true,
+                                    artistSlug: ref.slug,
+                                    artistName: ref.name
+                                }
+                            },
+                            profile: {
+                                id: ref.id,
+                                slug: ref.slug,
+                                isExternalReference: true,
+                                data: {
+                                    name: ref.name,
+                                    headline: ref.headline,
+                                    bio: ref.fullBio || ref.bioSummary,
+                                    avatar: ref.avatarUrl,
+                                    cover: ref.coverUrl,
+                                    location: ref.location,
+                                    website: ref.officialWebsite,
+                                    portfolioUrl: ref.portfolioUrl,
+                                    socialLinks: ref.socialLinks || []
+                                }
+                            },
+                            relatedWorks: ref.featuredWorks.filter(w => w.id !== found.id).map(w => ({
+                                id: w.id,
+                                slug: w.slug,
+                                title: w.title,
+                                year: w.year,
+                                contentType: w.contentType,
+                                tools: w.tools,
+                                videoEmbedUrl: w.videoEmbedUrl,
+                                videoPlatform: w.videoPlatform,
+                                description: w.description
+                            }))
+                        });
+                    }
+                }
                 fail('Project not found.', 404);
+            }
             let profile = decoded(await one('SELECT * FROM profiles WHERE id=? AND published=1', p.owner));
             if (!profile) {
                 profile = await dbService.getProfile(p.owner);

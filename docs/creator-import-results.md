@@ -99,7 +99,7 @@ node scripts/import-genuine-creators.mjs
 
 ### Output Summary:
 - **Creators Verified:** 10/10
-- **Documented Works Sourced:** 29
+- **Documented Works Sourced:** 59
 - **Legitimate Video Players Embedded:** 2 (Vimeo embeds for Paul Trillo with fallback)
 - **Primary-Source Social Links Verified:** 35
 - **Execution Code:** `0` (Success)

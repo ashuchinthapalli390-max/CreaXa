@@ -88,7 +88,7 @@ export default function Marketplace({ path }: {
     }, [toast]);
     const app = { me, toast: setToast, refreshMe, theme, setTheme };
     const inside = path.startsWith('/app') || path.startsWith('/admin');
-    return <Context.Provider value={app}><CompareProvider><MotionSystem /><GlobalTools role={me?.account?.role}/><a className="skip" href="#main">Skip to content</a>{inside ? <AppShell path={path}/> : <><Header path={path}/><main id="main">{path === '/' ? <Home /> : path === '/discover' ? <Discover /> : path === '/compare' ? <ComparePage /> : path === '/work' ? <WorkGallery /> : path === '/templates' ? <TemplateGallery /> : path === '/resources' || path.startsWith('/resources/') ? <ResourceHub slug={path.split('/')[2]}/> : path.startsWith('/creators/') ? <Creator slug={path.split('/')[2]}/> : path.startsWith('/projects/') ? <Project slug={path.split('/')[2]}/> : path === '/onboarding' ? <Onboarding /> : ['/login', '/signup', '/verify-email', '/forgot-password', '/reset-password'].includes(path) ? <Auth path={path}/> : <Info path={path}/>}</main><Footer /></>}{error && <div className="global-error" role="alert">{error}<button onClick={() => { setError(''); refreshMe(); }}>Retry</button></div>}{toast && <div className="toast" role="status"><CheckCircle2 size={18}/>{toast}</div>}</CompareProvider></Context.Provider>;
+    return <Context.Provider value={app}><CompareProvider><MotionSystem /><GlobalTools role={me?.account?.role}/><a className="skip" href="#main">Skip to content</a>{inside ? <AppShell path={path}/> : <><Header path={path}/><main id="main">{path === '/' ? <Home /> : path === '/discover' ? <Discover /> : path === '/compare' ? <ComparePage /> : path === '/work' ? <WorkGallery /> : path === '/templates' ? <TemplateGallery /> : path === '/resources' || path.startsWith('/resources/') ? <ResourceHub slug={path.split('/')[2]}/> : (path.startsWith('/creators/') || path.startsWith('/artists/')) ? (path.includes('/works/') ? <ArtistProjectDetail artistSlug={path.split('/')[2]} projectSlug={path.split('/')[4]}/> : <Creator slug={path.split('/')[2]}/>) : path.startsWith('/projects/') ? <Project slug={path.split('/')[2]}/> : path === '/onboarding' ? <Onboarding /> : ['/login', '/signup', '/verify-email', '/forgot-password', '/reset-password'].includes(path) ? <Auth path={path}/> : <Info path={path}/>}</main><Footer /></>}{error && <div className="global-error" role="alert">{error}<button onClick={() => { setError(''); refreshMe(); }}>Retry</button></div>}{toast && <div className="toast" role="status"><CheckCircle2 size={18}/>{toast}</div>}</CompareProvider></Context.Provider>;
 }
 function Logo() { return <a className="logo" href="/" aria-label="CreaXa home"><span className="logo-symbol"><span /><span /><span /></span>CreaXa<span className="logo-period">®</span></a>; }
 function Header({ path }: any) {
@@ -399,25 +399,38 @@ function Creator({ slug }: any) {
                                             aspectRatio={proj.data.aspectRatio || '16/9'}
                                             attribution={proj.data.attribution}
                                         />
-                                    ) : (
-                                        <div style={{ padding: '24px', background: 'var(--panel)', borderRadius: 8, border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%', minHeight: 220 }}>
-                                            <div>
+                                    ) : null}
+                                    <div style={{ padding: '22px', background: 'var(--panel)', borderRadius: 8, border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%', minHeight: 180 }}>
+                                        <div>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                                 <Badge>{proj.data.contentType || 'Featured Work'}</Badge>
-                                                <h3 style={{ marginTop: 12, fontSize: 16 }}>{proj.data.title}</h3>
-                                                <p style={{ fontSize: 13, color: 'var(--muted)', marginTop: 8, lineHeight: 1.5 }}>{proj.data.description}</p>
+                                                {proj.data.year && <span className="micro">{proj.data.year}</span>}
                                             </div>
-                                            <div style={{ marginTop: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border)', paddingTop: 12 }}>
-                                                <span style={{ fontSize: 11, color: 'var(--accent)' }}>
-                                                    {list(proj.data.tools).join(' · ')}
-                                                </span>
+                                            <a href={'/creators/' + slug + '/works/' + (proj.slug || proj.id)} style={{ textDecoration: 'none', color: 'inherit' }}>
+                                                <h3 style={{ marginTop: 12, fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                                    {proj.data.title} <ArrowUpRight size={16} style={{ color: 'var(--accent)' }} />
+                                                </h3>
+                                            </a>
+                                            <p style={{ fontSize: 13, color: 'var(--muted)', marginTop: 8, lineHeight: 1.5 }}>
+                                                {proj.data.description}
+                                            </p>
+                                        </div>
+                                        <div style={{ marginTop: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border)', paddingTop: 12, flexWrap: 'wrap', gap: 8 }}>
+                                            <span style={{ fontSize: 11, color: 'var(--accent)' }}>
+                                                {list(proj.data.tools).join(' · ')}
+                                            </span>
+                                            <div style={{ display: 'flex', gap: 8 }}>
+                                                <a href={'/creators/' + slug + '/works/' + (proj.slug || proj.id)} className="button" style={{ fontSize: 11, padding: '4px 10px', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                                                    Details <ArrowRight size={12} />
+                                                </a>
                                                 {proj.data.externalLink && (
-                                                    <a href={proj.data.externalLink} target="_blank" rel="noopener noreferrer" className="button secondary" style={{ fontSize: 11, padding: '4px 10px', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                                                        Archive <ExternalLink size={12} />
+                                                    <a href={proj.data.externalLink} target="_blank" rel="noopener noreferrer" className="button secondary" style={{ fontSize: 11, padding: '4px 8px', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                                                        Archive <ExternalLink size={11} />
                                                     </a>
                                                 )}
                                             </div>
                                         </div>
-                                    )}
+                                    </div>
                                 </div>
                             ) : (
                                 <a className="portfolio-card" key={proj.id} href={'/projects/' + proj.slug}>
@@ -491,6 +504,283 @@ function Creator({ slug }: any) {
         </div>
     </div>;
 }
+function ArtistProjectDetail({ artistSlug, projectSlug, initialData }: any) {
+    const r = useResource('creators/' + artistSlug + '/works/' + projectSlug);
+
+    const ref = EXTERNAL_CREATOR_REFERENCES.find(c => c.slug === artistSlug);
+    const work = ref?.featuredWorks.find(w => w.slug === projectSlug || w.id === projectSlug || `${ref.slug}-${w.slug}` === projectSlug);
+
+    const projectData = initialData?.project?.data || r.data?.project?.data || (work ? {
+        title: work.title,
+        year: work.year,
+        description: work.description,
+        fullDescription: work.fullDescription || work.description,
+        workflowNotes: work.workflowNotes,
+        credits: work.credits,
+        contentType: work.contentType,
+        tools: work.tools,
+        documentedTech: work.documentedTech,
+        externalLink: work.externalUrl,
+        videoEmbedUrl: work.videoEmbedUrl,
+        videoPlatform: work.videoPlatform,
+        aspectRatio: work.aspectRatio,
+        mediaType: work.mediaType,
+        attribution: work.attribution,
+        mediaRightsStatus: work.mediaRightsStatus,
+        isExternal: true,
+        artistSlug: ref?.slug || artistSlug,
+        artistName: ref?.name || 'Featured Artist',
+    } : null);
+
+    const artistData = initialData?.profile?.data || r.data?.profile?.data || (ref ? {
+        name: ref.name,
+        headline: ref.headline,
+        bio: ref.fullBio || ref.bioSummary,
+        avatar: ref.avatarUrl,
+        cover: ref.coverUrl,
+        location: ref.location,
+        website: ref.officialWebsite,
+        portfolioUrl: ref.portfolioUrl,
+        socialLinks: ref.socialLinks || []
+    } : null);
+
+    const relatedWorks = initialData?.relatedWorks || r.data?.relatedWorks || (ref && work ? ref.featuredWorks.filter(w => w.id !== work.id).slice(0, 4) : []);
+
+    if (r.loading && !projectData && !initialData) return <Loading />;
+    if (r.error && !projectData && !initialData) return <div className="page"><ErrorBox message={r.error} retry={r.refresh} /></div>;
+    if (!projectData || !artistData) return <div className="page"><Empty title="Work could not be found." description="This project is not currently indexed in our verified editorial archive." action="Explore Artists" href="/discover" /></div>;
+
+    const d = projectData;
+    const a = artistData;
+
+    return (
+        <div className="page project-public">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
+                <a className="back-link" href={'/creators/' + artistSlug} style={{ margin: 0 }}>
+                    <ArrowLeft size={16} /> Back to {a.name}’s Profile
+                </a>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 12, color: 'var(--muted)' }}>
+                    <span>CreaXa</span>
+                    <span>/</span>
+                    <a href="/discover" style={{ color: 'inherit', textDecoration: 'none' }}>Artists</a>
+                    <span>/</span>
+                    <a href={'/creators/' + artistSlug} style={{ color: 'inherit', textDecoration: 'none' }}>{a.name}</a>
+                    <span>/</span>
+                    <span style={{ color: 'var(--text)' }}>{d.title}</span>
+                </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
+                <Badge>{d.contentType || 'AI Showcase'}</Badge>
+                {d.year && <Badge>{d.year}</Badge>}
+                <Badge>Public Editorial Reference</Badge>
+            </div>
+
+            <h1 style={{ fontSize: 'clamp(28px, 4.5vw, 46px)', fontWeight: 700, letterSpacing: '-0.02em', margin: '8px 0 16px', lineHeight: 1.15 }}>
+                {d.title}
+            </h1>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 28, flexWrap: 'wrap' }}>
+                <a href={'/creators/' + artistSlug} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, textDecoration: 'none', color: 'var(--text)', fontWeight: 600 }}>
+                    <div className="avatar" style={{ width: 28, height: 28, overflow: 'hidden' }}>
+                        {a.avatar ? <img src={a.avatar} alt={a.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : a.name.slice(0, 1)}
+                    </div>
+                    <span>By {a.name}</span>
+                </a>
+                {a.location && <span style={{ color: 'var(--muted)', fontSize: 13 }}>• {a.location}</span>}
+                {d.attribution && (
+                    <span style={{ fontSize: 12, color: 'var(--muted)', background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: 4, padding: '2px 8px' }}>
+                        {d.attribution}
+                    </span>
+                )}
+            </div>
+
+            {/* PRIMARY MEDIA VIEWER */}
+            <div style={{ margin: '0 0 40px', borderRadius: 12, overflow: 'hidden', border: '1px solid var(--border)', background: 'var(--panel)' }}>
+                {d.videoEmbedUrl ? (
+                    <VideoEmbed
+                        title={d.title}
+                        videoEmbedUrl={d.videoEmbedUrl}
+                        videoPlatform={d.videoPlatform || 'vimeo'}
+                        externalUrl={d.externalLink}
+                        aspectRatio={d.aspectRatio || '16/9'}
+                        attribution={d.attribution}
+                    />
+                ) : (
+                    <div style={{ padding: '64px 24px', textAlign: 'center', background: 'radial-gradient(ellipse at center, rgba(163,230,53,0.06), transparent 70%)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                        <div style={{ width: 68, height: 68, borderRadius: '50%', background: 'var(--surface)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+                            <Film size={28} style={{ color: 'var(--accent)' }} />
+                        </div>
+                        <h2 style={{ fontSize: 22, marginBottom: 10 }}>{d.title}</h2>
+                        <p style={{ maxWidth: 540, color: 'var(--muted)', fontSize: 14, lineHeight: 1.6, marginBottom: 20 }}>
+                            {d.description}
+                        </p>
+                        {d.externalLink && (
+                            <a href={d.externalLink} target="_blank" rel="noopener noreferrer" className="button" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                                Explore High-Resolution Work on Official Archive <ExternalLink size={15} />
+                            </a>
+                        )}
+                    </div>
+                )}
+                
+                <div style={{ padding: '14px 20px', background: 'var(--surface)', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, fontSize: 12 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--muted)' }}>
+                        <Shield size={14} style={{ color: 'var(--accent)' }} />
+                        <span>Public editorial reference strictly for education and benchmarking. Unlicensed media is not rehosted.</span>
+                    </div>
+                    {d.externalLink && (
+                        <a href={d.externalLink} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4, fontWeight: 600 }}>
+                            Open Primary Source <ExternalLink size={12} />
+                        </a>
+                    )}
+                </div>
+            </div>
+
+            {/* TWO-COLUMN EDITORIAL CONTENT */}
+            <div className="profile-layout">
+                <div>
+                    <section className="profile-section">
+                        <span className="eyebrow">CURATORIAL & ARTISTIC CONTEXT</span>
+                        <h2>About this work</h2>
+                        <p className="preserve large-copy" style={{ lineHeight: 1.7 }}>
+                            {d.fullDescription || d.description}
+                        </p>
+                    </section>
+
+                    {d.workflowNotes && (
+                        <section className="profile-section">
+                            <h2>Creative process & workflow</h2>
+                            <div className="note" style={{ borderLeftColor: 'var(--accent)', background: 'var(--surface)' }}>
+                                <strong style={{ color: 'var(--text)' }}>Documented Production Pipeline</strong>
+                                <p className="preserve" style={{ marginTop: 8, lineHeight: 1.6 }}>{d.workflowNotes}</p>
+                            </div>
+                        </section>
+                    )}
+
+                    <section className="profile-section">
+                        <h2>Documented AI tools & models</h2>
+                        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', margin: '14px 0 16px' }}>
+                            {list(d.tools).map((t: string) => (
+                                <span key={t} className="badge" style={{ fontSize: 13, padding: '6px 12px', background: 'var(--panel)', border: '1px solid var(--border)' }}>
+                                    {t}
+                                </span>
+                            ))}
+                        </div>
+                        {d.documentedTech && (
+                            <p style={{ fontSize: 13, color: 'var(--muted)', lineHeight: 1.6 }}>
+                                <strong>Technical Methodology:</strong> {d.documentedTech}
+                            </p>
+                        )}
+                    </section>
+
+                    {d.credits && (
+                        <section className="profile-section">
+                            <h2>Production credits</h2>
+                            <p className="preserve" style={{ fontSize: 13, color: 'var(--muted)', lineHeight: 1.6 }}>
+                                {d.credits}
+                            </p>
+                        </section>
+                    )}
+                </div>
+
+                {/* SIDEBAR */}
+                <aside className="profile-facts">
+                    <h3>Project overview</h3>
+                    <div><Layers size={17} /> Format: {d.contentType || 'AI Showcase'}</div>
+                    {d.year && <div><Clock size={17} /> Year: {d.year}</div>}
+                    {d.aspectRatio && <div><Box size={17} /> Aspect ratio: {d.aspectRatio}</div>}
+                    <div><Shield size={17} /> Sourced Attribution Verified</div>
+
+                    {d.externalLink && (
+                        <a href={d.externalLink} target="_blank" rel="noopener noreferrer" className="button" style={{ marginTop: 10, justifyContent: 'center' }}>
+                            Visit Original Project <ExternalLink size={15} />
+                        </a>
+                    )}
+
+                    <div style={{ margin: '24px 0 16px', borderTop: '1px solid var(--border)', paddingTop: 20 }}>
+                        <h4 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>About the artist</h4>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
+                            <div className="avatar" style={{ width: 44, height: 44, overflow: 'hidden' }}>
+                                {a.avatar ? <img src={a.avatar} alt={a.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : a.name.slice(0, 1)}
+                            </div>
+                            <div>
+                                <h5 style={{ margin: 0, fontSize: 15 }}>{a.name}</h5>
+                                <p style={{ margin: 0, fontSize: 12, color: 'var(--muted)' }}>{a.headline}</p>
+                            </div>
+                        </div>
+                        <p style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.5, margin: '8px 0 14px' }}>
+                            {a.bio?.slice(0, 150)}…
+                        </p>
+                        <Button secondary href={'/creators/' + artistSlug} style={{ width: '100%', justifyContent: 'center', fontSize: 12 }}>
+                            View Full Artist Profile <ArrowUpRight size={14} />
+                        </Button>
+                    </div>
+
+                    {a.socialLinks && a.socialLinks.length > 0 && (
+                        <div style={{ borderTop: '1px solid var(--border)', paddingTop: 16 }}>
+                            <h4 style={{ fontSize: 12, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 10 }}>
+                                Verified Channels
+                            </h4>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                                {a.socialLinks.map((s: any) => (
+                                    <a key={s.url} href={s.url} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--text)', textDecoration: 'none' }}>
+                                        <Globe size={14} style={{ color: 'var(--accent)' }} />
+                                        <span>{s.label || s.platform}</span>
+                                        <ExternalLink size={11} style={{ marginLeft: 'auto', opacity: 0.6 }} />
+                                    </a>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </aside>
+            </div>
+
+            {/* MORE WORKS BY ARTIST */}
+            {relatedWorks && relatedWorks.length > 0 && (
+                <section style={{ marginTop: 60, borderTop: '1px solid var(--border)', paddingTop: 40 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+                        <div>
+                            <span className="eyebrow">CONTINUE EXPLORING</span>
+                            <h2 style={{ margin: 0 }}>More works by {a.name}</h2>
+                        </div>
+                        <a href={'/creators/' + artistSlug} className="button secondary" style={{ fontSize: 12, padding: '6px 14px' }}>
+                            All {a.name} Projects <ArrowUpRight size={14} />
+                        </a>
+                    </div>
+
+                    <div className="portfolio-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}>
+                        {relatedWorks.map((rw: any) => (
+                            <a
+                                key={rw.id}
+                                href={'/creators/' + artistSlug + '/works/' + (rw.slug || rw.id)}
+                                className="portfolio-card"
+                                style={{ textDecoration: 'none', color: 'inherit', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: 8, padding: 20, transition: 'all 0.2s ease' }}
+                            >
+                                <div>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                                        <Badge>{rw.contentType}</Badge>
+                                        {rw.year && <span style={{ fontSize: 11, color: 'var(--muted)' }}>{rw.year}</span>}
+                                    </div>
+                                    <h4 style={{ fontSize: 15, margin: '6px 0 8px', fontWeight: 600 }}>{rw.title}</h4>
+                                    <p style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.5, margin: 0 }}>
+                                        {rw.description?.slice(0, 110)}…
+                                    </p>
+                                </div>
+                                <div style={{ marginTop: 14, paddingTop: 10, borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11 }}>
+                                    <span style={{ color: 'var(--accent)' }}>{list(rw.tools).slice(0, 2).join(' · ')}</span>
+                                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontWeight: 600 }}>
+                                        Explore <ArrowRight size={12} />
+                                    </span>
+                                </div>
+                            </a>
+                        ))}
+                    </div>
+                </section>
+            )}
+        </div>
+    );
+}
+
 function Project({ slug }: any) {
     const r = useResource('projects/' + slug);
     if (r.loading)
@@ -498,6 +788,9 @@ function Project({ slug }: any) {
     if (r.error)
         return <div className="page"><ErrorBox message={r.error}/></div>;
     const { project: p, profile } = r.data, d = p.data;
+    if (p.isExternal || d.isExternal) {
+        return <ArtistProjectDetail artistSlug={d.artistSlug || profile?.slug} projectSlug={slug} initialData={r.data} />;
+    }
     return <div className="page project-public"><a className="back-link" href={profile ? '/creators/' + profile.slug : '/discover'}><ArrowLeft size={16}/>Creator portfolio</a><span className="eyebrow">THE WORK. THE PROCESS. THE THINKING.</span><h1>{d.title}</h1><div className="tags"><Badge>{d.contentType}</Badge><Badge>{d.aspectRatio}</Badge>{d.industry && <Badge>{d.industry}</Badge>}</div><img className="project-hero" src={'/api/files/' + d.cover} alt={d.title}/><div className="profile-layout"><div><h2>The brief</h2><p className="preserve large-copy">{d.description}</p><h2>Creative workflow</h2><p className="preserve">{d.workflow}</p><h2>Creator contribution</h2><p className="preserve">{d.contribution}</p><div className="project-media">{d.media.map((id: string) => <Media key={id} id={id}/>)}</div></div><aside className="profile-facts"><h3>Project details</h3><div>Tools: {list(d.tools).join(', ')}</div><div>Skills: {list(d.skills).join(', ')}</div><div>Styles: {list(d.styles).join(', ')}</div><div>Resolution: {d.resolution || 'Not provided'}</div>{d.duration > 0 && <div>Duration: {d.duration} seconds</div>}<h4>Commercial-use declaration</h4><p>{d.commercialUse}</p><p className="micro">This is the creator’s declaration. Tool terms and third-party rights must be checked for your intended usage.</p>{d.externalLink && <a href={d.externalLink} target="_blank" rel="noopener noreferrer">Project link<ExternalLink size={15}/></a>}</aside></div></div>;
 }
 function Media({ id }: any) {

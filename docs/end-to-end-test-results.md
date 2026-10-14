@@ -13,7 +13,7 @@
 
 | Suite | Script / Command | Tests / Assertions | Result | Key Evidence / Verification |
 |---|---|---|---|---|
-| **10 Genuine Creator Import & Audit** | `node scripts/import-genuine-creators.mjs` | 10 Creators / 29 Works / 35 Socials | **PASS** | 10/10 verified, primary-source links only, legitimate Vimeo/YouTube embeds, 0 fake accounts. |
+| **10 Genuine Creator Import & Audit** | `node scripts/import-genuine-creators.mjs` | 10 Creators / 59 Works / 35 Socials | **PASS** | 10/10 verified, primary-source links only, legitimate Vimeo/YouTube embeds, 59 in-website project detail pages. |
 | **Production Feature & OTP Test Suite** | `node scripts/test-production-features.mjs` | 58 Assertions | **PASS** | HMAC-SHA256 digestion, constant-time verification, 60s cooldown, 5 max attempts, Resend template delivery. |
 | **TypeScript Strict Compilation** | `npx tsc --noEmit` | Workspace Check | **PASS** | 0 TypeScript errors across all `.ts` and `.tsx` modules. |
 | **Next.js Turbopack Production Build** | `npx next build` | Full Static & Dynamic Route Build | **PASS** | All routes compiled and optimized in 19.8s. |
