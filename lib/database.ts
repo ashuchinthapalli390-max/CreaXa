@@ -728,3 +728,6 @@ export const dbService = {
     return results;
   }
 };
+
+export const queryAll = (sql: string, ...args: any[]): Promise<any[]> => dbService.queryAll(sql, ...args);
+export const queryOne = <T = any>(sql: string, ...args: any[]): Promise<T | null> => dbService.queryOne(sql, ...args);

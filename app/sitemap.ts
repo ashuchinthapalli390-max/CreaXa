@@ -22,25 +22,27 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   let dynamicRoutes: MetadataRoute.Sitemap = [];
   try {
-    const { queryAll } = await import('../lib/database');
-    const creators = await queryAll('profiles', 'where published = 1 limit 50');
-    const portfolios = await queryAll('portfolios', 'where published = 1 limit 50');
+    const { queryAll } = await import('@/lib/database');
+    if (typeof queryAll === 'function') {
+      const creators = await queryAll('profiles', 'where published = 1 limit 50');
+      const portfolios = await queryAll('portfolios', 'where published = 1 limit 50');
 
-    const creatorRoutes: MetadataRoute.Sitemap = (creators || []).map((c: any) => ({
-      url: `${siteUrl}/creators/${c.slug}`,
-      lastModified: new Date(c.updated || now),
-      changeFrequency: 'weekly',
-      priority: 0.8
-    }));
+      const creatorRoutes: MetadataRoute.Sitemap = (creators || []).map((c: any) => ({
+        url: `${siteUrl}/creators/${c.slug}`,
+        lastModified: new Date(c.updated || now),
+        changeFrequency: 'weekly',
+        priority: 0.8
+      }));
 
-    const portfolioRoutes: MetadataRoute.Sitemap = (portfolios || []).map((p: any) => ({
-      url: `${siteUrl}/projects/${p.slug}`,
-      lastModified: new Date(p.updated || now),
-      changeFrequency: 'weekly',
-      priority: 0.8
-    }));
+      const portfolioRoutes: MetadataRoute.Sitemap = (portfolios || []).map((p: any) => ({
+        url: `${siteUrl}/projects/${p.slug}`,
+        lastModified: new Date(p.updated || now),
+        changeFrequency: 'weekly',
+        priority: 0.8
+      }));
 
-    dynamicRoutes = [...creatorRoutes, ...portfolioRoutes];
+      dynamicRoutes = [...creatorRoutes, ...portfolioRoutes];
+    }
   } catch {
     // Graceful fallback
   }
