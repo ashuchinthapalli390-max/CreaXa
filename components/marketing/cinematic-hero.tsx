@@ -114,7 +114,7 @@ export function HeroVisualCollage({ coords, activeSlide, onSelectSlide }: HeroVi
       role: 'AI Filmmaking & Sora Director',
       rating: '5.0',
       matchScore: '98%',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80',
+      avatar: '/creator-fallbacks/paul-trillo.svg',
       slug: 'paul-trillo',
       tag: 'DIRECTOR / SORA'
     },
@@ -124,7 +124,7 @@ export function HeroVisualCollage({ coords, activeSlide, onSelectSlide }: HeroVi
       role: 'Generative Media & MoMA ML Artist',
       rating: '5.0',
       matchScore: '99%',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=600&q=80',
+      avatar: '/licensed-portraits/refik-anadol.png',
       slug: 'refik-anadol',
       tag: 'DATA SCULPTOR'
     },
@@ -134,7 +134,7 @@ export function HeroVisualCollage({ coords, activeSlide, onSelectSlide }: HeroVi
       role: 'Surreal AI World-Builder',
       rating: '4.9',
       matchScore: '96%',
-      avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=600&q=80',
+      avatar: '/creator-fallbacks/niceaunties.svg',
       slug: 'niceaunties',
       tag: 'AUNTIEVERSE'
     },
@@ -144,7 +144,7 @@ export function HeroVisualCollage({ coords, activeSlide, onSelectSlide }: HeroVi
       role: 'AI Digital Haute Couture',
       rating: '5.0',
       matchScore: '97%',
-      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=600&q=80',
+      avatar: '/creator-fallbacks/claire-silver.svg',
       slug: 'claire-silver',
       tag: 'GUCCI VAULT'
     }
@@ -222,8 +222,8 @@ export function HeroVisualCollage({ coords, activeSlide, onSelectSlide }: HeroVi
       >
         <div className="filmmaker-inner">
           <img
-            src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80"
-            alt="AI Director Portrait"
+            src="/creator-fallbacks/paul-trillo.svg"
+            alt="Paul Trillo — AI Director"
             className="filmmaker-img"
             loading="lazy"
           />

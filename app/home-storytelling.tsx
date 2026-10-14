@@ -19,7 +19,8 @@ import {
   DollarSign,
   Play,
   Film,
-  ExternalLink
+  ExternalLink,
+  Globe
 } from 'lucide-react';
 import { RevealHeadline } from '../components/motion/RevealHeadline';
 import { ScrollSection } from '../components/motion/ScrollSection';
@@ -43,41 +44,52 @@ export function HomeStorytelling({ creators, creatorsLoading }: HomeStorytelling
   const [activeProjectIdx, setActiveProjectIdx] = useState(0);
   const galleryTrackRef = useRef<HTMLDivElement>(null);
 
-  // Selected filter showcase
+  // Selected filter showcase for Section 04
   const [selectedDiscipline, setSelectedDiscipline] = useState('All');
 
-  // Featured Showcase of all 10 Genuine AI Creators (Mandatory Phase 2 requirement)
-  const ALL_10_ARTIST_SHOWCASE = EXTERNAL_CREATOR_REFERENCES.map((artist) => {
-    const primaryWork = artist.featuredWorks[0];
-    return {
-      artistName: artist.name,
-      artistSlug: artist.slug,
-      artistAvatar: artist.avatarUrl,
-      artistHeadline: artist.headline,
-      artistSpecialization: artist.specialization,
-      workId: primaryWork.id,
-      workSlug: primaryWork.slug,
-      title: primaryWork.title,
-      year: primaryWork.year,
-      contentType: primaryWork.contentType,
-      tools: primaryWork.tools || [primaryWork.documentedTech],
-      description: primaryWork.description,
-      workflowNotes: primaryWork.workflowNotes,
-      aspectRatio: primaryWork.aspectRatio || '16:9',
-      videoEmbedUrl: primaryWork.videoEmbedUrl,
-      videoPlatform: primaryWork.videoPlatform,
-      externalUrl: primaryWork.externalUrl,
-      attribution: primaryWork.attribution,
-      mediaType: primaryWork.mediaType,
-      caseStudyUrl: `/creators/${artist.slug}/works/${primaryWork.slug}`,
-      profileUrl: `/creators/${artist.slug}`
-    };
+  // Selected artist work filter for Section 05 Proof of Work
+  const [activeArtistFilter, setActiveArtistFilter] = useState('All');
+
+  // Comprehensive library of all 38 genuine original works from all 10 researched artists
+  const ALL_38_ORIGINAL_WORKS = EXTERNAL_CREATOR_REFERENCES.flatMap((artist) => {
+    return artist.featuredWorks.map((work) => {
+      const isMosaicVirus = work.slug === 'mosaic-virus' || work.id.includes('mosaic-virus');
+      return {
+        artistName: artist.name,
+        artistSlug: artist.slug,
+        artistAvatar: artist.avatarUrl,
+        artistHeadline: artist.headline,
+        artistSpecialization: artist.specialization,
+        workId: work.id,
+        workSlug: work.slug,
+        title: work.title,
+        year: work.year,
+        contentType: work.contentType,
+        tools: work.tools && work.tools.length > 0 ? work.tools : [work.documentedTech].filter(Boolean),
+        description: work.description,
+        workflowNotes: work.workflowNotes,
+        aspectRatio: work.aspectRatio || '16/9',
+        videoEmbedUrl: work.videoEmbedUrl,
+        videoPlatform: work.videoPlatform,
+        externalUrl: work.externalUrl,
+        attribution: work.attribution,
+        mediaType: work.mediaType,
+        thumbnailUrl: isMosaicVirus ? '/licensed-portraits/anna-ridler-mosaic-virus-installation-photo.jpg' : work.thumbnailUrl,
+        fallbackSvg: work.fallbackSvg || artist.fallbackCover || `/creator-fallbacks/${artist.slug}.svg`,
+        caseStudyUrl: `/creators/${artist.slug}/works/${work.slug}`,
+        profileUrl: `/creators/${artist.slug}`
+      };
+    });
   });
+
+  const displayedWorks = activeArtistFilter === 'All'
+    ? ALL_38_ORIGINAL_WORKS
+    : ALL_38_ORIGINAL_WORKS.filter((w) => w.artistSlug === activeArtistFilter);
 
   const scrollCarousel = (direction: 'next' | 'prev') => {
     let nextIdx = direction === 'next' ? activeProjectIdx + 1 : activeProjectIdx - 1;
-    if (nextIdx < 0) nextIdx = ALL_10_ARTIST_SHOWCASE.length - 1;
-    if (nextIdx >= ALL_10_ARTIST_SHOWCASE.length) nextIdx = 0;
+    if (nextIdx < 0) nextIdx = displayedWorks.length - 1;
+    if (nextIdx >= displayedWorks.length) nextIdx = 0;
     setActiveProjectIdx(nextIdx);
 
     if (galleryTrackRef.current) {
@@ -387,7 +399,7 @@ export function HomeStorytelling({ creators, creatorsLoading }: HomeStorytelling
             <RevealHeadline
               as="h2"
               lines={['THE CRAFT BEHIND', 'THE <em>GENERATION.</em>']}
-              subtitle="Explore authentic published projects from all ten researched AI artists with exposed model architectures, documented pipelines, and verified original media."
+              subtitle="Explore all 38 authentic published projects from all ten researched AI artists with exposed model architectures, documented pipelines, and verified original media."
             />
           </div>
           <div className="carousel-nav-controls">
@@ -408,43 +420,61 @@ export function HomeStorytelling({ creators, creatorsLoading }: HomeStorytelling
           </div>
         </div>
 
-        {/* Layer 1: Accessible Horizontal Artist Navigation Rail across all 10 Genuine Artists */}
-        <div className="artist-showcase-nav-rail" role="tablist" aria-label="10 Featured AI Artists Selector">
-          {ALL_10_ARTIST_SHOWCASE.map((item, idx) => (
+        {/* Layer 1: Accessible Horizontal Artist Navigation Rail across all 10 Genuine Artists + All 38 Works */}
+        <div className="artist-showcase-nav-rail" role="tablist" aria-label="Authentic Works & Artists Selector">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeArtistFilter === 'All'}
+            className={`artist-nav-chip ${activeArtistFilter === 'All' ? 'active' : ''}`}
+            onClick={() => {
+              setActiveArtistFilter('All');
+              setActiveProjectIdx(0);
+              if (galleryTrackRef.current) {
+                galleryTrackRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+              }
+            }}
+          >
+            <Sparkles size={14} style={{ color: 'var(--accent)' }} />
+            <span className="artist-chip-name">All 38 Original Works</span>
+          </button>
+
+          {EXTERNAL_CREATOR_REFERENCES.map((artist) => (
             <button
-              key={item.artistSlug}
+              key={artist.slug}
               type="button"
               role="tab"
-              aria-selected={activeProjectIdx === idx}
-              className={`artist-nav-chip ${activeProjectIdx === idx ? 'active' : ''}`}
+              aria-selected={activeArtistFilter === artist.slug}
+              className={`artist-nav-chip ${activeArtistFilter === artist.slug ? 'active' : ''}`}
               onClick={() => {
-                setActiveProjectIdx(idx);
+                setActiveArtistFilter(artist.slug);
+                setActiveProjectIdx(0);
                 if (galleryTrackRef.current) {
-                  const card = galleryTrackRef.current.children[idx] as HTMLElement;
-                  if (card) {
-                    galleryTrackRef.current.scrollTo({
-                      left: card.offsetLeft - 24,
-                      behavior: 'smooth'
-                    });
-                  }
+                  galleryTrackRef.current.scrollTo({ left: 0, behavior: 'smooth' });
                 }
               }}
             >
               <CreatorAvatar
-                avatarUrl={item.artistAvatar}
-                name={item.artistName}
+                avatarUrl={artist.avatarUrl}
+                name={artist.name}
                 style={{ width: 22, height: 22, borderRadius: '50%' }}
               />
-              <span className="artist-chip-name">{item.artistName}</span>
-              {item.videoEmbedUrl && <Play size={10} fill="currentColor" style={{ color: 'var(--accent)', marginLeft: 2 }} />}
+              <span className="artist-chip-name">{artist.name}</span>
+              <span style={{ fontSize: 10, opacity: 0.75, background: 'rgba(255,255,255,0.1)', padding: '1px 6px', borderRadius: 10 }}>
+                {artist.featuredWorks.length}
+              </span>
             </button>
           ))}
         </div>
 
         {/* Layer 2: Horizontal Project Showcase Carousel (One Clean Scroll Region, No Nested Vertical Scrollbars) */}
-        <div className="portfolio-track-wrap" ref={galleryTrackRef} tabIndex={0} aria-label="Projects carousel track">
-          {ALL_10_ARTIST_SHOWCASE.map((item) => (
-            <article key={item.workId || item.title} className="gallery-project-card unified-showcase-card">
+        <div className="portfolio-track-wrap" ref={galleryTrackRef} tabIndex={0} aria-label="Projects carousel track" style={{ overflowY: 'hidden' }}>
+          {displayedWorks.map((item) => (
+            <article
+              key={item.workId || item.title}
+              className="gallery-project-card unified-showcase-card"
+              style={{ overflow: 'hidden', overflowY: 'hidden', maxHeight: 'none' }}
+            >
               {/* Media Region */}
               <div className="project-media-wrap">
                 {item.videoEmbedUrl ? (
@@ -456,6 +486,15 @@ export function HomeStorytelling({ creators, creatorsLoading }: HomeStorytelling
                     aspectRatio="16/10"
                     attribution={item.attribution}
                   />
+                ) : item.thumbnailUrl ? (
+                  <a href={item.caseStudyUrl} style={{ display: 'block', textDecoration: 'none', height: '100%' }}>
+                    <img
+                      src={item.thumbnailUrl}
+                      alt={item.title}
+                      loading="lazy"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                  </a>
                 ) : (
                   <a href={item.caseStudyUrl} style={{ display: 'block', textDecoration: 'none' }}>
                     <WorkMediaFallback
@@ -470,7 +509,19 @@ export function HomeStorytelling({ creators, creatorsLoading }: HomeStorytelling
               </div>
 
               {/* Project Information */}
-              <div className="project-info-block" style={{ padding: '20px 22px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 12 }}>
+              <div
+                className="project-info-block"
+                style={{
+                  padding: '20px 22px',
+                  flex: 1,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  gap: 12,
+                  overflow: 'hidden',
+                  overflowY: 'hidden'
+                }}
+              >
                 <div>
                   <div className="project-category-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                     <span className="category-label badge" style={{ fontSize: 10 }}>{item.contentType}</span>

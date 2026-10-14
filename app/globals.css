@@ -841,7 +841,9 @@ html[data-theme='9']{--bg:#0d2526;--surface:#153133;--raised:#214044;--text:#e7f
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  overflow: hidden;
+  overflow: hidden !important;
+  overflow-y: hidden !important;
+  max-height: none !important;
   display: flex;
   flex-direction: column;
   transition: border-color 0.2s ease, transform 0.2s ease;
