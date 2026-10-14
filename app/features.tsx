@@ -1,9 +1,11 @@
 'use client';
 import { useState, useEffect, useRef, createContext, useContext, useCallback } from 'react';
-import { ArrowUpRight, ArrowRight, ArrowLeft, Plus, X, Search, Check, CheckCircle2, Download, Copy, Star, Heart, FileText, FolderOpen, SlidersHorizontal, Command, Bookmark, Shield, Layers, Clock, Target, Users, Palette, Film, Image as ImageIcon, Box, RefreshCw } from 'lucide-react';
+import { ArrowUpRight, ArrowRight, ArrowLeft, Plus, X, Search, Check, CheckCircle2, Download, Copy, Star, Heart, FileText, FolderOpen, SlidersHorizontal, Command, Bookmark, Shield, Layers, Clock, Target, Users, Palette, Film, Image as ImageIcon, Box, RefreshCw, Sparkles, ExternalLink } from 'lucide-react';
 import { list } from '../lib/matching';
 import { AppSelect } from '../components/ui/app-select';
 import { AnimatedCheckbox } from '../components/ui/animated-checkbox';
+import { EXTERNAL_CREATOR_REFERENCES } from '../lib/creators/external-references';
+import { VideoEmbed } from '../components/ui/video-embed';
 type Data = Record<string, any>;
 async function request(path: string, data?: unknown, method?: string) { const r = await fetch('/api/' + path, { method: method || (data !== undefined ? 'POST' : 'GET'), headers: data !== undefined ? { 'Content-Type': 'application/json' } : {}, body: data !== undefined ? JSON.stringify(data) : undefined }); const v: any = await r.json(); if (!r.ok)
     throw new Error(v.error || 'Please try again.'); return v; }
@@ -71,6 +73,7 @@ catch (e: any) {
     setError(e.message);
 } }}><X size={13}/></button></div>)}</div>}</section>; }
 export function WorkGallery() { 
+  const [galleryMode, setGalleryMode] = useState<'featured' | 'registered'>('featured');
   const [q, setQ] = useState(''), [type, setType] = useState(''), [page, setPage] = useState(1); 
   const query = new URLSearchParams({ q, type, page: String(page) }); 
   const r = useData('work?' + query); 
@@ -80,21 +83,64 @@ export function WorkGallery() {
     { value: 'AI Video', label: 'AI Video' },
     { value: 'AI Image', label: 'AI Image' },
     { value: 'AI Animation', label: 'AI Animation' },
-    { value: 'AI Graphics', label: 'AI Graphics' }
+    { value: 'Generative Art', label: 'Generative Art' },
+    { value: 'Installation', label: 'Installation' },
+    { value: 'AI Photography', label: 'AI Photography' }
   ];
+
+  // Flatten verified genuine works from the 10 real AI creators
+  const featuredArtistWorks = EXTERNAL_CREATOR_REFERENCES.flatMap(ref => 
+    ref.featuredWorks.map(w => ({
+      ...w,
+      creatorName: ref.name,
+      creatorSlug: ref.slug,
+      creatorAvatar: ref.avatarUrl
+    }))
+  ).filter(work => {
+    if (type && work.contentType !== type) return false;
+    if (q) {
+      const needle = q.toLowerCase();
+      return (
+        work.title.toLowerCase().includes(needle) ||
+        work.description.toLowerCase().includes(needle) ||
+        work.creatorName.toLowerCase().includes(needle) ||
+        work.tools.some(t => t.toLowerCase().includes(needle))
+      );
+    }
+    return true;
+  });
 
   return (
     <div className="page">
       <span className="eyebrow">ORIGINAL WORK. OPEN PERSPECTIVES.</span>
       <h1>The creative<br /><em>workroom.</em></h1>
-      <p className="large-copy">Explore published projects, then go behind the image to discover the tools, workflow and contribution.</p>
+      <p className="large-copy">Explore original projects from genuine AI artists and registered marketplace creators.</p>
       
+      <div style={{ display: 'flex', gap: 10, margin: '24px 0 20px', borderBottom: '1px solid var(--border)', paddingBottom: 16 }}>
+        <button
+          type="button"
+          className={'button ' + (galleryMode === 'featured' ? '' : 'secondary')}
+          onClick={() => setGalleryMode('featured')}
+          style={{ fontSize: 13, padding: '8px 18px', display: 'flex', alignItems: 'center', gap: 6 }}
+        >
+          <Sparkles size={14} /> Featured AI Artist Works (10 Genuine Creators)
+        </button>
+        <button
+          type="button"
+          className={'button ' + (galleryMode === 'registered' ? '' : 'secondary')}
+          onClick={() => setGalleryMode('registered')}
+          style={{ fontSize: 13, padding: '8px 18px' }}
+        >
+          Registered Creator Portfolios
+        </button>
+      </div>
+
       <div className="work-toolbar">
         <div className="search">
           <Search size={19}/>
           <input 
             aria-label="Search portfolio work" 
-            placeholder="Search project titles and descriptions" 
+            placeholder="Search project titles, tools or creators..." 
             value={q} 
             onChange={e => { setQ(e.target.value); setPage(1); }}
           />
@@ -110,7 +156,67 @@ export function WorkGallery() {
         </div>
       </div>
 
-      {r.error ? (
+      {galleryMode === 'featured' ? (
+        <>
+          <div className="results-heading">
+            <span>{featuredArtistWorks.length} Verified Editorial Works</span>
+            <span className="micro">OFFICIAL EMBEDS & CASE STUDIES</span>
+          </div>
+
+          {featuredArtistWorks.length ? (
+            <div className="portfolio-grid work-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 24 }}>
+              {featuredArtistWorks.map(w => (
+                <div key={w.id} className="portfolio-card" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {w.videoEmbedUrl ? (
+                    <VideoEmbed
+                      title={w.title}
+                      videoEmbedUrl={w.videoEmbedUrl}
+                      videoPlatform={w.videoPlatform}
+                      externalUrl={w.externalUrl}
+                      aspectRatio={w.aspectRatio || '16/9'}
+                      attribution={w.attribution}
+                    />
+                  ) : (
+                    <div style={{ padding: '24px', background: 'var(--panel)', borderRadius: 8, border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%', minHeight: 220 }}>
+                      <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span className="badge">{w.contentType}</span>
+                          {w.year && <span className="micro">{w.year}</span>}
+                        </div>
+                        <h3 style={{ marginTop: 12, fontSize: 16 }}>{w.title}</h3>
+                        <p style={{ fontSize: 13, color: 'var(--muted)', marginTop: 8, lineHeight: 1.5 }}>{w.description}</p>
+                      </div>
+                      <div style={{ marginTop: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border)', paddingTop: 12 }}>
+                        <span style={{ fontSize: 11, color: 'var(--accent)' }}>
+                          {w.tools.join(' · ')}
+                        </span>
+                        {w.externalUrl && (
+                          <a href={w.externalUrl} target="_blank" rel="noopener noreferrer" className="button secondary" style={{ fontSize: 11, padding: '4px 10px', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                            Archive <ExternalLink size={12} />
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 4px', fontSize: 12 }}>
+                    <span style={{ color: 'var(--muted)' }}>By</span>
+                    <a href={'/creators/' + w.creatorSlug} style={{ color: 'var(--text)', fontWeight: 600, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                      {w.creatorName} <ArrowUpRight size={13} style={{ opacity: 0.7 }} />
+                    </a>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="empty">
+              <div className="empty-icon"><Search size={28}/></div>
+              <h3>No featured works match your search.</h3>
+              <p>Try searching for Paul Trillo, Refik Anadol, Sora, or Runway.</p>
+              {q && <button className="button secondary" onClick={() => setQ('')}>Clear search</button>}
+            </div>
+          )}
+        </>
+      ) : r.error ? (
         <div className="workroom-error-card" role="alert">
           <div className="error-badge">WORKROOM TEMPORARILY UNAVAILABLE</div>
           <h3>Couldn't load the workroom.</h3>

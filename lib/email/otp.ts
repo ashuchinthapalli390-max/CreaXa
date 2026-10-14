@@ -9,7 +9,7 @@
 // 6. Supabase PostgreSQL persistence with resilient memory-cache fallback.
 // ==============================================================================
 
-import { getSupabaseAdmin, isSupabaseConfigured } from '../supabase';
+import { getSupabaseAdmin, isSupabaseConfigured } from '../supabase.ts';
 
 export type OtpPurpose =
   | 'signup_email_verification'

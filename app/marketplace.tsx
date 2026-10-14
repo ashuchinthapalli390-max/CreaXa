@@ -12,6 +12,7 @@ import { AnimatedCheckbox } from '../components/ui/animated-checkbox';
 import { AnimatedAccordion } from '../components/ui/animated-accordion';
 import { AdminDashboard } from '../components/admin/admin-dashboard';
 import { EXTERNAL_CREATOR_REFERENCES } from '../lib/creators/external-references';
+import { VideoEmbed } from '../components/ui/video-embed';
 type Obj = Record<string, any>;
 const Context = createContext<any>(null);
 const useApp = () => useContext(Context);
@@ -386,20 +387,38 @@ function Creator({ slug }: any) {
                         <span>{projects.length} project{projects.length !== 1 ? 's' : ''}</span>
                     </div>
                     {projects.length ? (
-                        <div className="portfolio-grid">
+                        <div className="portfolio-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))' }}>
                             {projects.map((proj: any) => isRef ? (
-                                <a className="portfolio-card" key={proj.id} href={proj.data.externalLink || d.portfolioUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: 'inherit' }}>
-                                    <div style={{ padding: '24px', background: 'var(--panel)', borderRadius: 6, border: '1px solid var(--border)', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                                        <div>
-                                            <Badge>{proj.data.contentType || 'Featured Work'}</Badge>
-                                            <h3 style={{ marginTop: 12, fontSize: 16 }}>{proj.data.title} <ExternalLink size={14} style={{ verticalAlign: 'middle', opacity: 0.7 }} /></h3>
-                                            <p style={{ fontSize: 13, color: 'var(--muted)', marginTop: 8, lineHeight: 1.5 }}>{proj.data.description}</p>
+                                <div className="portfolio-card" key={proj.id} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                                    {proj.data.videoEmbedUrl ? (
+                                        <VideoEmbed
+                                            title={proj.data.title}
+                                            videoEmbedUrl={proj.data.videoEmbedUrl}
+                                            videoPlatform={proj.data.videoPlatform}
+                                            externalUrl={proj.data.externalLink}
+                                            aspectRatio={proj.data.aspectRatio || '16/9'}
+                                            attribution={proj.data.attribution}
+                                        />
+                                    ) : (
+                                        <div style={{ padding: '24px', background: 'var(--panel)', borderRadius: 8, border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%', minHeight: 220 }}>
+                                            <div>
+                                                <Badge>{proj.data.contentType || 'Featured Work'}</Badge>
+                                                <h3 style={{ marginTop: 12, fontSize: 16 }}>{proj.data.title}</h3>
+                                                <p style={{ fontSize: 13, color: 'var(--muted)', marginTop: 8, lineHeight: 1.5 }}>{proj.data.description}</p>
+                                            </div>
+                                            <div style={{ marginTop: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border)', paddingTop: 12 }}>
+                                                <span style={{ fontSize: 11, color: 'var(--accent)' }}>
+                                                    {list(proj.data.tools).join(' · ')}
+                                                </span>
+                                                {proj.data.externalLink && (
+                                                    <a href={proj.data.externalLink} target="_blank" rel="noopener noreferrer" className="button secondary" style={{ fontSize: 11, padding: '4px 10px', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                                                        Archive <ExternalLink size={12} />
+                                                    </a>
+                                                )}
+                                            </div>
                                         </div>
-                                        <div style={{ marginTop: 16, fontSize: 12, color: 'var(--accent)', borderTop: '1px solid var(--border)', paddingTop: 10 }}>
-                                            Documented Tech: {list(proj.data.tools).join(' · ')}
-                                        </div>
-                                    </div>
-                                </a>
+                                    )}
+                                </div>
                             ) : (
                                 <a className="portfolio-card" key={proj.id} href={'/projects/' + proj.slug}>
                                     <img src={'/api/files/' + proj.data.cover} alt={proj.data.title} loading="lazy"/>
@@ -428,6 +447,19 @@ function Creator({ slug }: any) {
                             <a href={d.website} target="_blank" rel="noopener noreferrer">
                                 <Globe size={17}/>Official Website<ExternalLink size={14}/>
                             </a>
+                        )}
+                        {d.socialLinks && d.socialLinks.length > 0 && (
+                            <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--border)' }}>
+                                <h4 style={{ fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 8, fontWeight: 600 }}>Verified Channels</h4>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                                    {d.socialLinks.map((s: any) => (
+                                        <a key={s.url} href={s.url} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text)', textDecoration: 'none' }}>
+                                            <ExternalLink size={13} style={{ color: 'var(--accent)', flexShrink: 0 }} />
+                                            <span>{s.label || s.platform.toUpperCase()}</span>
+                                        </a>
+                                    ))}
+                                </div>
+                            </div>
                         )}
                         <p className="micro">Documented for educational reference and benchmarking. Unclaimed external profile.</p>
                     </>
@@ -1329,7 +1361,7 @@ const INFO: Record<string, Obj> = {
     '/for-brands': { tag: 'FOR BRANDS & AGENCIES', title: 'Your ambition. Their perspective.', desc: 'Find AI creative partners through capabilities, original work and a brief that means business.', sections: [['Start with a clear vision', 'Define content type, creative style, platform, aspect ratio, language and deliverables. Set a real budget, deadline, revision allowance and intended usage.'], ['Find capability that fits', 'Search creator tools, specialization, industries and supported formats. Campaign matching explains the underlying factors and respects required capabilities.'], ['Keep the whole process together', 'Send an invitation with clear terms. When accepted, a shared workspace tracks messages, versioned files, revision requests, approval and delivery.']] },
     '/for-creators': { tag: 'FOR ORIGINAL MINDS', title: 'Make your process part of your story.', desc: 'A place for the vision, tools and creative thinking behind your work.', sections: [['Publish your perspective', 'Build a profile with your specializations, toolkit, output formats, industries, rates and availability. Keep your capabilities accurate and current.'], ['Show more than the result', 'Add original image and video projects with tools, workflow, contribution and commercial-use declarations. Private evidence stays separate from public media.'], ['Choose your collaborations', 'Review campaign invitations, agree the scope and work alongside your client through submission, revision, approval and final delivery.']] },
     '/how-it-works': { tag: 'FROM FIRST SPARK TO FINAL FRAME', title: 'An idea. A connection. A creation.', desc: 'A considered process for brands, agencies and AI creators.', sections: [['01 / Define the brief', 'Brands and agencies set the campaign objective, creative requirements, budget, timeline, deliverables and commercial-use expectations.'], ['02 / Discover your partner', 'Browse published profiles and original work. Refine by style, tools, format, industry and availability, or view explained campaign compatibility.'], ['03 / Agree the scope', 'Invite a creator with a proposed budget, start date, revision allowance and rights terms. Review and acceptance create the shared project agreement.'], ['04 / Create and refine', 'Keep messages and reference files in one workspace. Creators submit versioned deliverables; brands approve or request changes within the agreed allowance.'], ['05 / Deliver with clarity', 'After approval, the creator delivers the final version and the brand completes the workspace. Delivery and payment settlement remain separate.']] },
-    '/privacy': { tag: 'YOUR DATA, WITH CONTEXT', title: 'Privacy policy.', desc: 'Last updated 13 October 2026.', sections: [['Account information', 'CreaXa authenticates users via Firebase Authentication (supporting Email, Google, and Microsoft identity). Marketplace account details, role, profile and organization information are securely stored in the Supabase PostgreSQL database. Passwords are never received or stored directly by CreaXa application servers.'], ['Public and private content', 'Published creator profiles and portfolio media are visible across the creative marketplace directory. Campaigns, invitations, project files and conversations are accessible only to their authorized owners and participants. Verification evidence remains strictly private to its owner and authorized moderators.'], ['Storage and providers', 'Structured marketplace records are stored in Supabase PostgreSQL, and uploaded media files use Cloudflare R2 object storage. Firebase provides authentication services. A configured AI brief assistant receives only the creative idea you explicitly submit to it; automated AI processing of private data does not occur.'], ['Purpose and retention', 'Data supports creator discovery, campaign collaboration, capability review and support enquiries. Records remain while your account exists. You can delete unpublished portfolio projects and remove your marketplace account from Settings after completing active engagements. Project records shared with collaborators are also removed by account deletion.'], ['Device preferences', 'The chosen visual theme is stored in your browser’s local storage. This preference contains no project or profile data. No advertising tracker is included in the application.'], ['Requests and questions', 'Use the signed-in Contact form to send a privacy enquiry. This policy describes the current application. The operator must review hosting-provider terms and any additional integrations before opening broader commercial access.']] },
+    '/privacy': { tag: 'YOUR DATA, WITH CONTEXT', title: 'Privacy policy.', desc: 'Last updated 13 October 2026.', sections: [['Account information', 'CreaXa authenticates users via Firebase Authentication (supporting Email/Password and Google OAuth). Marketplace account details, role, profile and organization information are securely stored in the Supabase PostgreSQL database. Passwords are never received or stored directly by CreaXa application servers.'], ['Public and private content', 'Published creator profiles and portfolio media are visible across the creative marketplace directory. Campaigns, invitations, project files and conversations are accessible only to their authorized owners and participants. Verification evidence remains strictly private to its owner and authorized moderators.'], ['Storage and providers', 'Structured marketplace records are stored in Supabase PostgreSQL, and uploaded media files use Cloudflare R2 object storage. Firebase provides authentication services. A configured AI brief assistant receives only the creative idea you explicitly submit to it; automated AI processing of private data does not occur.'], ['Purpose and retention', 'Data supports creator discovery, campaign collaboration, capability review and support enquiries. Records remain while your account exists. You can delete unpublished portfolio projects and remove your marketplace account from Settings after completing active engagements. Project records shared with collaborators are also removed by account deletion.'], ['Device preferences', 'The chosen visual theme is stored in your browser’s local storage. This preference contains no project or profile data. No advertising tracker is included in the application.'], ['Requests and questions', 'Use the signed-in Contact form to send a privacy enquiry. This policy describes the current application. The operator must review hosting-provider terms and any additional integrations before opening broader commercial access.']] },
     '/terms': { tag: 'CLEAR EXPECTATIONS, BETTER COLLABORATIONS', title: 'Terms of use.', desc: 'Last updated 13 October 2026.', sections: [['Marketplace participation', 'Provide accurate account, capability, portfolio and campaign information. Upload only content you are authorized to share and display. Do not impersonate others, misrepresent evidence or submit unlawful, abusive or infringing material.'], ['Scope and agreements', 'Brands, agencies and creators are responsible for agreeing price, deliverables, schedule, revisions, confidentiality, attribution and rights. An accepted invitation stores the agreed project scope. Discuss additional work and revised terms before exceeding that scope.'], ['Commercial and intellectual-property rights', 'AI-generated content is not automatically free of third-party restrictions. Participants must check tool/model terms, source assets, likeness permissions and intended commercial usage. A rights request in a campaign does not by itself transfer ownership or grant a license.'], ['Capabilities and verification', 'Unreviewed profile information is self-declared. Evidence submitted, under review, verified and rejected are distinct states. Verification refers only to the reviewed claim and does not certify copyright ownership or guarantee a project outcome.'], ['Payments and delivery', 'CreaXa does not currently collect payments, hold escrow or settle invoices. Participants arrange payment directly. Submitted, approved, delivered and completed are creative-workflow states and do not prove payment settlement.'], ['Account security and removal', 'Sign-in is managed by Firebase Authentication. Keep your account credentials and OAuth providers secure. Marketplace account deletion is available in Settings after active engagements are completed and removes associated marketplace records.'], ['Disputes and support', 'Use the Contact form for support, abuse or rights-related enquiries. Project participants remain responsible for their agreements and disputes. Before wider commercial release, the operator must finalize business identity, applicable governing terms and operational support arrangements.']] }
 };
 function Info({ path }: any) {

@@ -388,8 +388,10 @@ export async function handle(req: Request, path: string[]) {
                             isExternalReference: true,
                             data: {
                                 name: ref.name,
-                                headline: ref.specialization,
-                                bio: ref.bioSummary,
+                                handle: ref.handle,
+                                headline: ref.headline || ref.specialization,
+                                bio: ref.fullBio || ref.bioSummary,
+                                bioSummary: ref.bioSummary,
                                 location: ref.location,
                                 specializations: [ref.specialization],
                                 tools: ref.documentedTools,
@@ -405,6 +407,8 @@ export async function handle(req: Request, path: string[]) {
                                 isExternalReference: true,
                                 attributionNote: ref.attributionNote,
                                 avatar: ref.avatarUrl,
+                                cover: ref.coverUrl,
+                                socialLinks: ref.socialLinks || []
                             }
                         },
                         projects: ref.featuredWorks.map((w, idx) => ({
@@ -412,10 +416,17 @@ export async function handle(req: Request, path: string[]) {
                             slug: `${ref.slug}-${w.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
                             data: {
                                 title: w.title,
+                                year: w.year,
                                 description: w.description,
-                                contentType: 'Editorial Showcase',
-                                tools: [w.documentedTech],
+                                contentType: w.contentType || 'Editorial Showcase',
+                                tools: w.tools || [w.documentedTech],
+                                documentedTech: w.documentedTech,
                                 externalLink: w.externalUrl,
+                                videoEmbedUrl: w.videoEmbedUrl,
+                                videoPlatform: w.videoPlatform,
+                                aspectRatio: w.aspectRatio,
+                                mediaType: w.mediaType,
+                                attribution: w.attribution,
                                 isExternal: true,
                             }
                         }))

@@ -11,7 +11,7 @@ import {
   renderWelcomeEmail,
   renderInvitationEmail,
   type EmailRenderOutput,
-} from './templates';
+} from './templates.ts';
 
 export interface SendEmailOptions {
   to: string | string[];

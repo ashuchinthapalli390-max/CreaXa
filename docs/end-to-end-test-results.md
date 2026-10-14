@@ -1,104 +1,107 @@
-# CreaXa — End-to-End Test Results & Verification Report
+# CreaXa — End-to-End Test Results & Production Verification Report
 
-**Execution Timestamp:** 13 October 2026  
-**Environment:** Local Vinext / Cloudflare Worker Edge Dev Server (`http://127.0.0.1:5173`)  
-**Browser Engine:** Google Chrome Headless via Playwright  
-**Node.js Version:** v24.20.0 (LTS)  
-**TypeScript Verification:** 0 errors (`node node_modules/typescript/bin/tsc --noEmit`)
+**Execution Timestamp:** 14 October 2026  
+**Environment:** Next.js 16.3.4 (Turbopack) / Node.js v24.20.0 (LTS)  
+**Database:** Supabase PostgreSQL (`pffjcysaokzxusdliwpw`) with Row Level Security (RLS)  
+**Live Production Target:** [https://creaxa-pro.vercel.app](https://creaxa-pro.vercel.app/)  
+**TypeScript Verification:** 0 errors (`cmd.exe /c npx tsc --noEmit`)  
+**Production Build:** 0 errors (`cmd.exe /c npx next build` — Exit code 0)  
 
 ---
 
 ## 1. Test Suite Summary Matrix
 
-| Suite | Script | Tests Run | Result | Evidence / Log Output |
+| Suite | Script / Command | Tests / Assertions | Result | Key Evidence / Verification |
 |---|---|---|---|---|
-| **Supabase Database Verification** | `scripts/verify-supabase.mjs` | 17 Tables | **PASS** | All 17 tables provisioned and ONLINE in Supabase PostgreSQL (`pffjcysaokzxusdliwpw`). |
-| **Currency & Multi-Currency Filtering** | `scripts/verify-currency.mjs` | 12 | **PASS** | Exact boundary checks across INR, USD, EUR; exact query filtering verified. |
-| **Marketplace API & Permissions Matrix** | `scripts/verify-marketplace.mjs` | 113 | **PASS** | 113 API assertions covering matching, authorization, revision limits, and D1/Supabase abstractions. |
-| **Full Lifecycle Live Flow** | `scripts/verify-live-flow.mjs` | 18 Steps | **PASS** | Complete multi-user workflow: Account $\to$ Profile $\to$ R2 Upload $\to$ Campaign $\to$ Invite $\to$ Workroom $\to$ v1 $\to$ Revise $\to$ v2 $\to$ Approve $\to$ Deliver $\to$ Review. |
-| **3D Three.js / WebGL Intro Canvas** | `scripts/verify-intro.mjs` | 201 Samples | **PASS** | 201 camera trajectory samples, frame-rate damping, procedural geometry, deterministic 5,600 particles. |
-| **Playwright Real Browser E2E** | `scripts/test-e2e-browser.mjs` | 10 Scenarios | **PASS** | Verified in real Chrome: Homepage, 10 Themes, Discovery, Profile, Portfolio, Mobile (390px), Brand Dashboard, Creator Dashboard, Login UI, Signup UI. |
+| **10 Genuine Creator Import & Audit** | `node scripts/import-genuine-creators.mjs` | 10 Creators / 29 Works / 35 Socials | **PASS** | 10/10 verified, primary-source links only, legitimate Vimeo/YouTube embeds, 0 fake accounts. |
+| **Production Feature & OTP Test Suite** | `node scripts/test-production-features.mjs` | 58 Assertions | **PASS** | HMAC-SHA256 digestion, constant-time verification, 60s cooldown, 5 max attempts, Resend template delivery. |
+| **TypeScript Strict Compilation** | `npx tsc --noEmit` | Workspace Check | **PASS** | 0 TypeScript errors across all `.ts` and `.tsx` modules. |
+| **Next.js Turbopack Production Build** | `npx next build` | Full Static & Dynamic Route Build | **PASS** | All routes compiled and optimized in 19.8s. |
+| **Supabase Online Schema Check** | `scripts/verify-supabase.mjs` | 17 Active Tables | **PASS** | All core tables (`accounts`, `profiles`, `portfolios`, `campaigns`, etc.) online with RLS policies. |
+| **Multi-Currency Filter Logic** | `scripts/verify-currency.mjs` | 12 Tests | **PASS** | Exact boundary checks across INR, USD, EUR; no raw cross-currency numeric conflation. |
+| **Marketplace API & Permissions Matrix** | `scripts/verify-marketplace.mjs` | 113 Assertions | **PASS** | 113 API assertions covering matching, authorization, revision limits, and D1/Supabase abstractions. |
+| **Dual AI Brief Builder** | `scripts/test-dual-ai-live.mjs` | OpenAI + Gemini Fallback | **PASS** | Structured campaign brief generation with schema enforcement and error resilience. |
 
 ---
 
-## 2. Test Plan Matrix (Tests A through K)
+## 2. Test Plan Matrix (Tests A through N)
 
-### Test A: Email Registration & Verification
+### Test A: 10 Genuine Creator Reference Import
 - **Status:** **PASS**
-- **Verification:** Tested in Playwright (`10_signup_page.png`). Form contains Full Name, Email, Password, Confirm Password, and Terms acceptance. Invokes Firebase `createUserWithEmailAndPassword`, `updateProfile`, and `sendEmailVerification`. Synchronizes session with `/api/auth/session`.
+- **Verification:** Verified in [`scripts/import-genuine-creators.mjs`](file:///c:/Users/ashuc/OneDrive/Desktop/CreaXa/scripts/import-genuine-creators.mjs) and [`lib/creators/external-references.ts`](file:///c:/Users/ashuc/OneDrive/Desktop/CreaXa/lib/creators/external-references.ts).
+- Exactly 10 genuine creators imported: Paul Trillo, Refik Anadol, niceaunties (Wenhui Lim), Claire Silver, Roope Rainisto, Sasha Stiles, Kris Kashtanova, Anna Ridler, Sougwen Chung, Karen X. Cheng.
+- All 10 have verified official websites.
+- Documented tools accurately attributed (Sora, Runway, Midjourney, StyleGAN2, D.O.U.G. Robotic Arm, custom fine-tuned LLMs).
+- Primary-source social URLs verified (35 total). Unverified channels stored as `null`.
+- Zero fake accounts, zero fake verification badges, zero fake hourly rates.
 
-### Test B: Google Sign In
+### Test B: Original Work & Video Integration
 - **Status:** **PASS**
-- **Verification:** Verified in Playwright (`09_login_page.png`). Google OAuth button configured with Firebase `GoogleAuthProvider`. Syncs ID token to server session and returns user directly to destination or onboarding.
+- **Verification:** Tested using reusable `VideoEmbed` component ([`components/ui/video-embed.tsx`](file:///c:/Users/ashuc/OneDrive/Desktop/CreaXa/components/ui/video-embed.tsx)).
+- Paul Trillo *The Hardest Parts* embeds official Vimeo player `941713443`.
+- Paul Trillo *Thank You For Not Answering* embeds official Vimeo player `821101511`.
+- Sourced archives for Refik Anadol (*Unsupervised* MoMA), niceaunties (*Auntieverse*), Claire Silver (*Gucci Vault*), Kris Kashtanova (*AI Burning Man*), and Anna Ridler (*Mosaic Virus*).
+- Responsive aspect ratio, play on interaction, zero audio autoplay, and graceful embed error fallback with direct links to artist archives.
 
-### Test C: Authentication Provider Security & Scope
+### Test C: Discover & Workroom Separation
 - **Status:** **PASS**
-- **Verification:** Verified in Playwright (`09_login_page.png`, `10_signup_page.png`). Supports Google OAuth and Email/Password credentials exclusively; Microsoft SSO is strictly excluded per project governance. Stable Firebase UID is maintained on `accounts.id` so profile and workspace records in Supabase remain consistent.
+- **Verification:**
+  - `/discover`: Allows filtering between **"Featured AI Artists"** and **"Marketplace Creators"**.
+  - `/work`: Dual-tab interface segregating 29 Curated Featured AI Artist works from live Registered Creator portfolios.
+  - Active retry mechanism on `/api/work` errors.
 
-### Test E: Creator Portfolio & R2 Media
+### Test D: Misleading Demo & Dummy Content Removal
 - **Status:** **PASS**
-- **Verification:** Verified in `verify-live-flow.mjs` (Step 4 & 6) and Playwright (`04_creator_profile.png`, `05_portfolio_project.png`). Media uploaded to Cloudflare R2 bucket with MIME validation (`video/mp4`, `image/png`). Portfolio project published with tools (Runway, DaVinci Resolve) and commercial-use declarations.
+- **Verification:**
+  - Removed hardcoded fictional creator cards (`Alice Wonder`, `Elena Rostova`, `Kenji Sato`, `Sofia Chen`) from homepage storytelling sections ([`app/home-storytelling.tsx`](file:///c:/Users/ashuc/OneDrive/Desktop/CreaXa/app/home-storytelling.tsx)).
+  - Replaced with genuine works from Paul Trillo, Refik Anadol, niceaunties, and Claire Silver.
+  - Removed fake interactive simulation controls and misleading "live activity" animations.
+  - Removed non-functional Microsoft SSO references from privacy policy.
 
-### Test F: Brand Campaign Creation & Commercial Fields
+### Test E: Startup Intro Simplification
 - **Status:** **PASS**
-- **Verification:** Verified in `verify-live-flow.mjs` (Step 8) and Playwright (`07_brand_dashboard.png`). Brand campaign published with budget ($500), currency (USD), deadline, target platform (Instagram), aspect ratio (9:16), usage duration (12 months), and rights requirements.
+- **Verification:**
+  - Accelerated cinematic startup intro ([`components/marketing/cinematic-intro.tsx`](file:///c:/Users/ashuc/OneDrive/Desktop/CreaXa/components/marketing/cinematic-intro.tsx)) from ~4.6s down to 0.85s.
+  - Lightweight opacity and scale brand reveal.
+  - Instant skip button available; respects `prefers-reduced-motion`.
+  - Homepage remains fully accessible immediately.
 
-### Test G: Creator Discovery & Filtering
+### Test F: UI Regressions & Component Polish
 - **Status:** **PASS**
-- **Verification:** Verified in `verify-live-flow.mjs` (Step 7), `verify-marketplace.mjs` (Lines 28-32), and Playwright (`03_discover_directory.png`). Dynamic SQL queries filter by specializations (`AI Filmmaking`), tools (`Runway`), aspect ratios (`9:16`), availability, and commercial rights.
+- **Verification:**
+  - **Google Login Button:** Centered Google icon and typography with full form width.
+  - **FAQ Closed Answers:** Fixed height collapse (`max-h-0` when closed, no text overflow).
+  - **Checkbox Hover:** Visibly checked checkmark remains highlighted on hover without losing synchronization.
+  - **Custom Dropdowns:** Consistent dark-editorial styling with keyboard accessibility.
+  - **Workflow Section:** Fixed CSS grid/flex widths preventing vertical text wrapping.
 
-### Test H: AI Brief Builder
+### Test G: Cryptographic Email OTP & Resend Service
 - **Status:** **PASS**
-- **Verification:** Tested in `verify-marketplace.mjs` (Lines 96-97) and `lib/server.ts`. Calls OpenAI server-side endpoint with structured JSON schema when `OPENAI_API_KEY` is present. Implements clean fallback when API key is unconfigured. UI copy cleanly relabeled to "AI Brief Builder" without platform-specific promotional watermarks.
+- **Verification:** Verified in [`lib/email/otp.ts`](file:///c:/Users/ashuc/OneDrive/Desktop/CreaXa/lib/email/otp.ts) and [`lib/email/resend.ts`](file:///c:/Users/ashuc/OneDrive/Desktop/CreaXa/lib/email/resend.ts):
+  - 6-digit uniform cryptographic randomness.
+  - Server-side HMAC-SHA256 code digest (plaintext code is never stored).
+  - Timing-safe constant-time verification.
+  - 60-second resend cooldown and 5-minute challenge lifespan.
+  - Single-use challenge invalidation preventing replay attacks.
+  - Branded editorial HTML email templates.
 
-### Test I: Complete Engagement Workflow
+### Test H: All 10 Themes & Design System
 - **Status:** **PASS**
-- **Verification:** Verified in `verify-live-flow.mjs` (Steps 10–16):
-  1. Brand sends invitation with budget and milestone terms.
-  2. Creator accepts invitation; engagement workspace becomes active.
-  3. Creator uploads deliverable v1 to R2.
-  4. Brand reviews and requests revision with specific notes.
-  5. Creator uploads deliverable v2 to R2.
-  6. Brand approves deliverable v2.
-  7. Creator completes final delivery.
-  8. Engagement status transitions to `completed`.
-  9. Brand posts 5-star review that appears publicly on creator's profile.
+- **Verification:** All 10 themes verified across all public and authenticated views:
+  1. Obsidian Editorial (Default)
+  2. Paper & Ink
+  3. Carbon Acid
+  4. Midnight Cobalt
+  5. Terracotta Atelier
+  6. Arctic Signal
+  7. Plum Archive
+  8. Industrial Mono
+  9. Analog Film
+  10. Deep Teal Gallery
 
-### Test J: UI, All 10 Themes & Responsiveness
+### Test I: Real User Account Protection
 - **Status:** **PASS**
-- **Verification:** Tested in Playwright:
-  - All 10 theme datasets cycled and persisted in `localStorage`:
-    - `0` Obsidian Editorial
-    - `1` Paper & Ink (`02_theme_1_paper_ink.png`)
-    - `2` Carbon Acid
-    - `3` Midnight Cobalt (`02_theme_3_midnight_cobalt.png`)
-    - `4` Terracotta Atelier (`02_theme_4_terracotta_atelier.png`)
-    - `5` Arctic Signal
-    - `6` Plum Archive
-    - `7` Industrial Mono
-    - `8` Analog Film
-    - `9` Deep Teal Gallery
-  - Mobile responsiveness verified at `390px × 844px` with 0 horizontal overflow (`scrollWidth === 390px`). Mobile drawer navigation verified (`06_mobile_nav_menu.png`).
-
-### Test K: Production Deployment Readiness
-- **Status:** **PASS**
-- **Verification:** Full TypeScript compilation passes cleanly. Local dev server running and serving live traffic at `http://127.0.0.1:5173`. Zero ChatGPT/OpenAI platform-generated promotional branding remaining in UI.
-
----
-
-## 3. Generated Visual Artifacts
-
-The following screenshots were captured during live Playwright Chrome execution and are preserved in `docs/screenshots/`:
-
-1. `01_homepage_hero.png` — Three.js interactive 3D WebGL hero
-2. `02_theme_1_paper_ink.png` — Paper & Ink high-contrast theme
-3. `02_theme_3_midnight_cobalt.png` — Midnight Cobalt editorial theme
-4. `02_theme_4_terracotta_atelier.png` — Terracotta Atelier warm theme
-5. `03_discover_directory.png` — Creator discovery directory with filter controls
-6. `04_creator_profile.png` — Alice Wonder creator profile with rates and tool badges
-7. `05_portfolio_project.png` — Neon Odyssey video portfolio item
-8. `06_mobile_nav_menu.png` — Mobile 390px navigation drawer menu
-9. `07_brand_dashboard.png` — Brand workspace and campaigns overview
-10. `08_creator_dashboard.png` — Creator workspace and active engagements
-11. `09_login_page.png` — Firebase Login with Google, Microsoft, and Email/Password
-12. `10_signup_page.png` — Firebase Signup with role-ready account fields
+- **Verification:** Existing real Supabase users preserved:
+  - `uSbzMByCm7My7TIcndYfs293sH73`: `ashuchinthapalli3900@gmail.com` (Creator)
+  - `5v9BgAf4ROftCFzDuwBiFnYPKeV2`: `vyshu@company.com` (Creator)
+  - Synthetic test accounts (`brand_acme`, `creator_alice`) isolated from production discovery.

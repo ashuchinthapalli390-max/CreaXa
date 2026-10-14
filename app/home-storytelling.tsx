@@ -38,51 +38,51 @@ export function HomeStorytelling({ creators, creatorsLoading }: HomeStorytelling
   // Selected filter showcase
   const [selectedDiscipline, setSelectedDiscipline] = useState('All');
 
-  // Featured Portfolio Items for Section 05
+  // Featured Portfolio Items for Section 05 (10 Genuine AI Creators)
   const PORTFOLIO_SHOWCASE = [
     {
-      title: 'Neon Odyssey: Act I',
-      creator: 'Alice Wonder',
-      creatorSlug: 'alice-wonder',
+      title: 'Washed Out — The Hardest Part',
+      creator: 'Paul Trillo',
+      creatorSlug: 'paul-trillo',
       discipline: 'AI Filmmaking',
-      tools: 'Runway Gen-3 • Midjourney v7 • DaVinci',
-      aspectRatio: '16:9 4K',
-      workflow: 'Custom LoRA character consistency with camera projection and frame-level optical flow grading.',
-      cover: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80',
-      link: '/projects/neon-odyssey-act-i'
-    },
-    {
-      title: 'Synthetica Haute Couture',
-      creator: 'Elena Rostova',
-      creatorSlug: 'alice-wonder',
-      discipline: 'Generative Art',
-      tools: 'Flux.1 Pro • Magnific AI • Photoshop',
-      aspectRatio: '4:5 Editorial',
-      workflow: 'High-res latent upscale with material-specific specular mapping and fabric grain rendering.',
-      cover: 'https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?auto=format&fit=crop&w=1200&q=80',
-      link: '/work'
-    },
-    {
-      title: 'Chronos: Mech Spec',
-      creator: 'Kenji Sato',
-      creatorSlug: 'alice-wonder',
-      discipline: 'Product & 3D Spec',
-      tools: 'ComfyUI • Blender 3D • After Effects',
+      tools: 'OpenAI Sora • DaVinci Resolve',
       aspectRatio: '16:9 Cinema',
-      workflow: 'Depth-map depth pass blended with neural animation shaders and procedural sound design.',
-      cover: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80',
-      link: '/work'
+      workflow: 'First official music video created with OpenAI Sora, tracking an infinite zoom through decades of human memory.',
+      cover: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80',
+      link: '/creators/paul-trillo'
     },
     {
-      title: 'Aura Botanica',
-      creator: 'Sofia Chen',
-      creatorSlug: 'alice-wonder',
-      discipline: 'Visual Poetry',
-      tools: 'Midjourney • Runway • Premiere Pro',
-      aspectRatio: '9:16 Vertical',
-      workflow: 'Organic generative morphogenesis with real-time temporal coherence smoothing.',
+      title: 'Unsupervised — Machine Hallucinations',
+      creator: 'Refik Anadol',
+      creatorSlug: 'refik-anadol',
+      discipline: 'Generative Art',
+      tools: 'Custom StyleGAN2 • CUDA',
+      aspectRatio: '16:9 Installation',
+      workflow: 'Trained on 384,000 public artworks from MoMA collection, interpreting modern art through fluid latent dynamics.',
+      cover: 'https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?auto=format&fit=crop&w=1200&q=80',
+      link: '/creators/refik-anadol'
+    },
+    {
+      title: 'The Auntieverse',
+      creator: 'niceaunties (Wenhui Lim)',
+      creatorSlug: 'niceaunties',
+      discipline: 'Surreal Visual Storytelling',
+      tools: 'Midjourney • Runway • Motion Tracking',
+      aspectRatio: '1:1 Square',
+      workflow: 'Surreal matriarchal world-building blending architectural drafting, food culture, and neural animation.',
       cover: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1200&q=80',
-      link: '/work'
+      link: '/creators/niceaunties'
+    },
+    {
+      title: 'corpo | real',
+      creator: 'Claire Silver',
+      creatorSlug: 'claire-silver',
+      discipline: 'Digital Couture & AI Art',
+      tools: 'Stable Diffusion • Artbreeder • Photoshop',
+      aspectRatio: '4:5 Editorial',
+      workflow: 'Exploration of physical textiles, bodily vulnerability, and generative couture fine-tuned on historical archives.',
+      cover: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80',
+      link: '/creators/claire-silver'
     }
   ];
 

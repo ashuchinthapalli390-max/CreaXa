@@ -54,21 +54,19 @@ export function CinematicIntro({ onComplete, forceShow = false }: CinematicIntro
     setIsVisible(true);
     document.body.style.overflow = 'hidden';
 
-    // Sequence timers (total ~4.6s)
-    const t1 = setTimeout(() => setStage(1), 700);
-    const t2 = setTimeout(() => setStage(2), 1500);
-    const t3 = setTimeout(() => setStage(3), 2500);
-    const t4 = setTimeout(() => setStage(4), 3500);
-    const t5 = setTimeout(() => {
+    // Sequence timers (crisp, lightweight ~0.85s brand reveal)
+    const t1 = setTimeout(() => setStage(1), 200);
+    const t2 = setTimeout(() => setStage(2), 450);
+    const t3 = setTimeout(() => setStage(4), 700);
+    const t4 = setTimeout(() => {
       dismissIntro();
-    }, 4500);
+    }, 900);
 
     return () => {
       clearTimeout(t1);
       clearTimeout(t2);
       clearTimeout(t3);
       clearTimeout(t4);
-      clearTimeout(t5);
       document.body.style.overflow = '';
     };
   }, [forceShow, dismissIntro, onComplete]);
