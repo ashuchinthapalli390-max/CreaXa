@@ -1390,48 +1390,7 @@ function Auth({ path }: any) {
                     </>
                 )}
 
-                {!isSignUp && !isForgot && !isVerify && !otpStep && (
-                    <div style={{
-                        background: 'var(--panel)',
-                        border: '1px solid var(--line)',
-                        borderRadius: 8,
-                        padding: '12px 14px',
-                        marginBottom: 16
-                    }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                            <span className="micro" style={{ textTransform: 'uppercase', letterSpacing: '0.08em', opacity: 0.75, fontWeight: 700 }}>
-                                Demo Accounts
-                            </span>
-                            <span className="micro" style={{ color: 'var(--accent)', fontWeight: 600 }}>Password: <code>bytxl@123</code></span>
-                        </div>
-                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                            <button
-                                type="button"
-                                className="button secondary"
-                                style={{ fontSize: 11, padding: '4px 8px', borderRadius: 6 }}
-                                onClick={() => { setEmail('admin@mail.com'); setPassword('bytxl@123'); }}
-                            >
-                                🛡️ Admin
-                            </button>
-                            <button
-                                type="button"
-                                className="button secondary"
-                                style={{ fontSize: 11, padding: '4px 8px', borderRadius: 6 }}
-                                onClick={() => { setEmail('creator@mail.com'); setPassword('bytxl@123'); }}
-                            >
-                                🎨 Creator
-                            </button>
-                            <button
-                                type="button"
-                                className="button secondary"
-                                style={{ fontSize: 11, padding: '4px 8px', borderRadius: 6 }}
-                                onClick={() => { setEmail('bytxl@mail.com'); setPassword('bytxl@123'); }}
-                            >
-                                🏢 Brand
-                            </button>
-                        </div>
-                    </div>
-                )}
+
 
                 {error && <ErrorBox message={error} />}
                 {infoMsg && <div className="note"><CheckCircle2 size={18}/>{infoMsg}</div>}
