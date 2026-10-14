@@ -108,12 +108,36 @@ async function requireImages(ids: unknown) {
             fail('Profile and cover assets must be images.');
     }
 }
+const serverAccountCache = new Map<string, { acc: any; expires: number }>();
+const serverQueryCache = new Map<string, { data: any; expires: number }>();
+
+function invalidateServerCache(pattern?: string) {
+    if (!pattern) {
+        serverQueryCache.clear();
+        return;
+    }
+    for (const key of serverQueryCache.keys()) {
+        if (key.includes(pattern)) serverQueryCache.delete(key);
+    }
+}
+
 async function getAccountRecord(userId: string) {
+    const cached = serverAccountCache.get(userId);
+    if (cached && Date.now() < cached.expires) {
+        return cached.acc;
+    }
     const acc = await dbService.getAccount(userId);
-    if (acc) return acc;
+    if (acc) {
+        serverAccountCache.set(userId, { acc, expires: Date.now() + 20000 });
+        return acc;
+    }
     if (env?.DB) {
         try {
-            return decoded(await one('SELECT * FROM accounts WHERE id=?', userId));
+            const row = decoded(await one('SELECT * FROM accounts WHERE id=?', userId));
+            if (row) {
+                serverAccountCache.set(userId, { acc: row, expires: Date.now() + 20000 });
+                return row;
+            }
         } catch {}
     }
     return null;
@@ -468,6 +492,14 @@ export async function handle(req: Request, path: string[]) {
             return json({ user, account: a, aiAvailable: aiConfigured });
         }
         if (method === 'GET' && route === 'discovery') {
+            const cacheKey = 'discovery:' + url.search;
+            const isUserSaved = url.searchParams.get('saved') === '1';
+            if (!isUserSaved) {
+                const cached = serverQueryCache.get(cacheKey);
+                if (cached && Date.now() < cached.expires) {
+                    return json(cached.data);
+                }
+            }
             const groups = ['specializations', 'tools', 'contentTypes', 'styles', 'aspectRatios', 'industries', 'platforms'];
             const where = ['p.published=1'];
             const args: any[] = [];
@@ -505,7 +537,11 @@ export async function handle(req: Request, path: string[]) {
             const limit = 12;
             const order = url.searchParams.get('sort') === 'name' ? "json_extract(p.data,'$.name') COLLATE NOCASE ASC" : url.searchParams.get('sort') === 'rate' ? "CAST(json_extract(p.data,'$.rate') AS REAL) ASC" : 'p.updated DESC';
             const [count, rows] = await Promise.all([one('SELECT count(*) AS n FROM profiles p WHERE ' + where.join(' AND '), ...args), all('SELECT p.* FROM profiles p WHERE ' + where.join(' AND ') + ' ORDER BY ' + order + ',p.slug ASC LIMIT ? OFFSET ?', ...args, limit, (page - 1) * limit)]);
-            return json({ items: decodedAll(rows), total: count.n, page, pages: Math.ceil(count.n / limit) });
+            const resultData = { items: decodedAll(rows), total: count.n, page, pages: Math.ceil(count.n / limit) };
+            if (!isUserSaved) {
+                serverQueryCache.set(cacheKey, { data: resultData, expires: Date.now() + 15000 });
+            }
+            return json(resultData);
         }
         if (method === 'GET' && (route === 'creators/references' || (path[0] === 'creators' && path[1] === 'references'))) {
             return json({
@@ -514,7 +550,13 @@ export async function handle(req: Request, path: string[]) {
             });
         }
         if (method === 'GET' && route === 'creators') {
-            return json(decodedAll(await all('SELECT p.* FROM profiles p JOIN accounts a ON a.id=p.id WHERE p.published=1 ORDER BY p.updated DESC LIMIT 200')));
+            const cached = serverQueryCache.get('creators:all');
+            if (cached && Date.now() < cached.expires) {
+                return json(cached.data);
+            }
+            const creatorsData = decodedAll(await all('SELECT p.* FROM profiles p JOIN accounts a ON a.id=p.id WHERE p.published=1 ORDER BY p.updated DESC LIMIT 200'));
+            serverQueryCache.set('creators:all', { data: creatorsData, expires: Date.now() + 30000 });
+            return json(creatorsData);
         }
         if (method === 'GET' && (path[0] === 'creators' || path[0] === 'artists') && path[1]) {
             // Check for nested project detail: /api/creators/:artistSlug/works/:workSlug
@@ -742,7 +784,37 @@ export async function handle(req: Request, path: string[]) {
             if (!a)
                 return json({ onboarding: true });
             const id = user.userId;
-            return json({ account: a, profile: decoded(await one('SELECT * FROM profiles WHERE id=?', id)), portfolios: decodedAll(await all('SELECT * FROM portfolios WHERE owner=? ORDER BY updated DESC', id)), campaigns: decodedAll(await all('SELECT * FROM campaigns WHERE owner=? ORDER BY updated DESC', id)), invitations: decodedAll(await all('SELECT i.*,c.data AS campaign_data,p.slug AS creator_slug,p.data AS creator_data FROM invitations i JOIN campaigns c ON c.id=i.campaign LEFT JOIN profiles p ON p.id=i.creator WHERE i.brand=? OR i.creator=? ORDER BY i.created DESC', id, id)), engagements: decodedAll(await all('SELECT * FROM engagements WHERE brand=? OR creator=? ORDER BY updated DESC', id, id)), notifications: await all('SELECT * FROM notifications WHERE owner=? ORDER BY created DESC LIMIT 200', id), favorites: await all('SELECT creator FROM favorites WHERE owner=?', id), evidence: decodedAll(await all('SELECT * FROM evidence WHERE owner=? ORDER BY created DESC', id)) });
+            const [
+                profileRow,
+                portfoliosRows,
+                campaignsRows,
+                invitationsRows,
+                engagementsRows,
+                notificationsRows,
+                favoritesRows,
+                evidenceRows
+            ] = await Promise.all([
+                one('SELECT * FROM profiles WHERE id=?', id).catch(() => null),
+                all('SELECT * FROM portfolios WHERE owner=? ORDER BY updated DESC', id).catch(() => []),
+                all('SELECT * FROM campaigns WHERE owner=? ORDER BY updated DESC', id).catch(() => []),
+                all('SELECT i.*,c.data AS campaign_data,p.slug AS creator_slug,p.data AS creator_data FROM invitations i JOIN campaigns c ON c.id=i.campaign LEFT JOIN profiles p ON p.id=i.creator WHERE i.brand=? OR i.creator=? ORDER BY i.created DESC', id, id).catch(() => []),
+                all('SELECT * FROM engagements WHERE brand=? OR creator=? ORDER BY updated DESC', id, id).catch(() => []),
+                all('SELECT * FROM notifications WHERE owner=? ORDER BY created DESC LIMIT 200', id).catch(() => []),
+                all('SELECT creator FROM favorites WHERE owner=?', id).catch(() => []),
+                all('SELECT * FROM evidence WHERE owner=? ORDER BY created DESC', id).catch(() => [])
+            ]);
+
+            return json({
+                account: a,
+                profile: decoded(profileRow),
+                portfolios: decodedAll(portfoliosRows),
+                campaigns: decodedAll(campaignsRows),
+                invitations: decodedAll(invitationsRows),
+                engagements: decodedAll(engagementsRows),
+                notifications: notificationsRows,
+                favorites: favoritesRows,
+                evidence: decodedAll(evidenceRows)
+            });
         }
         if (method === 'POST' && route === 'profile') {
             const { user } = await requireRole(['creator']);

@@ -10,13 +10,45 @@ import { WorkCard, WorkMediaFallback } from '../components/ui/work-card';
 type Data = Record<string, any>;
 async function request(path: string, data?: unknown, method?: string) { const r = await fetch('/api/' + path, { method: method || (data !== undefined ? 'POST' : 'GET'), headers: data !== undefined ? { 'Content-Type': 'application/json' } : {}, body: data !== undefined ? JSON.stringify(data) : undefined }); const v: any = await r.json(); if (!r.ok)
     throw new Error(v.error || 'Please try again.'); return v; }
-function useData(path: string | null) { const [data, setData] = useState<any>(null), [error, setError] = useState(''), [loading, setLoading] = useState(!!path), [rev, setRev] = useState(0); const refresh = useCallback(() => setRev(v => v + 1), []); useEffect(() => { let cancelled = false; if (!path) {
-    setLoading(false);
-    return;
-} setLoading(true); setError(''); request(path).then(v => { if (!cancelled)
-    setData(v); }).catch(e => { if (!cancelled)
-    setError(e.message); }).finally(() => { if (!cancelled)
-    setLoading(false); }); return () => { cancelled = true; }; }, [path, rev]); return { data, error, loading, refresh }; }
+const featuresClientCache = new Map<string, any>();
+function useData(path: string | null) {
+    const cached = path ? featuresClientCache.get(path) : null;
+    const [data, setData] = useState<any>(cached || null), [error, setError] = useState(''), [loading, setLoading] = useState(path ? !cached : false), [rev, setRev] = useState(0);
+    const refresh = useCallback(() => {
+        if (path) featuresClientCache.delete(path);
+        setRev(v => v + 1);
+    }, [path]);
+    useEffect(() => {
+        let cancelled = false;
+        if (!path) {
+            setLoading(false);
+            return;
+        }
+        if (!featuresClientCache.has(path)) {
+            setLoading(true);
+        } else {
+            setData(featuresClientCache.get(path));
+            setLoading(false);
+        }
+        setError('');
+        request(path).then(v => {
+            if (!cancelled) {
+                featuresClientCache.set(path, v);
+                setData(v);
+                setLoading(false);
+            }
+        }).catch(e => {
+            if (!cancelled) {
+                if (!featuresClientCache.has(path)) {
+                    setError(e.message);
+                }
+                setLoading(false);
+            }
+        });
+        return () => { cancelled = true; };
+    }, [path, rev]);
+    return { data, error, loading, refresh };
+}
 function Action({ children, href, secondary = false, ...props }: any) { return href ? <a href={href} className={'button ' + (secondary ? 'secondary' : '')} {...props}>{children}</a> : <button className={'button ' + (secondary ? 'secondary' : '')} {...props}>{children}</button>; }
 function Notice({ error }: any) { return error ? <p className="error-box" role="alert">{error}</p> : null; }
 function NoItems({ title, body, href, action }: any) { return <div className="empty"><div className="empty-icon"><Layers size={27}/></div><h3>{title}</h3><p>{body}</p>{href && <Action href={href}>{action}<ArrowUpRight size={16}/></Action>}</div>; }

@@ -42,31 +42,141 @@ function Badge({ children }: any) { return <span className="badge">{children}</s
 function Empty({ icon: Icon = Layers, title, description, action, href }: any) { return <div className="empty"><div className="empty-icon"><Icon size={28}/></div><h3>{title}</h3><p>{description}</p>{action && <Button href={href}>{action}<ArrowUpRight size={16}/></Button>}</div>; }
 function Loading() { return <div className="loading"><Loader2 className="spin" size={25}/>Loading your workspace…</div>; }
 function ErrorBox({ message, retry }: any) { return <div className="error-box" role="alert"><p>{message}</p>{retry && <button onClick={retry}>Try again</button>}</div>; }
+const clientResourceCache = new Map<string, { data: any; ts: number }>();
+
 function useResource(path: string) {
-    const [data, setData] = useState<any>(null), [error, setError] = useState(''), [loading, setLoading] = useState(true), [revision, setRevision] = useState(0);
-    const refresh = useCallback(() => setRevision(n => n + 1), []);
+    const cached = clientResourceCache.get(path);
+    const [data, setData] = useState<any>(cached ? cached.data : null);
+    const [error, setError] = useState('');
+    const [loading, setLoading] = useState(!cached);
+    const [revision, setRevision] = useState(0);
+
+    const refresh = useCallback(() => {
+        clientResourceCache.delete(path);
+        setRevision(n => n + 1);
+    }, [path]);
+
     useEffect(() => {
-        const controller = new AbortController();
-        setLoading(true);
+        const cachedItem = clientResourceCache.get(path);
+        if (cachedItem) {
+            setData(cachedItem.data);
+            setLoading(false);
+        } else {
+            setLoading(true);
+        }
         setError('');
+
+        const controller = new AbortController();
         api(path, undefined, undefined, controller.signal).then(result => {
-            if (!controller.signal.aborted)
+            if (!controller.signal.aborted) {
+                clientResourceCache.set(path, { data: result, ts: Date.now() });
                 setData(result);
-        }).catch(e => {
-            if (!controller.signal.aborted)
-                setError(e.message);
-        }).finally(() => {
-            if (!controller.signal.aborted)
                 setLoading(false);
+            }
+        }).catch(e => {
+            if (!controller.signal.aborted) {
+                if (!clientResourceCache.has(path)) {
+                    setError(e.message);
+                }
+                setLoading(false);
+            }
         });
         return () => controller.abort();
     }, [path, revision]);
+
     return { data, error, loading, refresh };
 }
+
 export default function Marketplace({ path }: {
     path: string;
 }) {
+    const [currentPath, setCurrentPath] = useState(path);
     const [me, setMe] = useState<any>(null), [error, setError] = useState(''), [toast, setToast] = useState(''), [theme, setTheme] = useState(0);
+
+    useEffect(() => {
+        setCurrentPath(path);
+    }, [path]);
+
+    // Fast client-side navigation interceptor: 0ms transitions, no white screen, no full-page reloads!
+    useEffect(() => {
+        const handleLinkClick = (e: MouseEvent) => {
+            if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+            const target = (e.target as HTMLElement).closest('a');
+            if (!target) return;
+            const href = target.getAttribute('href');
+            if (!href) return;
+            if (
+                href.startsWith('http://') || 
+                href.startsWith('https://') || 
+                href.startsWith('//') || 
+                href.startsWith('#') || 
+                href.startsWith('mailto:') || 
+                href.startsWith('tel:') ||
+                target.getAttribute('target') === '_blank' ||
+                target.getAttribute('download') !== null
+            ) return;
+
+            e.preventDefault();
+            const targetPath = href.split('?')[0];
+            if (window.location.pathname + window.location.search !== href) {
+                window.history.pushState(null, '', href);
+                setCurrentPath(targetPath);
+                window.scrollTo({ top: 0, behavior: 'instant' });
+            }
+        };
+
+        const handlePopState = () => {
+            setCurrentPath(window.location.pathname);
+        };
+
+        document.addEventListener('click', handleLinkClick);
+        window.addEventListener('popstate', handlePopState);
+        return () => {
+            document.removeEventListener('click', handleLinkClick);
+            window.removeEventListener('popstate', handlePopState);
+        };
+    }, []);
+
+    // Tab title synchronization
+    useEffect(() => {
+        const titles: Record<string, string> = {
+            '/': 'CreaXa — AI Creative Talent Marketplace & Production Workspaces',
+            '/discover': 'Discover Verified Generative AI Creators & Artists | CreaXa',
+            '/work': 'The Workroom — Published AI Production Portfolios | CreaXa',
+            '/templates': 'AI Creative Brief Structures & Production Templates | CreaXa',
+            '/resources': 'Field Notes & Production Guidelines | CreaXa',
+            '/compare': 'Compare AI Creators & Capabilities | CreaXa',
+            '/how-it-works': 'How It Works — Collaborations & Media Rights | CreaXa',
+            '/login': 'Sign In | CreaXa Workspace',
+            '/signup': 'Create Your Account | CreaXa',
+            '/admin': 'Governance & Moderation Console | CreaXa Admin',
+            '/app/creator': 'Creator Workspace | CreaXa',
+            '/app/brand': 'Brand Workspace | CreaXa'
+        };
+        if (titles[currentPath]) {
+            document.title = titles[currentPath];
+        } else if (currentPath.startsWith('/creators/') || currentPath.startsWith('/artists/')) {
+            const slug = currentPath.split('/')[2];
+            const formatted = slug ? slug.split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ') : 'Creator';
+            document.title = `${formatted} | CreaXa Verified AI Creator`;
+        }
+    }, [currentPath]);
+
+    // Background pre-warming of critical resources
+    useEffect(() => {
+        const prewarm = () => {
+            api('creators').catch(() => {});
+            api('discovery').catch(() => {});
+        };
+        if (typeof window !== 'undefined') {
+            if ('requestIdleCallback' in window) {
+                (window as any).requestIdleCallback(prewarm);
+            } else {
+                setTimeout(prewarm, 300);
+            }
+        }
+    }, []);
+
     const refreshMe = () => api('me').then(setMe).catch(e => setError(e.message));
     useEffect(() => {
         refreshMe();
@@ -89,9 +199,47 @@ export default function Marketplace({ path }: {
             return () => clearTimeout(id);
         }
     }, [toast]);
+
     const app = { me, toast: setToast, refreshMe, theme, setTheme };
-    const inside = path.startsWith('/app') || path.startsWith('/admin');
-    return <Context.Provider value={app}><CompareProvider><MotionSystem /><GlobalTools role={me?.account?.role}/><a className="skip" href="#main">Skip to content</a>{inside ? <AppShell path={path}/> : <><Header path={path}/><main id="main">{path === '/' ? <Home /> : path === '/discover' ? <Discover /> : path === '/compare' ? <ComparePage /> : path === '/work' ? <WorkGallery /> : path === '/templates' ? <TemplateGallery /> : path === '/resources' || path.startsWith('/resources/') ? <ResourceHub slug={path.split('/')[2]}/> : (path.startsWith('/creators/') || path.startsWith('/artists/')) ? (path.includes('/works/') ? <ArtistProjectDetail artistSlug={path.split('/')[2]} projectSlug={path.split('/')[4]}/> : <Creator slug={path.split('/')[2]}/>) : path.startsWith('/projects/') ? <Project slug={path.split('/')[2]}/> : path === '/onboarding' ? <Onboarding /> : ['/login', '/signup', '/verify-email', '/forgot-password', '/reset-password'].includes(path) ? <Auth path={path}/> : <Info path={path}/>}</main><Footer /></>}{error && <div className="global-error" role="alert">{error}<button onClick={() => { setError(''); refreshMe(); }}>Retry</button></div>}{toast && <div className="toast" role="status"><CheckCircle2 size={18}/>{toast}</div>}</CompareProvider></Context.Provider>;
+    const activePath = currentPath;
+    const inside = activePath.startsWith('/app') || activePath.startsWith('/admin');
+
+    return (
+        <Context.Provider value={app}>
+            <CompareProvider>
+                <MotionSystem />
+                <GlobalTools role={me?.account?.role}/>
+                <a className="skip" href="#main">Skip to content</a>
+                {inside ? (
+                    <AppShell path={activePath}/>
+                ) : (
+                    <>
+                        <Header path={activePath}/>
+                        <main id="main">
+                            {activePath === '/' ? <Home /> : 
+                             activePath === '/discover' ? <Discover /> : 
+                             activePath === '/compare' ? <ComparePage /> : 
+                             activePath === '/work' ? <WorkGallery /> : 
+                             activePath === '/templates' ? <TemplateGallery /> : 
+                             activePath === '/resources' || activePath.startsWith('/resources/') ? <ResourceHub slug={activePath.split('/')[2]}/> : 
+                             (activePath.startsWith('/creators/') || activePath.startsWith('/artists/')) ? (
+                                 activePath.includes('/works/') ? 
+                                     <ArtistProjectDetail artistSlug={activePath.split('/')[2]} projectSlug={activePath.split('/')[4]}/> : 
+                                     <Creator slug={activePath.split('/')[2]}/>
+                             ) : 
+                             activePath.startsWith('/projects/') ? <Project slug={activePath.split('/')[2]}/> : 
+                             activePath === '/onboarding' ? <Onboarding /> : 
+                             ['/login', '/signup', '/verify-email', '/forgot-password', '/reset-password'].includes(activePath) ? <Auth path={activePath}/> : 
+                             <Info path={activePath}/>}
+                        </main>
+                        <Footer />
+                    </>
+                )}
+                {error && <div className="global-error" role="alert">{error}<button onClick={() => { setError(''); refreshMe(); }}>Retry</button></div>}
+                {toast && <div className="toast" role="status"><CheckCircle2 size={18}/>{toast}</div>}
+            </CompareProvider>
+        </Context.Provider>
+    );
 }
 function Logo() { return <a className="logo" href="/" aria-label="CreaXa home"><span className="logo-symbol"><span /><span /><span /></span>CreaXa<span className="logo-period">®</span></a>; }
 function Header({ path }: any) {
