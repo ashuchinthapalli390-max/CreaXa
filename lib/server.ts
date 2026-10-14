@@ -203,7 +203,14 @@ export async function handle(req: Request, path: string[]) {
         if (method === 'GET' && route === 'me') {
             const user = await resolveUser(req);
             const a = user ? await getAccountRecord(user.userId) : null;
-            return json({ user, account: a, aiAvailable: !!(env as any).OPENAI_API_KEY });
+            const aiConfigured = !!(
+                (env as any)?.OPENAI_API_KEY ||
+                (env as any)?.GEMINI_API_KEY ||
+                process.env.OPENAI_API_KEY ||
+                process.env.GEMINI_API_KEY ||
+                process.env.GOOGLE_AI_API_KEY
+            );
+            return json({ user, account: a, aiAvailable: aiConfigured });
         }
         if (method === 'GET' && route === 'discovery') {
             const groups = ['specializations', 'tools', 'contentTypes', 'styles', 'aspectRatios', 'industries', 'platforms'];
@@ -542,10 +549,21 @@ export async function handle(req: Request, path: string[]) {
             await db().prepare('INSERT INTO support (id,owner,data,created) VALUES (?,?,?,?)').bind(uid(), user.userId, JSON.stringify(b), now()).run();
             return json({ saved: true });
         }
+        if (method === 'GET' && route === 'ai') {
+            const { getAiOperationalMetrics } = await import('./ai');
+            return json({
+                status: 'operational',
+                providers: {
+                    openai: !!(process.env.OPENAI_API_KEY || (env as any)?.OPENAI_API_KEY),
+                    gemini: !!(process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_API_KEY || (env as any)?.GEMINI_API_KEY)
+                },
+                metrics: getAiOperationalMetrics()
+            });
+        }
         if (method === 'POST' && route === 'ai') {
-            const { user } = await requireRole(['brand', 'agency']);
+            const { user } = await requireRole(['brand', 'agency', 'creator', 'admin']);
             void user;
-            const b = z.object({ idea: text.min(20).max(3000) }).parse(await body(req));
+            const b = z.object({ idea: text.min(10).max(4000) }).parse(await body(req));
             const { generateStructuredBrief } = await import('./ai');
             try {
                 const result = await generateStructuredBrief(b.idea, env as any);

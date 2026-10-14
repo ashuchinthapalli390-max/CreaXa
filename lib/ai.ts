@@ -10,14 +10,14 @@ export interface StructuredBriefResult {
     targetAudience?: string;
     contentType?: string;
     styles?: string[];
-    platform?: string;
+    platform?: string | string[];
     aspectRatio?: string;
     resolution?: string;
     deliverables?: string[];
     budget?: number;
     currency?: string;
     deadline?: string;
-    commercialUse?: string;
+    commercialUse?: string | boolean;
     quantity?: number;
   };
   suggested: Record<string, any>;
@@ -83,14 +83,14 @@ const briefOutputSchema = z.object({
     targetAudience: z.string().optional(),
     contentType: z.string().optional(),
     styles: z.array(z.string()).optional(),
-    platform: z.string().optional(),
+    platform: z.union([z.string(), z.array(z.string())]).optional(),
     aspectRatio: z.string().optional(),
     resolution: z.string().optional(),
     deliverables: z.array(z.string()).optional(),
     budget: z.number().optional(),
     currency: z.string().optional(),
     deadline: z.string().optional(),
-    commercialUse: z.string().optional(),
+    commercialUse: z.union([z.string(), z.boolean()]).optional(),
     quantity: z.number().optional()
   }).default({}),
   suggested: z.record(z.unknown()).default({}),
@@ -150,48 +150,89 @@ async function callOpenAI(apiKey: string, idea: string, timeoutMs = 9000): Promi
 }
 
 /**
- * Call secondary Google Gemini provider with strict timeout
+ * Call secondary Google Gemini provider with strict timeout and model cascade
  */
-async function callGemini(apiKey: string, idea: string, timeoutMs = 9000): Promise<any> {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+async function callGemini(apiKey: string, idea: string, timeoutMs = 35000): Promise<any> {
+  const globalController = new AbortController();
+  const globalTimeoutId = setTimeout(() => globalController.abort(), timeoutMs);
+
+  // Model cascade: try gemini-flash-lite-latest first for instant response, then gemini-flash-latest
+  const candidateModels = [
+    'gemini-flash-lite-latest',
+    'gemini-flash-latest',
+    'gemini-pro-latest'
+  ];
+
+  let lastError: Error | null = null;
 
   try {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              { text: `${SYSTEM_PROMPT}\n\nUSER IDEA:\n${idea}` }
-            ]
+    for (const model of candidateModels) {
+      if (globalController.signal.aborted) break;
+
+      const modelController = new AbortController();
+      const modelTimeoutId = setTimeout(() => modelController.abort(), 20000);
+
+      try {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-goog-api-key': apiKey
+          },
+          body: JSON.stringify({
+            contents: [
+              {
+                parts: [
+                  { text: `${SYSTEM_PROMPT}\n\nUSER IDEA:\n${idea}` }
+                ]
+              }
+            ],
+            generationConfig: {
+              responseMimeType: 'application/json',
+              temperature: 0.2
+            }
+          }),
+          signal: modelController.signal
+        });
+
+        if (!res.ok) {
+          const errText = await res.text().catch(() => '');
+          console.warn(`[CreaXa AI] Gemini ${model} returned HTTP ${res.status}: ${errText.slice(0, 160)}`);
+          lastError = new Error(`Gemini HTTP ${res.status}: ${errText.slice(0, 160)}`);
+          // If 503 (demand spike) or 404 or 429, try next candidate model immediately
+          if (res.status === 503 || res.status === 404 || res.status === 429) {
+            continue;
           }
-        ],
-        generationConfig: {
-          responseMimeType: 'application/json',
-          temperature: 0.2
+          throw lastError;
         }
-      }),
-      signal: controller.signal
-    });
 
-    if (!res.ok) {
-      const errText = await res.text().catch(() => '');
-      throw new Error(`Gemini HTTP ${res.status}: ${errText.slice(0, 200)}`);
+        const data: any = await res.json();
+        const textOutput = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!textOutput) {
+          throw new Error(`Gemini ${model} returned empty candidate content`);
+        }
+
+        // Clean any markdown wrapper (```json ... ```)
+        let cleaned = textOutput.trim();
+        if (cleaned.startsWith('```json')) {
+          cleaned = cleaned.slice(7).replace(/```$/, '').trim();
+        } else if (cleaned.startsWith('```')) {
+          cleaned = cleaned.slice(3).replace(/```$/, '').trim();
+        }
+
+        return JSON.parse(cleaned);
+      } catch (err: any) {
+        lastError = err;
+        console.warn(`[CreaXa AI] Gemini attempt with ${model} failed: ${err.message}`);
+      } finally {
+        clearTimeout(modelTimeoutId);
+      }
     }
 
-    const data: any = await res.json();
-    const textOutput = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!textOutput) {
-      throw new Error('Gemini returned empty candidate content');
-    }
-    return JSON.parse(textOutput);
+    throw lastError || new Error('All Gemini model endpoints failed');
   } finally {
-    clearTimeout(timeoutId);
+    clearTimeout(globalTimeoutId);
   }
 }
 
