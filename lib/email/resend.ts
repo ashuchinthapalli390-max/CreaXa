@@ -40,10 +40,10 @@ function getResendConfig() {
     '';
   const fromAuth =
     process.env.RESEND_FROM_AUTH ||
-    'CreaXa Auth <auth@creaxa.com>';
+    'CreaXa Auth <auth@codxa-agency.online>';
   const fromNotifications =
     process.env.RESEND_FROM_NOTIFICATIONS ||
-    'CreaXa Notifications <notifications@creaxa.com>';
+    'CreaXa Notifications <notifications@codxa-agency.online>';
 
   return { apiKey, fromAuth, fromNotifications };
 }
