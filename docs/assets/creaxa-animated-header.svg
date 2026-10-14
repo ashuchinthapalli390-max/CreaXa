@@ -1,0 +1,217 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 420" width="100%" height="100%">
+  <defs>
+    <!-- Background Gradient -->
+    <radialGradient id="bgGlow" cx="50%" cy="30%" r="75%">
+      <stop offset="0%" stop-color="#182315" stop-opacity="0.85" />
+      <stop offset="50%" stop-color="#0E1210" stop-opacity="0.95" />
+      <stop offset="100%" stop-color="#060807" stop-opacity="1" />
+    </radialGradient>
+
+    <!-- Lime Accent Glow -->
+    <radialGradient id="limeOrb" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#D4FF00" stop-opacity="0.25" />
+      <stop offset="100%" stop-color="#D4FF00" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- Cyan Ambient Glow -->
+    <radialGradient id="cyanOrb" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#00F0FF" stop-opacity="0.18" />
+      <stop offset="100%" stop-color="#00F0FF" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- Brand Text Gradient -->
+    <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="60%" stop-color="#F4F8F0" />
+      <stop offset="100%" stop-color="#D4FF00" />
+    </linearGradient>
+
+    <!-- Pill Gradient -->
+    <linearGradient id="pillGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1F2820" stop-opacity="0.9" />
+      <stop offset="100%" stop-color="#121814" stop-opacity="0.95" />
+    </linearGradient>
+
+    <!-- Glow Filter -->
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="6" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+
+    <style>
+      @keyframes pulseOrb {
+        0%, 100% { transform: scale(1) translate(0, 0); opacity: 0.35; }
+        50% { transform: scale(1.18) translate(-15px, -10px); opacity: 0.65; }
+      }
+      @keyframes pulseCyan {
+        0%, 100% { transform: scale(1) translate(0, 0); opacity: 0.3; }
+        50% { transform: scale(1.22) translate(20px, 15px); opacity: 0.55; }
+      }
+      @keyframes dashLine {
+        0% { stroke-dashoffset: 600; }
+        100% { stroke-dashoffset: 0; }
+      }
+      @keyframes floatNode {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-8px); }
+      }
+      @keyframes blinkCursor {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0; }
+      }
+      @keyframes badgePulse {
+        0%, 100% { opacity: 0.9; transform: scale(1); }
+        50% { opacity: 1; transform: scale(1.02); }
+      }
+      .orb-lime { animation: pulseOrb 8s ease-in-out infinite; transform-origin: 350px 180px; }
+      .orb-cyan { animation: pulseCyan 10s ease-in-out infinite; transform-origin: 850px 220px; }
+      .line-anim { stroke-dasharray: 12 8; animation: dashLine 25s linear infinite; }
+      .floating-node-1 { animation: floatNode 5s ease-in-out infinite; }
+      .floating-node-2 { animation: floatNode 6.5s ease-in-out infinite reverse; }
+      .floating-node-3 { animation: floatNode 5.8s ease-in-out infinite 1s; }
+      .cursor { animation: blinkCursor 1s step-end infinite; }
+      .badge-glow { animation: badgePulse 4s ease-in-out infinite; }
+      .title-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-weight: 800; letter-spacing: -0.04em; }
+      .mono-text { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+      .sans-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+    </style>
+  </defs>
+
+  <!-- Deep Background -->
+  <rect width="1200" height="420" fill="url(#bgGlow)" rx="16" />
+
+  <!-- Background Tech Grid Pattern -->
+  <g opacity="0.12" stroke="#4C6B52" stroke-width="1">
+    <line x1="0" y1="70" x2="1200" y2="70" stroke-dasharray="4 8" />
+    <line x1="0" y1="140" x2="1200" y2="140" stroke-dasharray="4 8" />
+    <line x1="0" y1="210" x2="1200" y2="210" stroke-dasharray="4 8" />
+    <line x1="0" y1="280" x2="1200" y2="280" stroke-dasharray="4 8" />
+    <line x1="0" y1="350" x2="1200" y2="350" stroke-dasharray="4 8" />
+    
+    <line x1="150" y1="0" x2="150" y2="420" stroke-dasharray="4 8" />
+    <line x1="300" y1="0" x2="300" y2="420" stroke-dasharray="4 8" />
+    <line x1="450" y1="0" x2="450" y2="420" stroke-dasharray="4 8" />
+    <line x1="600" y1="0" x2="600" y2="420" stroke-dasharray="4 8" />
+    <line x1="750" y1="0" x2="750" y2="420" stroke-dasharray="4 8" />
+    <line x1="900" y1="0" x2="900" y2="420" stroke-dasharray="4 8" />
+    <line x1="1050" y1="0" x2="1050" y2="420" stroke-dasharray="4 8" />
+  </g>
+
+  <!-- Ambient Light Spheres -->
+  <circle class="orb-lime" cx="360" cy="190" r="280" fill="url(#limeOrb)" />
+  <circle class="orb-cyan" cx="840" cy="230" r="260" fill="url(#cyanOrb)" />
+
+  <!-- Animated Constellation Network -->
+  <g class="line-anim" stroke="#8CBF95" stroke-width="1.2" opacity="0.32" fill="none">
+    <path d="M 120 180 L 260 110 L 410 160 L 520 90 L 680 140 L 820 100 L 980 170 L 1080 120" />
+    <path d="M 180 290 L 320 250 L 460 320 L 610 270 L 750 330 L 910 280 L 1040 310" />
+    <path d="M 260 110 L 320 250" />
+    <path d="M 520 90 L 610 270" />
+    <path d="M 820 100 L 750 330" />
+    <path d="M 980 170 L 910 280" />
+  </g>
+
+  <!-- Floating Network Nodes -->
+  <g class="floating-node-1">
+    <circle cx="260" cy="110" r="5" fill="#D4FF00" filter="url(#glow)" />
+    <circle cx="260" cy="110" r="2" fill="#FFFFFF" />
+    <text x="272" y="114" fill="#8FA68F" class="mono-text" font-size="10" letter-spacing="0.05em">SORA • RUNWAY</text>
+  </g>
+
+  <g class="floating-node-2">
+    <circle cx="980" cy="170" r="5.5" fill="#00F0FF" filter="url(#glow)" />
+    <circle cx="980" cy="170" r="2.5" fill="#FFFFFF" />
+    <text x="992" y="174" fill="#7FAEB8" class="mono-text" font-size="10" letter-spacing="0.05em">VIMEO SPOTLIGHT</text>
+  </g>
+
+  <g class="floating-node-3">
+    <circle cx="610" cy="270" r="4.5" fill="#D4FF00" filter="url(#glow)" />
+    <circle cx="610" cy="270" r="2" fill="#FFFFFF" />
+    <text x="622" y="274" fill="#8FA68F" class="mono-text" font-size="10" letter-spacing="0.05em">7-DIM MATCHING</text>
+  </g>
+
+  <!-- Top Status Badge -->
+  <g transform="translate(470, 38)">
+    <rect x="0" y="0" width="260" height="28" rx="14" fill="#152017" stroke="#314B36" stroke-width="1.2" />
+    <circle cx="16" cy="14" r="4" fill="#D4FF00" filter="url(#glow)" />
+    <text x="28" y="18" fill="#D4FF00" class="mono-text" font-size="11" font-weight="600" letter-spacing="0.06em">PRODUCTION STATUS: PASS (79/79)</text>
+  </g>
+
+  <!-- Main Hero Brand Title -->
+  <g transform="translate(600, 160)" text-anchor="middle">
+    <!-- Drop Shadow Glow for Title -->
+    <text x="0" y="0" class="title-text" font-size="78" fill="#D4FF00" opacity="0.3" filter="url(#glow)">CreaXa</text>
+    <text x="0" y="0" class="title-text" font-size="78" fill="url(#textGrad)">Crea<tspan fill="#D4FF00">X</tspan>a</text>
+  </g>
+
+  <!-- Subtitle Tagline -->
+  <g transform="translate(600, 204)" text-anchor="middle">
+    <text x="0" y="0" class="sans-text" font-size="20" font-weight="500" fill="#E2EAE0" letter-spacing="-0.01em">
+      The Creative Direction &amp; AI-Native Talent Marketplace
+    </text>
+  </g>
+
+  <!-- Narrative Statement -->
+  <g transform="translate(600, 236)" text-anchor="middle">
+    <text x="0" y="0" class="mono-text" font-size="12.5" fill="#8FA693" letter-spacing="0.04em">
+      GENERATIVE FILMMAKING • EXPLAINABLE MATCHING • 10 GENUINE ARTISTS • CRYPTOGRAPHIC OTP
+    </text>
+  </g>
+
+  <!-- Feature Pills Dock (Interactive visual layout) -->
+  <g transform="translate(100, 282)">
+    <!-- Pill 1: Unified Discovery -->
+    <g transform="translate(0, 0)">
+      <rect width="186" height="52" rx="10" fill="url(#pillGrad)" stroke="#2D4233" stroke-width="1.2" />
+      <circle cx="20" cy="26" r="6" fill="#D4FF00" opacity="0.8" />
+      <text x="36" y="23" fill="#FFFFFF" class="sans-text" font-size="12" font-weight="600">Unified Discovery</text>
+      <text x="36" y="38" fill="#839E88" class="mono-text" font-size="10">Single Grid • No Tabs</text>
+    </g>
+
+    <!-- Pill 2: 10 Genuine Artists -->
+    <g transform="translate(202, 0)">
+      <rect width="190" height="52" rx="10" fill="url(#pillGrad)" stroke="#2D4233" stroke-width="1.2" />
+      <circle cx="20" cy="26" r="6" fill="#00F0FF" opacity="0.8" />
+      <text x="36" y="23" fill="#FFFFFF" class="sans-text" font-size="12" font-weight="600">10 Sourced Artists</text>
+      <text x="36" y="38" fill="#839E88" class="mono-text" font-size="10">38 Original Works</text>
+    </g>
+
+    <!-- Pill 3: Video-First Workroom -->
+    <g transform="translate(408, 0)">
+      <rect width="190" height="52" rx="10" fill="url(#pillGrad)" stroke="#2D4233" stroke-width="1.2" />
+      <circle cx="20" cy="26" r="6" fill="#D4FF00" opacity="0.8" />
+      <text x="36" y="23" fill="#FFFFFF" class="sans-text" font-size="12" font-weight="600">Video Workroom</text>
+      <text x="36" y="38" fill="#839E88" class="mono-text" font-size="10">Vimeo Embed Candidates</text>
+    </g>
+
+    <!-- Pill 4: Dual-AI Cascade -->
+    <g transform="translate(614, 0)">
+      <rect width="190" height="52" rx="10" fill="url(#pillGrad)" stroke="#2D4233" stroke-width="1.2" />
+      <circle cx="20" cy="26" r="6" fill="#A87FFB" opacity="0.8" />
+      <text x="36" y="23" fill="#FFFFFF" class="sans-text" font-size="12" font-weight="600">Dual-AI Cascade</text>
+      <text x="36" y="38" fill="#839E88" class="mono-text" font-size="10">OpenAI → Gemini Flash</text>
+    </g>
+
+    <!-- Pill 5: Resend OTP -->
+    <g transform="translate(820, 0)">
+      <rect width="180" height="52" rx="10" fill="url(#pillGrad)" stroke="#2D4233" stroke-width="1.2" />
+      <circle cx="20" cy="26" r="6" fill="#D4FF00" opacity="0.8" />
+      <text x="36" y="23" fill="#FFFFFF" class="sans-text" font-size="12" font-weight="600">Resend OTP Auth</text>
+      <text x="36" y="38" fill="#839E88" class="mono-text" font-size="10">HMAC-SHA256 • 2 Attempts</text>
+    </g>
+  </g>
+
+  <!-- Bottom Terminal Accent Bar -->
+  <g transform="translate(0, 386)">
+    <rect width="1200" height="34" fill="#090D0A" rx="0 0 16 16" />
+    <line x1="0" y1="0" x2="1200" y2="0" stroke="#1D2A20" stroke-width="1" />
+    <circle cx="30" cy="17" r="4" fill="#FF5F56" />
+    <circle cx="44" cy="17" r="4" fill="#FFBD2E" />
+    <circle cx="58" cy="17" r="4" fill="#27C93F" />
+    <text x="80" y="21" fill="#758E79" class="mono-text" font-size="11">bash: creaxa-pro.vercel.app ~ node scripts/test-production-features.mjs --all-systems-green</text>
+    <text x="1140" y="21" fill="#D4FF00" class="mono-text" font-size="11" text-anchor="end">v2.4.0-verified</text>
+  </g>
+
+  <!-- Outer Border -->
+  <rect width="1200" height="420" rx="16" fill="none" stroke="#2B3D2F" stroke-width="1.5" />
+</svg>
