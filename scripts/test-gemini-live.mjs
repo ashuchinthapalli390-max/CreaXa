@@ -8,7 +8,7 @@ CRITICAL RULES:
 5. Unknown budget or deadline MUST stay absent from "extracted".`;
 
 async function testStructured() {
-  const geminiKey = '';
+  const geminiKey = process.env.GEMINI_API_KEY || '';
   const idea = 'Create a cinematic campaign for a futuristic fashion collection, optimized for vertical social formats.';
 
   const models = ['gemini-flash-latest', 'gemini-flash-lite-latest'];
