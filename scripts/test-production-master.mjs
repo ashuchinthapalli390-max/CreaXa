@@ -158,8 +158,17 @@ try {
   console.log('   ✓ Verified: Pause and Reset controls successfully removed from interface');
 
   const chapterPills = await page.$$('.chapter-pill');
-  console.log(`   Found ${chapterPills.length} clean workflow chapter pills`);
-  assert.equal(chapterPills.length, 4, 'Should contain 4 chapter pills');
+  console.log(`   Found ${chapterPills.length} clean workflow stage pills`);
+  assert.equal(chapterPills.length, 8, 'Should contain 8 stage pills');
+
+  const inputPanel = await page.$('.stage-panel.input-panel');
+  const matchingPanel = await page.$('.stage-panel.matching-panel');
+  const inputBox = await inputPanel.boundingBox();
+  const matchingBox = await matchingPanel.boundingBox();
+
+  console.log(`   Workflow panels width: Left=${inputBox?.width.toFixed(1)}px, Right=${matchingBox?.width.toFixed(1)}px`);
+  assert.ok(matchingBox && matchingBox.width > 400, 'Right panel must be > 400px on desktop');
+  assert.ok(inputBox && inputBox.width > 400, 'Left panel must be > 400px on desktop');
 
   await page.screenshot({ path: path.join(screenshotsDir, 'workflow_story_clean.png') });
   console.log('   ✓ Saved screenshot: workflow_story_clean.png');
