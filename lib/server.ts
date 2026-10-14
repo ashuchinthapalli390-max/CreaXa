@@ -583,7 +583,7 @@ export async function handle(req: Request, path: string[]) {
         }
         if (method === 'POST' && route === 'account') {
             const { user, a } = await account();
-            const b = z.object({ name: short.min(2), role: z.enum(['creator', 'brand', 'agency']), organization: short.optional(), industry: short.optional(), website: short.optional(), goals: text.optional(), description: text.optional(), contactEmail: z.string().email().optional().or(z.literal('')), country: short.optional(), currency: z.enum(['INR', 'USD', 'EUR']).optional(), logo: z.string().uuid().optional().or(z.literal('')), terms: z.literal(true) }).parse(await body(req));
+            const b = z.object({ name: short.min(2), role: z.enum(['creator', 'brand', 'agency']), organization: short.optional(), industry: short.optional(), website: short.optional(), goals: text.optional(), description: text.optional(), contactEmail: z.string().email().optional().or(z.literal('')), verifiedContactEmail: z.string().email().optional().or(z.literal('')), contactEmailVerified: z.boolean().optional(), country: short.optional(), currency: z.enum(['INR', 'USD', 'EUR']).optional(), logo: z.string().uuid().optional().or(z.literal('')), terms: z.literal(true) }).parse(await body(req));
             if (b.role !== 'creator' && (!b.organization?.trim() || !b.industry?.trim()))
                 fail('Provide your organization name and industry.');
             await ownFiles(user.userId, [b.logo]);

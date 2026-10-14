@@ -57,6 +57,29 @@ If you are evaluating CreaXa for the hackathon, follow this high-yield walkthrou
 
 > **Security & Identity Note:** Public editorial references to established artists are strictly separated from registered marketplace accounts. In-app invitations on reference profiles link out to their official websites. Marketplace contracts and messaging require registered user accounts.
 
+### 🔑 Dedicated Evaluation Accounts & Workflows
+
+CreaXa provides preconfigured evaluation accounts for **Creator**, **Brand / Agency**, and **Limited Admin Reviewer** workflows:
+
+- **Creator Evaluation:**
+  - Sign in using the Creator credentials provided privately.
+  - Explore the preconfigured creator profile, AI specializations, tools, and portfolio.
+  - Open **Email Settings** (`/app/settings#email-settings`) and enter an email address you control.
+  - Select **Send Verification Code**.
+  - Check your inbox for the six-digit code sent via **Resend**.
+  - Enter the OTP and observe the verification and success states.
+  - Explore portfolio editing, invitations, project submissions, and revisions.
+- **Brand Evaluation:**
+  - Sign in using the Brand credentials provided privately.
+  - Explore the preconfigured creative campaign brief.
+  - Test creator discovery, skills/tools filters, and portfolio viewing.
+  - Send an invitation to the registered evaluation creator.
+  - Review the supported collaboration and approval workflow.
+- **Admin Review:**
+  - A separate, limited-permission reviewer account can be provided to inspect relevant administrative interfaces without exposing privileged production administrator access.
+
+> **Note:** The email added after login is a verified contact/notification address; it does not automatically replace the Firebase sign-in email. Evaluation credentials are shared privately rather than published in the public repository. Detailed step-by-step walkthrough is documented in [docs/hackathon-evaluation-access.md](docs/hackathon-evaluation-access.md).
+
 ---
 
 ## 🏆 Hackathon Challenge Criteria Alignment

@@ -1583,6 +1583,189 @@ function Verification({ data, refresh }: any) {
             }
         }}><Fields fields={[["claim", "Specific capability / tool claim", "text", null, true], ["description", "Explain your evidence", "textarea", null, true]]} data={form} set={(k: string, v: any) => setForm({ ...form, [k]: v })}/><UploadField label="Private supporting files" value={form.files} multiple set={(v: any) => setForm({ ...form, files: v })}/>{error && <ErrorBox message={error}/>}<Button disabled={busy}>Submit evidence<ArrowUpRight size={17}/></Button></form>{data.evidence.length > 0 && <section className="panel"><h3>Your submissions</h3>{data.evidence.map((e: any) => <div className="list-row" key={e.id}><Shield size={20}/><div><strong>{e.data.claim}</strong><p>{e.data.description}</p>{e.data.review && <p>Review: {e.data.review}</p>}</div><Badge>{e.status}</Badge></div>)}</section>}</>;
 }
+function EmailSettingsPanel({ account, onUpdated }: any) {
+    const { toast } = useApp();
+    const [email, setEmail] = useState(account?.data?.verifiedContactEmail || account?.data?.contactEmail || account?.email || '');
+    const [verifiedEmail, setVerifiedEmail] = useState(account?.data?.verifiedContactEmail || (account?.data?.contactEmailVerified ? account?.data?.contactEmail : ''));
+    const [otpCode, setOtpCode] = useState('');
+    const [step, setStep] = useState<'idle' | 'code_sent' | 'verified'>(verifiedEmail ? 'verified' : 'idle');
+    const [busy, setBusy] = useState(false);
+    const [error, setError] = useState('');
+    const [cooldown, setCooldown] = useState(0);
+
+    useEffect(() => {
+        if (cooldown <= 0) return;
+        const timer = setInterval(() => setCooldown(c => Math.max(0, c - 1)), 1000);
+        return () => clearInterval(timer);
+    }, [cooldown]);
+
+    const handleSendOtp = async (e?: any) => {
+        if (e) e.preventDefault();
+        if (!email || !email.includes('@')) {
+            setError('Please enter a valid email address you control.');
+            return;
+        }
+        setBusy(true);
+        setError('');
+        try {
+            await api('auth/otp/send', { email: email.trim(), purpose: 'email_change_verification' });
+            setStep('code_sent');
+            setCooldown(60);
+            toast('Verification code sent to ' + email.trim());
+        } catch (err: any) {
+            setError(err.message || 'Failed to send verification code.');
+        } finally {
+            setBusy(false);
+        }
+    };
+
+    const handleVerifyOtp = async (e: any) => {
+        e.preventDefault();
+        if (otpCode.trim().length !== 6) {
+            setError('Please enter the complete 6-digit verification code.');
+            return;
+        }
+        setBusy(true);
+        setError('');
+        try {
+            await api('auth/otp/verify', {
+                email: email.trim(),
+                code: otpCode.trim(),
+                purpose: 'email_change_verification'
+            });
+            await api('account', {
+                ...account.data,
+                name: account.name || account.data?.name || 'User',
+                role: account.role,
+                contactEmail: email.trim(),
+                verifiedContactEmail: email.trim(),
+                contactEmailVerified: true,
+                terms: true
+            });
+            setVerifiedEmail(email.trim());
+            setStep('verified');
+            toast('Email verified via Resend! You will receive campaign updates here.');
+            if (onUpdated) onUpdated();
+        } catch (err: any) {
+            setError(err.message || 'Invalid or expired verification code.');
+        } finally {
+            setBusy(false);
+        }
+    };
+
+    return (
+        <section className="panel email-settings-panel" id="email-settings">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '12px' }}>
+                <div>
+                    <h3 style={{ margin: 0 }}>Email Settings</h3>
+                    <p style={{ margin: '4px 0 0', fontSize: '13px', color: 'var(--muted)' }}>
+                        Add and verify an email address you control to receive direct campaign updates, briefs, and revision alerts.
+                    </p>
+                </div>
+                {step === 'verified' && (
+                    <span className="badge" style={{ background: 'var(--accent)', color: '#080a08', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '6px 12px', borderRadius: '999px' }}>
+                        <CheckCircle2 size={13} /> Verified via Resend
+                    </span>
+                )}
+            </div>
+
+            <div style={{ background: 'var(--bg)', border: '1px solid var(--line)', padding: '12px 16px', borderRadius: '8px', fontSize: '12px', color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '18px' }}>
+                <Shield size={16} style={{ color: 'var(--accent)', flexShrink: 0 }} />
+                <span>
+                    <strong>Note:</strong> The verified email added here is used for direct platform notifications and campaign briefs delivered via Resend. It does not replace your primary Firebase sign-in email.
+                </span>
+            </div>
+
+            {step === 'verified' ? (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '8px', flexWrap: 'wrap', gap: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <Mail size={18} style={{ color: 'var(--accent)' }} />
+                        <div>
+                            <strong style={{ fontSize: '14px', display: 'block' }}>{verifiedEmail}</strong>
+                            <span style={{ fontSize: '11px', color: 'var(--muted)' }}>Active Verified Contact &amp; Notification Address</span>
+                        </div>
+                    </div>
+                    <button
+                        type="button"
+                        className="text-link"
+                        style={{ fontSize: '12px' }}
+                        onClick={() => {
+                            setStep('idle');
+                            setOtpCode('');
+                        }}
+                    >
+                        Change Email Address
+                    </button>
+                </div>
+            ) : (
+                <form onSubmit={step === 'code_sent' ? handleVerifyOtp : handleSendOtp} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    <div>
+                        <label style={{ display: 'block', fontSize: '12px', fontWeight: 500, marginBottom: '6px' }}>
+                            Email address you control
+                        </label>
+                        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                            <input
+                                type="email"
+                                value={email}
+                                onChange={e => setEmail(e.target.value)}
+                                placeholder="Enter an email you control (e.g. name@company.com)"
+                                disabled={busy || step === 'code_sent'}
+                                required
+                                style={{ flex: 1, minWidth: '220px' }}
+                            />
+                            {step !== 'code_sent' && (
+                                <button
+                                    type="button"
+                                    className="button"
+                                    disabled={busy || cooldown > 0}
+                                    onClick={handleSendOtp}
+                                    style={{ whiteSpace: 'nowrap' }}
+                                >
+                                    {busy ? 'Sending...' : cooldown > 0 ? `Resend (${cooldown}s)` : 'Send Verification Code'}
+                                </button>
+                            )}
+                        </div>
+                    </div>
+
+                    {step === 'code_sent' && (
+                        <div style={{ padding: '16px', background: 'var(--raised)', border: '1px solid var(--accent)', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px' }}>
+                                <Mail size={16} style={{ color: 'var(--accent)' }} />
+                                <span>A 6-digit code was sent to <strong>{email}</strong> via Resend. Check your inbox.</span>
+                            </div>
+                            <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+                                <input
+                                    type="text"
+                                    maxLength={6}
+                                    value={otpCode}
+                                    onChange={e => setOtpCode(e.target.value.replace(/\D/g, ''))}
+                                    placeholder="123456"
+                                    autoFocus
+                                    style={{ width: '130px', fontSize: '16px', letterSpacing: '4px', textAlign: 'center', fontWeight: 'bold' }}
+                                />
+                                <button type="submit" className="button" disabled={busy || otpCode.trim().length !== 6}>
+                                    {busy ? 'Verifying...' : 'Verify Code'}
+                                </button>
+                                <button
+                                    type="button"
+                                    className="text-link"
+                                    disabled={busy || cooldown > 0}
+                                    onClick={handleSendOtp}
+                                    style={{ fontSize: '11px' }}
+                                >
+                                    {cooldown > 0 ? `Resend in ${cooldown}s` : 'Resend Code'}
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {error && <ErrorBox message={error} />}
+                </form>
+            )}
+        </section>
+    );
+}
+
 function AccountSettings({ data, refresh }: any) {
     const { toast, theme, setTheme, refreshMe } = useApp();
     const [form, setForm] = useState<Obj>(data.account.data), [busy, setBusy] = useState(false), [error, setError] = useState('');
@@ -1602,7 +1785,7 @@ function AccountSettings({ data, refresh }: any) {
             finally {
                 setBusy(false);
             }
-        }}><h3>Profile & organization</h3><Fields fields={data.account.role === 'creator' ? [['name', 'Your name', 'text', null, true]] : [['name', 'Your name', 'text', null, true], ['organization', 'Organization name', 'text'], ['industry', 'Industry', 'select', INDUSTRIES], ['website', 'Website', 'url'], ['contactEmail', 'Business contact email', 'email'], ['country', 'Country', 'text'], ['currency', 'Default currency', 'select', ['INR', 'USD', 'EUR']], ['description', 'Organization overview', 'textarea'], ['goals', 'Creative goals', 'textarea']]} data={form} set={(k: string, v: any) => setForm({ ...form, [k]: v })}/>{data.account.role !== 'creator' && <UploadField label="Organization logo" value={form.logo} set={(v: any) => setForm({ ...form, logo: v })} accept="image/jpeg,image/png,image/webp"/>}<div className="account-email"><Mail size={17}/>{data.account.email}<Badge>{data.account.role}</Badge></div>{error && <ErrorBox message={error}/>}<Button disabled={busy}>Save changes<Check size={16}/></Button></form><section className="panel"><h3>Appearance</h3><p>Choose a visual perspective. Your choice is saved on this device.</p><div className="theme-grid">{THEMES.map((t, i) => <button className={theme === i ? 'selected' : ''} key={t} onClick={() => setTheme(i)}><span className={'swatch swatch-' + i}/>{t}{theme === i && <Check size={14}/>}</button>)}</div></section><section className="panel"><h3>Security & notifications</h3><p>Authentication is secured by Firebase. Manage your login credentials and connected single sign-on providers below.</p><p>Project and invitation notifications are delivered to your notification center.</p><div className="inline-actions"><Button secondary href="/forgot-password">Reset password<ArrowUpRight size={15}/></Button><Button secondary href="/app/notifications">Notification center<Bell size={16}/></Button></div></section><AccountExport /><section className="panel danger-panel"><h3>Delete account</h3><p>Deleting your CreaXa account permanently removes your creator profile, published campaigns, portfolio media, and project records. Complete active engagements first.</p><button className="danger-text" disabled={busy} onClick={async () => {
+        }}><h3>Profile & organization</h3><Fields fields={data.account.role === 'creator' ? [['name', 'Your name', 'text', null, true]] : [['name', 'Your name', 'text', null, true], ['organization', 'Organization name', 'text'], ['industry', 'Industry', 'select', INDUSTRIES], ['website', 'Website', 'url'], ['contactEmail', 'Business contact email', 'email'], ['country', 'Country', 'text'], ['currency', 'Default currency', 'select', ['INR', 'USD', 'EUR']], ['description', 'Organization overview', 'textarea'], ['goals', 'Creative goals', 'textarea']]} data={form} set={(k: string, v: any) => setForm({ ...form, [k]: v })}/>{data.account.role !== 'creator' && <UploadField label="Organization logo" value={form.logo} set={(v: any) => setForm({ ...form, logo: v })} accept="image/jpeg,image/png,image/webp"/>}<div className="account-email"><Mail size={17}/>{data.account.email}<Badge>{data.account.role}</Badge></div>{error && <ErrorBox message={error}/>}<Button disabled={busy}>Save changes<Check size={16}/></Button></form><EmailSettingsPanel account={data.account} onUpdated={refresh} /><section className="panel"><h3>Appearance</h3><p>Choose a visual perspective. Your choice is saved on this device.</p><div className="theme-grid">{THEMES.map((t, i) => <button className={theme === i ? 'selected' : ''} key={t} onClick={() => setTheme(i)}><span className={'swatch swatch-' + i}/>{t}{theme === i && <Check size={14}/>}</button>)}</div></section><section className="panel"><h3>Security & notifications</h3><p>Authentication is secured by Firebase. Manage your login credentials and connected single sign-on providers below.</p><p>Project and invitation notifications are delivered to your notification center.</p><div className="inline-actions"><Button secondary href="/forgot-password">Reset password<ArrowUpRight size={15}/></Button><Button secondary href="/app/notifications">Notification center<Bell size={16}/></Button></div></section><AccountExport /><section className="panel danger-panel"><h3>Delete account</h3><p>Deleting your CreaXa account permanently removes your creator profile, published campaigns, portfolio media, and project records. Complete active engagements first.</p><button className="danger-text" disabled={busy} onClick={async () => {
             if (!confirm('Permanently delete your CreaXa account and its marketplace records?'))
                 return;
             setBusy(true);
