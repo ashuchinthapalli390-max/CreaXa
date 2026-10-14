@@ -34,8 +34,26 @@ export async function handleEnhancements(req: Request, path: string[], ctx: Cont
             args.push(q);
         }
         const page = Math.max(1, Math.min(10000, Math.floor(Number(url.searchParams.get('page')) || 1))), where = clauses.join(' AND '), from = ' FROM portfolios p JOIN profiles c ON c.id=p.owner WHERE ' + where;
-        const [count, rows] = await Promise.all([one('SELECT count(*) AS n' + from, ...args), all("SELECT p.*,c.slug AS creator_slug,json_extract(c.data,'$.name') AS creator_name" + from + ' ORDER BY p.updated DESC,p.id LIMIT 12 OFFSET ?', ...args, (page - 1) * 12)]);
-        return json({ items: rows.map(publicProject), total: count.n, page, pages: Math.ceil(count.n / 12) });
+        let countRes: any = null;
+        let rows: any[] = [];
+        try {
+            [countRes, rows] = await Promise.all([one('SELECT count(*) AS n' + from, ...args), all("SELECT p.*,c.slug AS creator_slug,json_extract(c.data,'$.name') AS creator_name" + from + ' ORDER BY p.updated DESC,p.id LIMIT 12 OFFSET ?', ...args, (page - 1) * 12)]);
+        } catch (e: any) {
+            console.warn('[CreaXa Work API] Query failed, attempting fallback:', e.message);
+        }
+        let mapped = (Array.isArray(rows) ? rows : []).map(publicProject);
+        const typeFilter = url.searchParams.get('type');
+        if (typeFilter) {
+            mapped = mapped.filter((p: any) => p.data?.contentType === typeFilter);
+        }
+        if (q) {
+            mapped = mapped.filter((p: any) => {
+                const combined = `${p.data?.title || ''} ${p.data?.description || ''} ${p.creator_name || ''}`.toLowerCase();
+                return combined.includes(q.toLowerCase());
+            });
+        }
+        const total = countRes?.n ?? mapped.length;
+        return json({ items: mapped.slice(0, 12), total, page, pages: Math.max(1, Math.ceil(total / 12)) });
     }
     if (route === 'saved-searches') {
         const { user, a } = await account();

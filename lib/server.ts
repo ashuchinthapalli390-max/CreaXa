@@ -60,13 +60,23 @@ async function one(sql: string, ...args: any[]) {
     }
     return await dbService.queryOne(sql, ...args);
 }
-const decoded = (r: any) => r ? { ...r, data: r.data ? JSON.parse(r.data) : undefined } : r;
-const decodedAll = (rs: any[]) => rs.map(decoded);
+const parseJsonSafe = (val: any) => {
+    if (!val) return undefined;
+    if (typeof val === 'object') return val;
+    if (typeof val === 'string') {
+        try { return JSON.parse(val); } catch { return val; }
+    }
+    return val;
+};
+const decoded = (r: any) => r ? { ...r, data: parseJsonSafe(r.data) } : r;
+const decodedAll = (rs: any[]) => (Array.isArray(rs) ? rs : []).map(decoded);
 const publicProject = (r: any) => {
     const p = decoded(r);
-    if (p?.data) {
-        delete p.data.evidence;
-        delete p.data.permission;
+    if (p?.data && typeof p.data === 'object') {
+        const cleanData = { ...p.data };
+        delete cleanData.evidence;
+        delete cleanData.permission;
+        p.data = cleanData;
     }
     return p;
 };
@@ -154,10 +164,10 @@ async function rate(user: string) {
     }
 }
 export async function handle(req: Request, path: string[]) {
+    const route = (path || []).join('/');
     try {
         activeRequest = req;
         const url = new URL(req.url);
-        const route = path.join('/');
         const method = req.method;
         if (method !== 'GET') {
             if (req.headers.get('origin') !== url.origin)
@@ -581,6 +591,7 @@ export async function handle(req: Request, path: string[]) {
         fail('Not found.', 404);
     }
     catch (e: any) {
+        console.error('[CreaXa Server Error]', route, e);
         const status = e.status || (e instanceof z.ZodError ? 400 : String(e.message).includes('UNIQUE constraint') ? 409 : 500);
         const msg = e instanceof z.ZodError ? e.issues.map((i: any) => `${i.path.join('.')}: ${i.message}`).join('; ') : status === 409 && !e.status ? 'This entry already exists. Choose a different slug or check your invitations.' : status === 500 ? 'Something went wrong. Please try again.' : e.message;
         return json({ error: msg }, status);

@@ -21,6 +21,8 @@ import {
 import { RevealHeadline } from '../components/motion/RevealHeadline';
 import { ScrollSection } from '../components/motion/ScrollSection';
 import { ImageWipe } from '../components/motion/ImageWipe';
+import { WorkflowStory } from '../components/marketing/workflow-story';
+import { AnimatedCounter } from '../components/ui/animated-counter';
 
 interface HomeStorytellingProps {
   creators: any[];
@@ -136,17 +138,23 @@ export function HomeStorytelling({ creators, creatorsLoading }: HomeStorytelling
 
             <div className="hero-stats-strip">
               <div className="stat-unit">
-                <strong>140+</strong>
-                <span>Verified Creators</span>
+                <strong>
+                  <AnimatedCounter value={Math.max(creators?.length || 1, 1)} />
+                </strong>
+                <span>Verified Creator{creators?.length === 1 ? '' : 's'}</span>
               </div>
               <div className="stat-divider" />
               <div className="stat-unit">
-                <strong>500+</strong>
-                <span>Original Works</span>
+                <strong>
+                  <AnimatedCounter value={5} />
+                </strong>
+                <span>Curated Works</span>
               </div>
               <div className="stat-divider" />
               <div className="stat-unit">
-                <strong>100%</strong>
+                <strong>
+                  <AnimatedCounter value={100} suffix="%" />
+                </strong>
                 <span>Declared Rights</span>
               </div>
             </div>
@@ -303,80 +311,7 @@ export function HomeStorytelling({ creators, creatorsLoading }: HomeStorytelling
           />
         </div>
 
-        <div className="brief-comparator-layout">
-          {/* Left: Raw Conceptual Prompt */}
-          <div className="brief-side-input">
-            <div className="panel-badge">
-              <FileText size={14} />
-              <span>INPUT: UNSTRUCTURED CONCEPT</span>
-            </div>
-            <div className="raw-idea-box">
-              <p>
-                "We need a 30s cinematic commercial for a next-gen electric hypercar driving through a cyberpunk neo-Tokyo rainstorm. Must look like 35mm anamorphic film, moody neon lighting, sound design cues, and full commercial usage for paid social ads."
-              </p>
-            </div>
-            <div className="brief-input-foot">
-              <span>✦ Raw Client Thought</span>
-              <span className="status-tag">Ready to Structure</span>
-            </div>
-          </div>
-
-          {/* Center: Connecting Flow Arrow */}
-          <div className="brief-flow-connector" aria-hidden="true">
-            <div className="connector-pulse-line" />
-            <div className="connector-circle">
-              <Zap size={18} />
-            </div>
-          </div>
-
-          {/* Right: Structured Brief Output */}
-          <div className="brief-side-output">
-            <div className="panel-badge accent-badge">
-              <Sparkles size={14} />
-              <span>OUTPUT: STRUCTURED PRODUCTION BRIEF</span>
-            </div>
-
-            <div className="structured-specs-list">
-              <div className="spec-row">
-                <span className="spec-label">Content Type</span>
-                <strong className="spec-value">Cinematic AI Commercial (30s)</strong>
-                <Check size={14} className="spec-check" />
-              </div>
-              <div className="spec-row">
-                <span className="spec-label">Visual Style</span>
-                <strong className="spec-value">Neo-Tokyo Cyberpunk • 35mm Anamorphic</strong>
-                <Check size={14} className="spec-check" />
-              </div>
-              <div className="spec-row">
-                <span className="spec-label">Aspect Ratios</span>
-                <strong className="spec-value">16:9 Cinema & 9:16 Vertical Cut</strong>
-                <Check size={14} className="spec-check" />
-              </div>
-              <div className="spec-row">
-                <span className="spec-label">Recommended Tools</span>
-                <strong className="spec-value">Runway Gen-3 • Midjourney v7 • ComfyUI</strong>
-                <Check size={14} className="spec-check" />
-              </div>
-              <div className="spec-row">
-                <span className="spec-label">Budget Estimate</span>
-                <strong className="spec-value">$4,500 – $6,500 USD</strong>
-                <Check size={14} className="spec-check" />
-              </div>
-              <div className="spec-row">
-                <span className="spec-label">Commercial Rights</span>
-                <strong className="spec-value">Worldwide Digital Advertising • Perpetual</strong>
-                <Check size={14} className="spec-check" />
-              </div>
-            </div>
-
-            <div className="brief-cta-bar">
-              <a href="/app/brand/campaigns/new" className="button brief-launch-btn">
-                <span>Create a Campaign Brief</span>
-                <ArrowUpRight size={17} />
-              </a>
-            </div>
-          </div>
-        </div>
+        <WorkflowStory creators={creators} />
       </ScrollSection>
 
       {/* =========================================================================

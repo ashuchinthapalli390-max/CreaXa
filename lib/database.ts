@@ -400,6 +400,25 @@ export const dbService = {
 
     // 2. Portfolios
     if (norm.includes('from portfolios')) {
+      if (norm.includes('join profiles') || norm.includes('profiles c')) {
+        const { data: portfolios } = await sb.from('portfolios').select('*').eq('published', 1).order('updated', { ascending: false });
+        if (!portfolios || !portfolios.length) return [];
+        const owners = [...new Set(portfolios.map(p => p.owner))];
+        const { data: profiles } = await sb.from('profiles').select('id, slug, data').in('id', owners).eq('published', 1);
+        const profileMap = new Map((profiles || []).map(p => [p.id, { ...p, data: parseDataField(p.data) }]));
+        
+        return portfolios
+          .filter(p => profileMap.has(p.owner))
+          .map(p => {
+            const prof = profileMap.get(p.owner);
+            return {
+              ...p,
+              data: parseDataField(p.data),
+              creator_slug: prof?.slug || '',
+              creator_name: prof?.data?.name || 'Creator'
+            };
+          });
+      }
       if (norm.includes('owner=?') && norm.includes('published=1')) {
         const { data } = await sb.from('portfolios').select('*').eq('owner', args[0]).eq('published', 1).order('updated', { ascending: false });
         return (data || []).map(r => ({ ...r, data: parseDataField(r.data) }));
@@ -520,6 +539,10 @@ export const dbService = {
 
     // Portfolios
     if (norm.includes('from portfolios')) {
+      if (norm.includes('count(*)')) {
+        const { count } = await sb.from('portfolios').select('*', { count: 'exact', head: true }).eq('published', 1);
+        return { n: count || 0 };
+      }
       if (norm.includes('slug=?')) {
         const { data } = await sb.from('portfolios').select('*').eq('slug', args[0]).eq('published', 1).maybeSingle();
         return data ? { ...data, data: parseDataField(data.data) } : null;
@@ -528,8 +551,11 @@ export const dbService = {
         const { data } = await sb.from('portfolios').select('*').eq('id', args[0]).eq('owner', args[1]).maybeSingle();
         return data ? { ...data, data: parseDataField(data.data) } : null;
       }
-      const { data } = await sb.from('portfolios').select('*').eq('id', args[0]).maybeSingle();
-      return data ? { ...data, data: parseDataField(data.data) } : null;
+      if (args[0]) {
+        const { data } = await sb.from('portfolios').select('*').eq('id', args[0]).maybeSingle();
+        return data ? { ...data, data: parseDataField(data.data) } : null;
+      }
+      return null;
     }
 
     // Campaigns

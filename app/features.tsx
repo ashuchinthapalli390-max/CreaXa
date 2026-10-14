@@ -1,7 +1,9 @@
 'use client';
 import { useState, useEffect, useRef, createContext, useContext, useCallback } from 'react';
-import { ArrowUpRight, ArrowRight, ArrowLeft, Plus, X, Search, Check, CheckCircle2, Download, Copy, Star, Heart, FileText, FolderOpen, SlidersHorizontal, Command, Bookmark, Shield, Layers, Clock, Target, Users, Palette, Film, Image as ImageIcon, Box } from 'lucide-react';
+import { ArrowUpRight, ArrowRight, ArrowLeft, Plus, X, Search, Check, CheckCircle2, Download, Copy, Star, Heart, FileText, FolderOpen, SlidersHorizontal, Command, Bookmark, Shield, Layers, Clock, Target, Users, Palette, Film, Image as ImageIcon, Box, RefreshCw } from 'lucide-react';
 import { list } from '../lib/matching';
+import { AppSelect } from '../components/ui/app-select';
+import { AnimatedCheckbox } from '../components/ui/animated-checkbox';
 type Data = Record<string, any>;
 async function request(path: string, data?: unknown, method?: string) { const r = await fetch('/api/' + path, { method: method || (data !== undefined ? 'POST' : 'GET'), headers: data !== undefined ? { 'Content-Type': 'application/json' } : {}, body: data !== undefined ? JSON.stringify(data) : undefined }); const v: any = await r.json(); if (!r.ok)
     throw new Error(v.error || 'Please try again.'); return v; }
@@ -68,7 +70,122 @@ finally {
 catch (e: any) {
     setError(e.message);
 } }}><X size={13}/></button></div>)}</div>}</section>; }
-export function WorkGallery() { const [q, setQ] = useState(''), [type, setType] = useState(''), [page, setPage] = useState(1); const query = new URLSearchParams({ q, type, page: String(page) }); const r = useData('work?' + query); return <div className="page"><span className="eyebrow">ORIGINAL WORK. OPEN PERSPECTIVES.</span><h1>The creative<br /><em>workroom.</em></h1><p className="large-copy">Explore published projects, then go behind the image to discover the tools, workflow and contribution.</p><div className="work-toolbar"><div className="search"><Search size={19}/><input aria-label="Search portfolio work" placeholder="Search project titles and descriptions" value={q} onChange={e => { setQ(e.target.value); setPage(1); }}/></div><select aria-label="Filter work by content type" value={type} onChange={e => { setType(e.target.value); setPage(1); }}><option value="">All creative formats</option>{['AI Video', 'AI Image', 'AI Animation', 'AI Graphics'].map(t => <option key={t}>{t}</option>)}</select></div><div className="results-heading"><span>{r.data?.total || 0} published projects</span></div><Notice error={r.error}/>{r.loading ? <div className="loading">Loading the workroom…</div> : r.data?.items.length ? <div className="portfolio-grid work-grid">{r.data.items.map((p: any) => <a className="portfolio-card" key={p.id} href={'/projects/' + p.slug}><img src={'/api/files/' + p.data.cover} alt={p.data.title} loading="lazy"/><div><span className="badge">{p.data.contentType}</span><h3>{p.data.title}<ArrowUpRight size={18}/></h3><p>{p.creator_name} · {list(p.data.tools).join(' / ')}</p></div></a>)}</div> : <NoItems title={q || type ? 'No work matches this search.' : 'Original work will find its home here.'} body={q || type ? 'Try a broader search or another content format.' : 'Published portfolios from discoverable creators appear here. Add your own work with the process and permissions behind it.'} href="/signup" action="Create a creator profile"/>}{r.data?.pages > 1 && <div className="pagination"><Action secondary disabled={page === 1} onClick={() => setPage(page - 1)}>Previous</Action><span>{page} / {r.data.pages}</span><Action secondary disabled={page === r.data.pages} onClick={() => setPage(page + 1)}>Next</Action></div>}</div>; }
+export function WorkGallery() { 
+  const [q, setQ] = useState(''), [type, setType] = useState(''), [page, setPage] = useState(1); 
+  const query = new URLSearchParams({ q, type, page: String(page) }); 
+  const r = useData('work?' + query); 
+
+  const contentTypeOptions = [
+    { value: '', label: 'All creative formats' },
+    { value: 'AI Video', label: 'AI Video' },
+    { value: 'AI Image', label: 'AI Image' },
+    { value: 'AI Animation', label: 'AI Animation' },
+    { value: 'AI Graphics', label: 'AI Graphics' }
+  ];
+
+  return (
+    <div className="page">
+      <span className="eyebrow">ORIGINAL WORK. OPEN PERSPECTIVES.</span>
+      <h1>The creative<br /><em>workroom.</em></h1>
+      <p className="large-copy">Explore published projects, then go behind the image to discover the tools, workflow and contribution.</p>
+      
+      <div className="work-toolbar">
+        <div className="search">
+          <Search size={19}/>
+          <input 
+            aria-label="Search portfolio work" 
+            placeholder="Search project titles and descriptions" 
+            value={q} 
+            onChange={e => { setQ(e.target.value); setPage(1); }}
+          />
+        </div>
+        <div style={{ minWidth: '220px' }}>
+          <AppSelect 
+            value={type} 
+            onChange={v => { setType(v); setPage(1); }} 
+            options={contentTypeOptions} 
+            placeholder="All creative formats" 
+            ariaLabel="Filter work by content type"
+          />
+        </div>
+      </div>
+
+      {r.error ? (
+        <div className="workroom-error-card" role="alert">
+          <div className="error-badge">WORKROOM TEMPORARILY UNAVAILABLE</div>
+          <h3>Couldn't load the workroom.</h3>
+          <p>Please try again. If the issue persists, check your network connection.</p>
+          <button className="button retry-btn" onClick={() => r.refresh()}>
+            <RefreshCw size={14} />
+            Retry request
+          </button>
+        </div>
+      ) : r.loading ? (
+        <>
+          <div className="results-heading"><span>Loading published work…</span></div>
+          <div className="portfolio-grid work-grid loading-grid" aria-busy="true">
+            {[1, 2, 3, 4, 5, 6].map(i => (
+              <div key={i} className="skeleton-card">
+                <div className="skeleton-media" />
+                <div className="skeleton-text-wrap">
+                  <div className="skeleton-line short" />
+                  <div className="skeleton-line title" />
+                  <div className="skeleton-line" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="results-heading">
+            <span>{r.data?.total || 0} published project{r.data?.total === 1 ? '' : 's'}</span>
+          </div>
+
+          {r.data?.items?.length ? (
+            <div className="portfolio-grid work-grid">
+              {r.data.items.map((p: any) => (
+                <a className="portfolio-card" key={p.id} href={'/projects/' + p.slug}>
+                  <img src={'/api/files/' + p.data.cover} alt={p.data.title} loading="lazy"/>
+                  <div>
+                    <span className="badge">{p.data.contentType}</span>
+                    <h3>{p.data.title}<ArrowUpRight size={18}/></h3>
+                    <p>{p.creator_name} · {list(p.data.tools).join(' / ')}</p>
+                  </div>
+                </a>
+              ))}
+            </div>
+          ) : (q || type) ? (
+            <div className="empty">
+              <div className="empty-icon"><Search size={28}/></div>
+              <h3>No projects match your search.</h3>
+              <p>Try searching with different terms or reset your creative format filter.</p>
+              <div className="empty-actions-row">
+                {q && <button className="button secondary" onClick={() => { setQ(''); setPage(1); }}>Clear search</button>}
+                {type && <button className="button secondary" onClick={() => { setType(''); setPage(1); }}>Clear format filter</button>}
+              </div>
+            </div>
+          ) : (
+            <NoItems 
+              title="Original work will find its home here." 
+              body="Published portfolios from discoverable creators appear here. Add your own work with the process and permissions behind it." 
+              href="/signup" 
+              action="Create a creator profile" 
+            />
+          )}
+
+          {r.data?.pages > 1 && (
+            <div className="pagination">
+              <Action secondary disabled={page === 1} onClick={() => setPage(page - 1)}>Previous</Action>
+              <span>{page} / {r.data.pages}</span>
+              <Action secondary disabled={page === r.data.pages} onClick={() => setPage(page + 1)}>Next</Action>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  ); 
+}
 export const RECIPES = [
     { id: 'social-video', name: 'Social-first film', icon: Film, tag: 'SHORT-FORM VIDEO', desc: 'Define a focused idea, a clear hook and a mobile-first delivery.', fields: { contentType: 'AI Video', platform: 'Instagram', aspectRatio: '9:16', format: 'MP4', duration: 30, quantity: 1, styles: ['Cinematic'], commercialUse: 'Organic social' }, check: ['Message in the opening seconds', 'Safe areas for platform overlays', 'Captions and language requirements', 'Final format and export resolution'] },
     { id: 'product-image', name: 'Product storytelling', icon: ImageIcon, tag: 'GENERATIVE IMAGE', desc: 'Build a visual brief around the product, its audience and the desired mood.', fields: { contentType: 'AI Image', platform: 'Web Ads', aspectRatio: '1:1', format: 'PNG', quantity: 1, styles: ['Realistic'], commercialUse: 'Paid advertising' }, check: ['Accurate product details', 'Brand palette and visual references', 'Permitted retouching or generation', 'Usage territory and duration'] },
@@ -100,7 +217,7 @@ catch (e: any) {
 }
 finally {
     setBusy(false);
-} }; return <section className="panel task-panel"><div className="panel-heading"><h3>Project checklist</h3><span>{done} / {tasks.length} complete</span></div>{tasks.length > 0 && <div className="check-progress"><i style={{ width: Math.round(done / tasks.length * 100) + '%' }}/></div>}<Notice error={error || r.error}/>{r.loading && !r.data ? <p className="micro">Loading the project checklist…</p> : tasks.length ? tasks.map((t: any) => <div className={'task-row ' + (t.completed ? 'complete' : '')} key={t.id}><input type="checkbox" aria-label={'Complete ' + t.title} checked={!!t.completed} disabled={busy} onChange={e => mutate({ id: t.id, title: t.title, due: t.due || '', completed: e.target.checked })}/><div><strong>{t.title}</strong><p>{t.author_name}{t.due ? ' · Due ' + t.due : ''}</p></div>{t.author === viewer && <button className="icon-btn" aria-label={'Delete task ' + t.title} disabled={busy} onClick={async () => { if (!confirm('Delete this project task?'))
+} }; return <section className="panel task-panel"><div className="panel-heading"><h3>Project checklist</h3><span>{done} / {tasks.length} complete</span></div>{tasks.length > 0 && <div className="check-progress"><i style={{ width: Math.round(done / tasks.length * 100) + '%' }}/></div>}<Notice error={error || r.error}/>{r.loading && !r.data ? <p className="micro">Loading the project checklist…</p> : tasks.length ? tasks.map((t: any) => <div className={'task-row ' + (t.completed ? 'complete' : '')} key={t.id}><AnimatedCheckbox checked={!!t.completed} disabled={busy} onChange={checked => mutate({ id: t.id, title: t.title, due: t.due || '', completed: checked })} ariaLabel={'Complete ' + t.title}/><div><strong>{t.title}</strong><p>{t.author_name}{t.due ? ' · Due ' + t.due : ''}</p></div>{t.author === viewer && <button className="icon-btn" aria-label={'Delete task ' + t.title} disabled={busy} onClick={async () => { if (!confirm('Delete this project task?'))
     return; setBusy(true); try {
     await request('tasks/' + id + '/' + t.id, undefined, 'DELETE');
     r.refresh();
@@ -128,7 +245,7 @@ catch (e: any) {
 }
 finally {
     setBusy(false);
-} }}><div className="field"><label htmlFor="review-rating">Your rating</label><select id="review-rating" required value={rating || ''} onChange={e => setRating(Number(e.target.value))}><option value="">Choose your rating</option>{[5, 4, 3, 2, 1].map(n => <option key={n} value={n}>{n} / 5</option>)}</select></div><div className="field review-comment"><label htmlFor="review-comment">Describe your experience</label><textarea id="review-comment" required minLength={20} maxLength={2000} rows={4} value={comment} onChange={e => setComment(e.target.value)}/></div><Action disabled={busy}>{r.data ? 'Update feedback' : 'Publish feedback'}<ArrowUpRight size={16}/></Action>{success && <p className="success-note" role="status"><CheckCircle2 size={15}/>Your feedback is saved.</p>}</form> : r.data ? <div className="review-item"><Stars rating={r.data.rating}/><p>{r.data.comment}</p></div> : <p className="micro">Your brand partner hasn’t submitted feedback yet.</p>}</section>; }
+} }}><div className="field"><label>Your rating</label><AppSelect value={rating ? String(rating) : ''} onChange={v => setRating(Number(v))} placeholder="Choose your rating" options={[{ value: '5', label: '5 / 5 — Exceptional' }, { value: '4', label: '4 / 5 — Strong delivery' }, { value: '3', label: '3 / 5 — Satisfactory' }, { value: '2', label: '2 / 5 — Needed revisions' }, { value: '1', label: '1 / 5 — Incomplete' }]} ariaLabel="Choose your rating"/></div><div className="field review-comment"><label htmlFor="review-comment">Describe your experience</label><textarea id="review-comment" required minLength={20} maxLength={2000} rows={4} value={comment} onChange={e => setComment(e.target.value)}/></div><Action disabled={busy}>{r.data ? 'Update feedback' : 'Publish feedback'}<ArrowUpRight size={16}/></Action>{success && <p className="success-note" role="status"><CheckCircle2 size={15}/>Your feedback is saved.</p>}</form> : r.data ? <div className="review-item"><Stars rating={r.data.rating}/><p>{r.data.comment}</p></div> : <p className="micro">Your brand partner hasn’t submitted feedback yet.</p>}</section>; }
 function Stars({ rating }: any) { return <span className="review-stars" aria-label={rating + ' out of 5'}>{[1, 2, 3, 4, 5].map(n => <Star key={n} size={14} fill={n <= rating ? 'currentColor' : 'none'} className={n <= rating ? 'filled' : ''}/>)}</span>; }
 export function CreatorReviews({ slug }: any) { const [page, setPage] = useState(1); const r = useData('reviews/' + slug + '?page=' + page); if (r.loading && !r.data)
     return <section className="profile-section"><h2>Project feedback</h2><p className="micro">Loading completed-project feedback…</p></section>; const reviews = r.data?.items || [], average = r.data?.average != null ? Number(r.data.average).toFixed(1) : null; return <section className="profile-section"><div className="section-heading"><h2>Project feedback</h2>{average && <span>{average} / 5 · {r.data.total} review{r.data.total !== 1 ? 's' : ''}</span>}</div><Notice error={r.error}/>{reviews.length ? reviews.map((review: any) => <article className="review-item" key={review.id}><div><Stars rating={review.rating}/><span className="badge">Completed collaboration</span></div><p className="preserve">{review.comment}</p><span className="micro">{review.reviewer_name} · {new Date(review.updated).toLocaleDateString('en-IN')}</span></article>) : <NoItems title="Feedback follows real collaboration." body="Brands can review this creator after completing a project through CreaXa."/>}{r.data?.pages > 1 && <div className="pagination"><Action secondary disabled={r.loading || page === 1} onClick={() => setPage(page - 1)}>Previous</Action><span>{page} / {r.data.pages}</span><Action secondary disabled={r.loading || page >= r.data.pages} onClick={() => setPage(page + 1)}>Next</Action></div>}</section>; }
