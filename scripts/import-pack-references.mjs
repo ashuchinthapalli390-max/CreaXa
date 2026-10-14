@@ -69,6 +69,7 @@ const processedCreators = creators.map((c) => {
       videoEmbedUrl: w.media?.videoEmbedUrl || undefined,
       videoPlatform,
       aspectRatio: '16/9',
+      mediaType,
       attribution: `Original work by ${c.name}. Verified source: ${w.officialProjectUrl}`,
       mediaRightsStatus: w.media?.videoRights === 'original_provider_only' ? 'artist_hosted_embed' : 'public_editorial_reference',
       thumbnailUrl: (w.id === 'anna-ridler__mosaic-virus-2019' && fs.existsSync('public/licensed-portraits/anna-ridler-mosaic-virus-installation-photo.jpg'))
@@ -173,9 +174,15 @@ export interface ExternalCreatorReference {
   officialWebsite: string;
   portfolioUrl: string;
   avatarUrl?: string;
-  coverUrl?: string;
+  coverUrl?: string | null;
   fallbackCover?: string;
   isExternalReference: true;
+  portraitLicense?: {
+    license: string;
+    licenseUrl: string;
+    authorCredit: string;
+    sourcePage: string;
+  } | null;
   attributionNote: string;
   documentedTools: string[];
   contentTypes: string[];

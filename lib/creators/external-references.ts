@@ -53,9 +53,15 @@ export interface ExternalCreatorReference {
   officialWebsite: string;
   portfolioUrl: string;
   avatarUrl?: string;
-  coverUrl?: string;
+  coverUrl?: string | null;
   fallbackCover?: string;
   isExternalReference: true;
+  portraitLicense?: {
+    license: string;
+    licenseUrl: string;
+    authorCredit: string;
+    sourcePage: string;
+  } | null;
   attributionNote: string;
   documentedTools: string[];
   contentTypes: string[];
@@ -122,6 +128,7 @@ export const EXTERNAL_CREATOR_REFERENCES: ExternalCreatorReference[] = [
         "videoEmbedUrl": "https://player.vimeo.com/video/941713443",
         "videoPlatform": "vimeo",
         "aspectRatio": "16/9",
+        "mediaType": "video",
         "attribution": "Original work by Paul Trillo. Verified source: https://vimeo.com/941713443",
         "mediaRightsStatus": "artist_hosted_embed",
         "fallbackSvg": "/creator-fallbacks/paul-trillo.svg"
@@ -144,6 +151,7 @@ export const EXTERNAL_CREATOR_REFERENCES: ExternalCreatorReference[] = [
         "videoEmbedUrl": "https://player.vimeo.com/video/821101511",
         "videoPlatform": "vimeo",
         "aspectRatio": "16/9",
+        "mediaType": "video",
         "attribution": "Original work by Paul Trillo. Verified source: https://paultrillo.com/",
         "mediaRightsStatus": "artist_hosted_embed",
         "fallbackSvg": "/creator-fallbacks/paul-trillo.svg"
@@ -161,6 +169,7 @@ export const EXTERNAL_CREATOR_REFERENCES: ExternalCreatorReference[] = [
         "tools": [],
         "externalUrl": "https://paultrillo.com/",
         "aspectRatio": "16/9",
+        "mediaType": "interactive",
         "attribution": "Original work by Paul Trillo. Verified source: https://paultrillo.com/",
         "mediaRightsStatus": "artist_hosted_embed",
         "fallbackSvg": "/creator-fallbacks/paul-trillo.svg"
@@ -242,6 +251,7 @@ export const EXTERNAL_CREATOR_REFERENCES: ExternalCreatorReference[] = [
         ],
         "externalUrl": "https://refikanadolstudio.com/projects/unsupervised-machine-hallucinations-moma/",
         "aspectRatio": "16/9",
+        "mediaType": "interactive",
         "attribution": "Original work by Refik Anadol. Verified source: https://refikanadolstudio.com/projects/unsupervised-machine-hallucinations-moma/",
         "mediaRightsStatus": "artist_hosted_embed",
         "fallbackSvg": "/creator-fallbacks/refik-anadol.svg"
@@ -260,6 +270,7 @@ export const EXTERNAL_CREATOR_REFERENCES: ExternalCreatorReference[] = [
         "tools": [],
         "externalUrl": "https://refikanadolstudio.com/projects/living-architecture-casa-batllo/",
         "aspectRatio": "16/9",
+        "mediaType": "interactive",
         "attribution": "Original work by Refik Anadol. Verified source: https://refikanadolstudio.com/projects/living-architecture-casa-batllo/",
         "mediaRightsStatus": "artist_hosted_embed",
         "fallbackSvg": "/creator-fallbacks/refik-anadol.svg"
@@ -280,6 +291,7 @@ export const EXTERNAL_CREATOR_REFERENCES: ExternalCreatorReference[] = [
         ],
         "externalUrl": "https://refikanadolstudio.com/projects/wdch-dreams/",
         "aspectRatio": "16/9",
+        "mediaType": "interactive",
         "attribution": "Original work by Refik Anadol. Verified source: https://refikanadolstudio.com/projects/wdch-dreams/",
         "mediaRightsStatus": "artist_hosted_embed",
         "fallbackSvg": "/creator-fallbacks/refik-anadol.svg"
@@ -298,6 +310,7 @@ export const EXTERNAL_CREATOR_REFERENCES: ExternalCreatorReference[] = [
         "tools": [],
         "externalUrl": "https://refikanadolstudio.com/projects/machine-hallucination/",
         "aspectRatio": "16/9",
+        "mediaType": "interactive",
         "attribution": "Original work by Refik Anadol. Verified source: https://refikanadolstudio.com/projects/machine-hallucination/",
         "mediaRightsStatus": "artist_hosted_embed",
         "fallbackSvg": "/creator-fallbacks/refik-anadol.svg"
@@ -371,6 +384,7 @@ export const EXTERNAL_CREATOR_REFERENCES: ExternalCreatorReference[] = [
         "tools": [],
         "externalUrl": "https://www.niceaunties.com/projects-3",
         "aspectRatio": "16/9",
+        "mediaType": "interactive",
         "attribution": "Original work by niceaunties (Wenhui Lim). Verified source: https://www.niceaunties.com/projects-3",
         "mediaRightsStatus": "artist_hosted_embed",
         "fallbackSvg": "/creator-fallbacks/niceaunties.svg"
@@ -391,6 +405,7 @@ export const EXTERNAL_CREATOR_REFERENCES: ExternalCreatorReference[] = [
         ],
         "externalUrl": "https://www.niceaunties.com/mirror-into-auntieverse",
         "aspectRatio": "16/9",
+        "mediaType": "interactive",
         "attribution": "Original work by niceaunties (Wenhui Lim). Verified source: https://www.niceaunties.com/mirror-into-auntieverse",
         "mediaRightsStatus": "artist_hosted_embed",
         "fallbackSvg": "/creator-fallbacks/niceaunties.svg"
@@ -409,6 +424,7 @@ export const EXTERNAL_CREATOR_REFERENCES: ExternalCreatorReference[] = [
         "tools": [],
         "externalUrl": "https://www.niceaunties.com/projects",
         "aspectRatio": "16/9",
+        "mediaType": "interactive",
         "attribution": "Original work by niceaunties (Wenhui Lim). Verified source: https://www.niceaunties.com/projects",
         "mediaRightsStatus": "artist_hosted_embed",
         "fallbackSvg": "/creator-fallbacks/niceaunties.svg"
@@ -427,6 +443,7 @@ export const EXTERNAL_CREATOR_REFERENCES: ExternalCreatorReference[] = [
         "tools": [],
         "externalUrl": "https://www.niceaunties.com/projects",
         "aspectRatio": "16/9",
+        "mediaType": "interactive",
         "attribution": "Original work by niceaunties (Wenhui Lim). Verified source: https://www.niceaunties.com/projects",
         "mediaRightsStatus": "artist_hosted_embed",
         "fallbackSvg": "/creator-fallbacks/niceaunties.svg"
@@ -504,6 +521,7 @@ export const EXTERNAL_CREATOR_REFERENCES: ExternalCreatorReference[] = [
         ],
         "externalUrl": "https://www.clairesilver.com/collections",
         "aspectRatio": "16/9",
+        "mediaType": "image",
         "attribution": "Original work by Claire Silver. Verified source: https://www.clairesilver.com/collections",
         "mediaRightsStatus": "artist_hosted_embed",
         "fallbackSvg": "/creator-fallbacks/claire-silver.svg"
@@ -522,6 +540,7 @@ export const EXTERNAL_CREATOR_REFERENCES: ExternalCreatorReference[] = [
         "tools": [],
         "externalUrl": "https://www.clairesilver.com/corporeal",
         "aspectRatio": "16/9",
+        "mediaType": "image",
         "attribution": "Original work by Claire Silver. Verified source: https://www.clairesilver.com/corporeal",
         "mediaRightsStatus": "artist_hosted_embed",
         "fallbackSvg": "/creator-fallbacks/claire-silver.svg"
@@ -540,6 +559,7 @@ export const EXTERNAL_CREATOR_REFERENCES: ExternalCreatorReference[] = [
         "tools": [],
         "externalUrl": "https://www.clairesilver.com/collections",
         "aspectRatio": "16/9",
+        "mediaType": "image",
         "attribution": "Original work by Claire Silver. Verified source: https://www.clairesilver.com/collections",
         "mediaRightsStatus": "artist_hosted_embed",
         "fallbackSvg": "/creator-fallbacks/claire-silver.svg"
@@ -558,6 +578,7 @@ export const EXTERNAL_CREATOR_REFERENCES: ExternalCreatorReference[] = [
         "tools": [],
         "externalUrl": "https://www.clairesilver.com/collections",
         "aspectRatio": "16/9",
+        "mediaType": "image",
         "attribution": "Original work by Claire Silver. Verified source: https://www.clairesilver.com/collections",
         "mediaRightsStatus": "artist_hosted_embed",
         "fallbackSvg": "/creator-fallbacks/claire-silver.svg"
@@ -576,6 +597,7 @@ export const EXTERNAL_CREATOR_REFERENCES: ExternalCreatorReference[] = [
         "tools": [],
         "externalUrl": "https://www.clairesilver.com/collections",
         "aspectRatio": "16/9",
+        "mediaType": "image",
         "attribution": "Original work by Claire Silver. Verified source: https://www.clairesilver.com/collections",
         "mediaRightsStatus": "artist_hosted_embed",
         "fallbackSvg": "/creator-fallbacks/claire-silver.svg"
@@ -648,6 +670,7 @@ export const EXTERNAL_CREATOR_REFERENCES: ExternalCreatorReference[] = [
         "tools": [],
         "externalUrl": "https://www.rooperainisto.com/collections",
         "aspectRatio": "16/9",
+        "mediaType": "image",
         "attribution": "Original work by Roope Rainisto. Verified source: https://www.rooperainisto.com/collections",
         "mediaRightsStatus": "artist_hosted_embed",
         "fallbackSvg": "/creator-fallbacks/roope-rainisto.svg"
@@ -666,6 +689,7 @@ export const EXTERNAL_CREATOR_REFERENCES: ExternalCreatorReference[] = [
         "tools": [],
         "externalUrl": "https://www.rooperainisto.com/collections",
         "aspectRatio": "16/9",
+        "mediaType": "image",
         "attribution": "Original work by Roope Rainisto. Verified source: https://www.rooperainisto.com/collections",
         "mediaRightsStatus": "artist_hosted_embed",
         "fallbackSvg": "/creator-fallbacks/roope-rainisto.svg"
@@ -740,6 +764,7 @@ export const EXTERNAL_CREATOR_REFERENCES: ExternalCreatorReference[] = [
         "tools": [],
         "externalUrl": "https://www.sashastiles.com/cursivebinary",
         "aspectRatio": "16/9",
+        "mediaType": "interactive",
         "attribution": "Original work by Sasha Stiles. Verified source: https://www.sashastiles.com/cursivebinary",
         "mediaRightsStatus": "artist_hosted_embed",
         "fallbackSvg": "/creator-fallbacks/sasha-stiles.svg"
@@ -760,6 +785,7 @@ export const EXTERNAL_CREATOR_REFERENCES: ExternalCreatorReference[] = [
         ],
         "externalUrl": "https://www.sashastiles.com/repetae",
         "aspectRatio": "16/9",
+        "mediaType": "interactive",
         "attribution": "Original work by Sasha Stiles. Verified source: https://www.sashastiles.com/repetae",
         "mediaRightsStatus": "artist_hosted_embed",
         "fallbackSvg": "/creator-fallbacks/sasha-stiles.svg"
@@ -780,6 +806,7 @@ export const EXTERNAL_CREATOR_REFERENCES: ExternalCreatorReference[] = [
         ],
         "externalUrl": "https://www.sashastiles.com/projects",
         "aspectRatio": "16/9",
+        "mediaType": "interactive",
         "attribution": "Original work by Sasha Stiles. Verified source: https://www.sashastiles.com/projects",
         "mediaRightsStatus": "artist_hosted_embed",
         "fallbackSvg": "/creator-fallbacks/sasha-stiles.svg"
@@ -798,6 +825,7 @@ export const EXTERNAL_CREATOR_REFERENCES: ExternalCreatorReference[] = [
         "tools": [],
         "externalUrl": "https://www.sashastiles.com/projects",
         "aspectRatio": "16/9",
+        "mediaType": "interactive",
         "attribution": "Original work by Sasha Stiles. Verified source: https://www.sashastiles.com/projects",
         "mediaRightsStatus": "artist_hosted_embed",
         "fallbackSvg": "/creator-fallbacks/sasha-stiles.svg"
@@ -878,6 +906,7 @@ export const EXTERNAL_CREATOR_REFERENCES: ExternalCreatorReference[] = [
         ],
         "externalUrl": "https://www.kris.art/portfolio-2/project-one-ephnc-jamy8",
         "aspectRatio": "16/9",
+        "mediaType": "image",
         "attribution": "Original work by Kris Kashtanova. Verified source: https://www.kris.art/portfolio-2/project-one-ephnc-jamy8",
         "mediaRightsStatus": "artist_hosted_embed",
         "fallbackSvg": "/creator-fallbacks/kris-kashtanova.svg"
@@ -898,6 +927,7 @@ export const EXTERNAL_CREATOR_REFERENCES: ExternalCreatorReference[] = [
         ],
         "externalUrl": "https://www.kris.art/portfolio-2/rose-enigma",
         "aspectRatio": "16/9",
+        "mediaType": "image",
         "attribution": "Original work by Kris Kashtanova. Verified source: https://www.kris.art/portfolio-2/rose-enigma",
         "mediaRightsStatus": "artist_hosted_embed",
         "fallbackSvg": "/creator-fallbacks/kris-kashtanova.svg"
@@ -918,6 +948,7 @@ export const EXTERNAL_CREATOR_REFERENCES: ExternalCreatorReference[] = [
         ],
         "externalUrl": "https://www.kris.art/portfolio-2/ai-burning-man-gen2-runwayml",
         "aspectRatio": "16/9",
+        "mediaType": "interactive",
         "attribution": "Original work by Kris Kashtanova. Verified source: https://www.kris.art/portfolio-2/ai-burning-man-gen2-runwayml",
         "mediaRightsStatus": "artist_hosted_embed",
         "fallbackSvg": "/creator-fallbacks/kris-kashtanova.svg"
@@ -938,6 +969,7 @@ export const EXTERNAL_CREATOR_REFERENCES: ExternalCreatorReference[] = [
         ],
         "externalUrl": "https://www.kris.art/portfolio-2/project-four-yjynj-2fnpj",
         "aspectRatio": "16/9",
+        "mediaType": "interactive",
         "attribution": "Original work by Kris Kashtanova. Verified source: https://www.kris.art/portfolio-2/project-four-yjynj-2fnpj",
         "mediaRightsStatus": "artist_hosted_embed",
         "fallbackSvg": "/creator-fallbacks/kris-kashtanova.svg"
@@ -1021,6 +1053,7 @@ export const EXTERNAL_CREATOR_REFERENCES: ExternalCreatorReference[] = [
         ],
         "externalUrl": "https://annaridler.com/works/mosaic-2019",
         "aspectRatio": "16/9",
+        "mediaType": "interactive",
         "attribution": "Original work by Anna Ridler. Verified source: https://annaridler.com/works/mosaic-2019",
         "mediaRightsStatus": "artist_hosted_embed",
         "thumbnailUrl": "/licensed-portraits/anna-ridler-mosaic-virus-installation-photo.jpg",
@@ -1040,6 +1073,7 @@ export const EXTERNAL_CREATOR_REFERENCES: ExternalCreatorReference[] = [
         "tools": [],
         "externalUrl": "https://annaridler.com/works/myriad-tulips",
         "aspectRatio": "16/9",
+        "mediaType": "interactive",
         "attribution": "Original work by Anna Ridler. Verified source: https://annaridler.com/works/myriad-tulips",
         "mediaRightsStatus": "artist_hosted_embed",
         "fallbackSvg": "/creator-fallbacks/anna-ridler.svg"
@@ -1060,6 +1094,7 @@ export const EXTERNAL_CREATOR_REFERENCES: ExternalCreatorReference[] = [
         ],
         "externalUrl": "https://annaridler.com/works/mosaic-2018",
         "aspectRatio": "16/9",
+        "mediaType": "interactive",
         "attribution": "Original work by Anna Ridler. Verified source: https://annaridler.com/works/mosaic-2018",
         "mediaRightsStatus": "artist_hosted_embed",
         "fallbackSvg": "/creator-fallbacks/anna-ridler.svg"
@@ -1078,6 +1113,7 @@ export const EXTERNAL_CREATOR_REFERENCES: ExternalCreatorReference[] = [
         "tools": [],
         "externalUrl": "https://annaridler.com/works",
         "aspectRatio": "16/9",
+        "mediaType": "interactive",
         "attribution": "Original work by Anna Ridler. Verified source: https://annaridler.com/works",
         "mediaRightsStatus": "artist_hosted_embed",
         "fallbackSvg": "/creator-fallbacks/anna-ridler.svg"
@@ -1161,6 +1197,7 @@ export const EXTERNAL_CREATOR_REFERENCES: ExternalCreatorReference[] = [
         ],
         "externalUrl": "https://sougwen.com/work/mimicry-drawing-operations",
         "aspectRatio": "16/9",
+        "mediaType": "interactive",
         "attribution": "Original work by Sougwen Chung. Verified source: https://sougwen.com/work/mimicry-drawing-operations",
         "mediaRightsStatus": "artist_hosted_embed",
         "fallbackSvg": "/creator-fallbacks/sougwen-chung.svg"
@@ -1182,6 +1219,7 @@ export const EXTERNAL_CREATOR_REFERENCES: ExternalCreatorReference[] = [
         ],
         "externalUrl": "https://sougwen.com/work/memory-drawing-operations",
         "aspectRatio": "16/9",
+        "mediaType": "interactive",
         "attribution": "Original work by Sougwen Chung. Verified source: https://sougwen.com/work/memory-drawing-operations",
         "mediaRightsStatus": "artist_hosted_embed",
         "fallbackSvg": "/creator-fallbacks/sougwen-chung.svg"
@@ -1203,6 +1241,7 @@ export const EXTERNAL_CREATOR_REFERENCES: ExternalCreatorReference[] = [
         ],
         "externalUrl": "https://sougwen.com/work/collectivity-drawing-operations",
         "aspectRatio": "16/9",
+        "mediaType": "interactive",
         "attribution": "Original work by Sougwen Chung. Verified source: https://sougwen.com/work/collectivity-drawing-operations",
         "mediaRightsStatus": "artist_hosted_embed",
         "fallbackSvg": "/creator-fallbacks/sougwen-chung.svg"
@@ -1224,6 +1263,7 @@ export const EXTERNAL_CREATOR_REFERENCES: ExternalCreatorReference[] = [
         ],
         "externalUrl": "https://sougwen.com/work/assembly-drawing-operations",
         "aspectRatio": "16/9",
+        "mediaType": "interactive",
         "attribution": "Original work by Sougwen Chung. Verified source: https://sougwen.com/work/assembly-drawing-operations",
         "mediaRightsStatus": "artist_hosted_embed",
         "fallbackSvg": "/creator-fallbacks/sougwen-chung.svg"
@@ -1299,6 +1339,7 @@ export const EXTERNAL_CREATOR_REFERENCES: ExternalCreatorReference[] = [
         "tools": [],
         "externalUrl": "https://www.karenx.com/pencil",
         "aspectRatio": "16/9",
+        "mediaType": "interactive",
         "attribution": "Original work by Karen X. Cheng. Verified source: https://www.karenx.com/pencil",
         "mediaRightsStatus": "artist_hosted_embed",
         "fallbackSvg": "/creator-fallbacks/karen-x-cheng.svg"
@@ -1316,6 +1357,7 @@ export const EXTERNAL_CREATOR_REFERENCES: ExternalCreatorReference[] = [
         "tools": [],
         "externalUrl": "https://www.karenx.com/",
         "aspectRatio": "16/9",
+        "mediaType": "interactive",
         "attribution": "Original work by Karen X. Cheng. Verified source: https://www.karenx.com/",
         "mediaRightsStatus": "artist_hosted_embed",
         "fallbackSvg": "/creator-fallbacks/karen-x-cheng.svg"
@@ -1333,6 +1375,7 @@ export const EXTERNAL_CREATOR_REFERENCES: ExternalCreatorReference[] = [
         "tools": [],
         "externalUrl": "https://www.karenx.com/",
         "aspectRatio": "16/9",
+        "mediaType": "interactive",
         "attribution": "Original work by Karen X. Cheng. Verified source: https://www.karenx.com/",
         "mediaRightsStatus": "artist_hosted_embed",
         "fallbackSvg": "/creator-fallbacks/karen-x-cheng.svg"
@@ -1350,6 +1393,7 @@ export const EXTERNAL_CREATOR_REFERENCES: ExternalCreatorReference[] = [
         "tools": [],
         "externalUrl": "https://www.karenx.com/",
         "aspectRatio": "16/9",
+        "mediaType": "interactive",
         "attribution": "Original work by Karen X. Cheng. Verified source: https://www.karenx.com/",
         "mediaRightsStatus": "artist_hosted_embed",
         "fallbackSvg": "/creator-fallbacks/karen-x-cheng.svg"

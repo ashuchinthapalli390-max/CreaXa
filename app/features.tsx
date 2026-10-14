@@ -163,14 +163,14 @@ export function WorkGallery() {
   let filteredWorks = combinedWorks.filter(work => {
     if (selectedCategory !== 'All Works' && work.category !== selectedCategory) return false;
     if (selectedArtist && work.creatorName !== selectedArtist) return false;
-    if (selectedTool && !work.tools?.some(t => t.toLowerCase() === selectedTool.toLowerCase())) return false;
+    if (selectedTool && !work.tools?.some((t: string) => t.toLowerCase() === selectedTool.toLowerCase())) return false;
     if (q) {
       const needle = q.toLowerCase();
       const match = (
         work.title.toLowerCase().includes(needle) ||
         work.description.toLowerCase().includes(needle) ||
         work.creatorName.toLowerCase().includes(needle) ||
-        work.tools?.some(t => t.toLowerCase().includes(needle))
+        work.tools?.some((t: string) => t.toLowerCase().includes(needle))
       );
       if (!match) return false;
     }
