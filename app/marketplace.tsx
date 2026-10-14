@@ -36,7 +36,7 @@ async function api(path: string, data?: unknown, method?: string, signal?: Abort
 }
 const money = (n: any, c = 'INR') => new Intl.NumberFormat(c === 'INR' ? 'en-IN' : c === 'EUR' ? 'de-DE' : 'en-US', { style: 'currency', currency: c, maximumFractionDigits: 0 }).format(Number(n) || 0);
 const date = (t: any) => t ? new Date(t).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Not set';
-const dashboard = (role?: string) => '/app/' + (role === 'creator' ? 'creator' : 'brand');
+const dashboard = (role?: string) => role === 'admin' ? '/admin' : '/app/' + (role === 'creator' ? 'creator' : 'brand');
 function Button({ children, href, secondary = false, className = '', ...props }: any) { const cl = 'button ' + (secondary ? 'secondary ' : '') + className; return href ? <a className={cl} href={href} {...props}>{children}</a> : <button className={cl} {...props}>{children}</button>; }
 function Badge({ children }: any) { return <span className="badge">{children}</span>; }
 function Empty({ icon: Icon = Layers, title, description, action, href }: any) { return <div className="empty"><div className="empty-icon"><Icon size={28}/></div><h3>{title}</h3><p>{description}</p>{action && <Button href={href}>{action}<ArrowUpRight size={16}/></Button>}</div>; }
@@ -1141,6 +1141,32 @@ function Auth({ path }: any) {
                 await requestOtp('signup_email_verification');
                 return;
             } else {
+                try {
+                    const loginRes = await api('auth/login', { email: email.trim(), password });
+                    if (loginRes?.success) {
+                        toast('Signed in.');
+                        if (loginRes.token) {
+                            document.cookie = `__session=${loginRes.token}; path=/; max-age=604800; SameSite=Lax`;
+                            document.cookie = `firebase_token=${loginRes.token}; path=/; max-age=604800; SameSite=Lax`;
+                        }
+                        if (loginRes.account?.id) {
+                            document.cookie = `__sites_local_auth=${loginRes.account.id}; path=/; max-age=604800; SameSite=Lax`;
+                        }
+                        await refreshMe();
+                        const returnTo = new URLSearchParams(location.search).get('return_to');
+                        if (returnTo && returnTo.startsWith('/')) {
+                            location.href = returnTo;
+                        } else {
+                            location.href = dashboard(loginRes.account?.role);
+                        }
+                        return;
+                    }
+                } catch (credErr: any) {
+                    if (credErr.message && (credErr.message.includes('Incorrect') || credErr.message.includes('password'))) {
+                        throw credErr;
+                    }
+                }
+
                 const cred = await signInWithEmailAndPassword(auth, email, password);
                 toast('Signed in.');
                 await syncSession(cred.user);
@@ -1214,6 +1240,49 @@ function Auth({ path }: any) {
                         </div>
                         <div className="auth-divider">Or continue with email</div>
                     </>
+                )}
+
+                {!isSignUp && !isForgot && !isVerify && !otpStep && (
+                    <div style={{
+                        background: 'var(--panel)',
+                        border: '1px solid var(--line)',
+                        borderRadius: 8,
+                        padding: '12px 14px',
+                        marginBottom: 16
+                    }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                            <span className="micro" style={{ textTransform: 'uppercase', letterSpacing: '0.08em', opacity: 0.75, fontWeight: 700 }}>
+                                Demo Accounts
+                            </span>
+                            <span className="micro" style={{ color: 'var(--accent)', fontWeight: 600 }}>Password: <code>bytxl@123</code></span>
+                        </div>
+                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                            <button
+                                type="button"
+                                className="button secondary"
+                                style={{ fontSize: 11, padding: '4px 8px', borderRadius: 6 }}
+                                onClick={() => { setEmail('admin@mail.com'); setPassword('bytxl@123'); }}
+                            >
+                                🛡️ Admin
+                            </button>
+                            <button
+                                type="button"
+                                className="button secondary"
+                                style={{ fontSize: 11, padding: '4px 8px', borderRadius: 6 }}
+                                onClick={() => { setEmail('creator@mail.com'); setPassword('bytxl@123'); }}
+                            >
+                                🎨 Creator
+                            </button>
+                            <button
+                                type="button"
+                                className="button secondary"
+                                style={{ fontSize: 11, padding: '4px 8px', borderRadius: 6 }}
+                                onClick={() => { setEmail('bytxl@mail.com'); setPassword('bytxl@123'); }}
+                            >
+                                🏢 Brand
+                            </button>
+                        </div>
+                    </div>
                 )}
 
                 {error && <ErrorBox message={error} />}
@@ -1497,9 +1566,9 @@ function AppShell({ path }: any) {
         return <><Header path={path}/><div className="page"><ErrorBox message={r.error} retry={r.refresh}/></div></>;
     if (r.data.onboarding)
         return <><Header path={path}/><div className="page"><Empty title="Choose your creative workspace." description="Set up your account before publishing work or creating a campaign." action="Set up my account" href={'/onboarding?next=' + encodeURIComponent(returnTo)}/></div></>;
-    const links = creator ? [[LayoutDashboard, 'Overview', base], [Users, 'My profile', base + '/profile'], [FolderOpen, 'My portfolio', base + '/portfolio'], [Mail, 'Invitations', base + '/invitations'], [Briefcase, 'Projects', base + '/engagements'], [Shield, 'Verification', base + '/verification']] : [[LayoutDashboard, 'Overview', base], [FileText, 'Campaigns', base + '/campaigns'], [Users, 'Discover creators', '/discover'], [Heart, 'Saved creators', base + '/saved'], [Mail, 'Invitations', base + '/invitations'], [Briefcase, 'Projects', base + '/engagements']];
+    const links = role === 'admin' ? [[Shield, 'Admin Console', '/admin'], [LayoutDashboard, 'Workspace Overview', base], [FileText, 'Campaigns', base + '/campaigns'], [Users, 'Discover creators', '/discover']] : creator ? [[LayoutDashboard, 'Overview', base], [Users, 'My profile', base + '/profile'], [FolderOpen, 'My portfolio', base + '/portfolio'], [Mail, 'Invitations', base + '/invitations'], [Briefcase, 'Projects', base + '/engagements'], [Shield, 'Verification', base + '/verification']] : [[LayoutDashboard, 'Overview', base], [FileText, 'Campaigns', base + '/campaigns'], [Users, 'Discover creators', '/discover'], [Heart, 'Saved creators', base + '/saved'], [Mail, 'Invitations', base + '/invitations'], [Briefcase, 'Projects', base + '/engagements']];
     const unread = data.notifications.filter((n: any) => !n.read).length;
-    return <div className="app-layout"><ContactEmailModal isOpen={showContactModal} onClose={() => setShowContactModal(false)} initialEmail={data?.account?.data?.contactEmail || data?.account?.email || ''} isDismissable={true} onVerified={() => { setShowContactModal(false); r.refresh(); refreshMe(); }} /><aside className={'app-sidebar ' + (menu ? 'open' : '')}><Logo /><span className="sidebar-label">{role === 'agency' ? 'AGENCY' : creator ? 'CREATOR' : 'BRAND'} WORKSPACE</span><nav aria-label="Workspace">{links.map(([Icon, label, href]: any) => <a key={href} className={path === href || (href !== base && path.startsWith(href)) ? 'active' : ''} href={href}><Icon size={19}/>{label}</a>)}<a className={path === '/app/notifications' ? 'active' : ''} href="/app/notifications"><Bell size={19}/>Notifications{unread > 0 && <span className="unread">{unread}</span>}</a><a className={path === '/app/settings' ? 'active' : ''} href="/app/settings"><Settings size={19}/>Settings</a></nav><div className="sidebar-bottom"><a href="/"><ArrowUpRight size={17}/>Back to CreaXa</a><div className="sidebar-account"><div className="avatar">{data.account.name.slice(0, 1)}</div><div><strong>{data.account.name}</strong><span>{role}</span></div><button aria-label="Sign out" className="icon-btn" onClick={async () => { try { const { getFirebaseAuth, signOut } = await import('../lib/firebase'); await signOut(getFirebaseAuth()); } catch {} try { await api('auth/signout', {}); } catch {} document.cookie = '__session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'; document.cookie = 'firebase_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'; document.cookie = '__sites_local_auth=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'; location.href = '/'; }}><LogOut size={17}/></button></div></div></aside><div className="app-content"><header className="app-header"><button className="icon-btn mobile-toggle" onClick={() => setMenu(!menu)} aria-label="Toggle workspace menu">{menu ? <X /> : <Menu />}</button><span>YOUR VISION, IN PROGRESS.</span><div><a href="/app/notifications" className="icon-btn" aria-label={`${unread} unread notifications`}><Bell size={18}/>{unread > 0 && <span className="notification-dot"/>}</a><a href="/app/settings" className="avatar small">{data.account.name.slice(0, 1)}</a></div></header><main id="main" className="workspace">{path.startsWith('/admin') ? <Admin /> : path === '/app/settings' ? <AccountSettings data={data} refresh={r.refresh}/> : path === '/app/notifications' ? <Notifications data={data} refresh={r.refresh}/> : path === base ? <Overview data={data} base={base}/> : path.endsWith('/saved') ? <SavedCreators /> : path.endsWith('/profile') && creator ? <ProfileEditor data={data} refresh={r.refresh}/> : path.includes('/portfolio') && creator ? <PortfolioManager data={data} refresh={r.refresh}/> : path.endsWith('/verification') && creator ? <Verification data={data} refresh={r.refresh}/> : path.endsWith('/invitations') ? <Invitations data={data} base={base} refresh={r.refresh}/> : path.includes('/engagements/') ? <Workspace id={path.split('/').pop()} base={base}/> : path.endsWith('/engagements') ? <Engagements data={data} base={base}/> : path.endsWith('/matches') ? <Matches id={path.split('/').slice(-2)[0]} base={base}/> : path.endsWith('/campaigns/new') ? <CampaignEditor data={data} base={base}/> : path.includes('/campaigns/') ? <CampaignDetail id={path.split('/').pop()} data={data} base={base}/> : path.endsWith('/campaigns') ? <Campaigns data={data} base={base}/> : <Empty title="Page not found." description="Return to your workspace to continue." action="Go to overview" href={base}/>}</main></div></div>;
+    return <div className="app-layout"><ContactEmailModal isOpen={showContactModal} onClose={() => setShowContactModal(false)} initialEmail={data?.account?.data?.contactEmail || data?.account?.email || ''} isDismissable={true} onVerified={() => { setShowContactModal(false); r.refresh(); refreshMe(); }} /><aside className={'app-sidebar ' + (menu ? 'open' : '')}><Logo /><span className="sidebar-label">{role === 'admin' ? 'PLATFORM ADMIN' : role === 'agency' ? 'AGENCY' : creator ? 'CREATOR' : 'BRAND'} WORKSPACE</span><nav aria-label="Workspace">{links.map(([Icon, label, href]: any) => <a key={href} className={path === href || (href !== base && path.startsWith(href)) ? 'active' : ''} href={href}><Icon size={19}/>{label}</a>)}<a className={path === '/app/notifications' ? 'active' : ''} href="/app/notifications"><Bell size={19}/>Notifications{unread > 0 && <span className="unread">{unread}</span>}</a><a className={path === '/app/settings' ? 'active' : ''} href="/app/settings"><Settings size={19}/>Settings</a></nav><div className="sidebar-bottom"><a href="/"><ArrowUpRight size={17}/>Back to CreaXa</a><div className="sidebar-account"><div className="avatar">{data.account.name.slice(0, 1)}</div><div><strong>{data.account.name}</strong><span>{role}</span></div><button aria-label="Sign out" className="icon-btn" onClick={async () => { try { const { getFirebaseAuth, signOut } = await import('../lib/firebase'); await signOut(getFirebaseAuth()); } catch {} try { await api('auth/signout', {}); } catch {} document.cookie = '__session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'; document.cookie = 'firebase_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'; document.cookie = '__sites_local_auth=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'; location.href = '/'; }}><LogOut size={17}/></button></div></div></aside><div className="app-content"><header className="app-header"><button className="icon-btn mobile-toggle" onClick={() => setMenu(!menu)} aria-label="Toggle workspace menu">{menu ? <X /> : <Menu />}</button><span>YOUR VISION, IN PROGRESS.</span><div><a href="/app/notifications" className="icon-btn" aria-label={`${unread} unread notifications`}><Bell size={18}/>{unread > 0 && <span className="notification-dot"/>}</a><a href="/app/settings" className="avatar small">{data.account.name.slice(0, 1)}</a></div></header><main id="main" className="workspace">{path.startsWith('/admin') ? <Admin /> : path === '/app/settings' ? <AccountSettings data={data} refresh={r.refresh}/> : path === '/app/notifications' ? <Notifications data={data} refresh={r.refresh}/> : path === base ? <Overview data={data} base={base}/> : path.endsWith('/saved') ? <SavedCreators /> : path.endsWith('/profile') && creator ? <ProfileEditor data={data} refresh={r.refresh}/> : path.includes('/portfolio') && creator ? <PortfolioManager data={data} refresh={r.refresh}/> : path.endsWith('/verification') && creator ? <Verification data={data} refresh={r.refresh}/> : path.endsWith('/invitations') ? <Invitations data={data} base={base} refresh={r.refresh}/> : path.includes('/engagements/') ? <Workspace id={path.split('/').pop()} base={base}/> : path.endsWith('/engagements') ? <Engagements data={data} base={base}/> : path.endsWith('/matches') ? <Matches id={path.split('/').slice(-2)[0]} base={base}/> : path.endsWith('/campaigns/new') ? <CampaignEditor data={data} base={base}/> : path.includes('/campaigns/') ? <CampaignDetail id={path.split('/').pop()} data={data} base={base}/> : path.endsWith('/campaigns') ? <Campaigns data={data} base={base}/> : <Empty title="Page not found." description="Return to your workspace to continue." action="Go to overview" href={base}/>}</main></div></div>;
 }
 function PageTitle({ eyebrow, title, description, action }: any) { return <div className="workspace-title"><div><span className="eyebrow">{eyebrow}</span><h1>{title}</h1>{description && <p>{description}</p>}</div>{action}</div>; }
 function Overview({ data, base }: any) { const creator = data.account.role === 'creator'; const active = data.engagements.filter((p: any) => !['completed', 'cancelled'].includes(p.status)); const pending = data.invitations.filter((p: any) => p.status === 'pending' && new Date(p.data.responseDeadline + 'T23:59:59Z') > new Date()); return <><PageTitle eyebrow="YOUR CREATIVE WORKSPACE" title={'Hello, ' + data.account.name.split(' ')[0] + '.'} description={creator ? 'Your work deserves to be seen. Keep your creative momentum going.' : 'Your next great campaign starts with a clear vision.'} action={<Button href={creator ? base + '/portfolio' : base + '/campaigns/new'}><Plus size={17}/>{creator ? 'Add portfolio work' : 'New campaign'}</Button>}/><div className="stat-grid">{[[creator ? 'Published projects' : 'Campaigns', creator ? data.portfolios.filter((p: any) => p.published).length : data.campaigns.length], [creator ? 'Pending invitations' : 'Invitations sent', creator ? pending.length : data.invitations.length], ['Active projects', active.length], ['Completed projects', data.engagements.filter((p: any) => p.status === 'completed').length]].map(([label, n]) => <article key={label}><span>{label}</span><strong>{n}</strong><ArrowUpRight size={18}/></article>)}</div>{creator && !data.profile?.published && <div className="workspace-banner"><Orbit size={40} strokeWidth={1}/><div><h3>Make your creative capabilities discoverable.</h3><p>Add your real tools, formats and process, then publish your profile.</p></div><Button href={base + '/profile'}>Complete your profile<ArrowRight size={17}/></Button></div>}{creator && <ProfileChecklist profile={data.profile} projects={data.portfolios} base={base}/>}<div className="dashboard-grid"><section className="panel"><div className="panel-heading"><h3>Active projects</h3><a href={base + '/engagements'}>View all<ArrowUpRight size={14}/></a></div>{active.length ? active.slice(0, 5).map((e: any) => <a className="list-row" key={e.id} href={base + '/engagements/' + e.id}><div><strong>{e.data.title}</strong><p>Due {date(e.data.deadline)}</p></div><Badge>{e.status}</Badge><ArrowUpRight size={17}/></a>) : <Empty icon={Briefcase} title="A clear canvas." description="Accepted campaign invitations become projects here."/>}</section><section className="panel"><div className="panel-heading"><h3>Latest activity</h3><a href="/app/notifications">View all<ArrowUpRight size={14}/></a></div>{data.notifications.length ? data.notifications.slice(0, 5).map((n: any) => <a className="list-row" key={n.id} href={n.href}><Bell size={16}/><div><strong>{n.title}</strong><p>{date(n.created)}</p></div></a>) : <Empty icon={Bell} title="You’re all caught up." description="Invitations, submissions and project updates will appear here."/>}</section></div><div className="workspace-callout"><span className="eyebrow">CREATE WITH INTENTION</span><h2>{creator ? 'Your process is part of your portfolio.' : 'A thoughtful brief is a creative advantage.'}</h2><p>{creator ? 'Show what you made, how you made it, and what you contributed.' : 'Define deliverables, rights and expectations before the first frame.'}</p><a className="text-link" href={creator ? base + '/portfolio' : base + '/campaigns/new'}>{creator ? 'Build your portfolio' : 'Create a campaign'}<ArrowUpRight size={18}/></a></div></>; }

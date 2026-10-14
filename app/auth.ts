@@ -26,11 +26,21 @@ export async function getAuthUser(): Promise<AuthUser | null> {
   // 3. Fallback for testing / dev multi-identity cookie or dev server injected header
   const localCookie = cookies["__sites_local_auth"];
   if (localCookie) {
+    const KNOWN_MAP: Record<string, { email: string; name: string }> = {
+      'OW6liwdp4ITceIP87vcmjozyo9U2': { email: 'admin@mail.com', name: 'CreaXa Administrator' },
+      '7jp10RLjWMSYPDLT86v3pMgdCcK2': { email: 'creator@mail.com', name: 'CreaXa Creator' },
+      'FElnevGuMnbYvsjkVpG9JDHMHM72': { email: 'bytxl@mail.com', name: 'CreaXa Studio' },
+      'creator_alice': { email: 'creator_alice@sites.test', name: 'Alice Wonder' },
+      'brand_acme': { email: 'brand_acme@sites.test', name: 'Acme Studios' }
+    };
+    const known = KNOWN_MAP[localCookie];
+    const email = known ? known.email : `${localCookie}@creaxa.local`;
+    const name = known ? known.name : localCookie;
     return {
       userId: localCookie,
-      email: `${localCookie}@creaxa.local`,
-      displayName: localCookie,
-      fullName: localCookie,
+      email,
+      displayName: name,
+      fullName: name,
       provider: "local_dev"
     };
   }

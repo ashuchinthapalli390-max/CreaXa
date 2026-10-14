@@ -179,8 +179,16 @@ export async function getAuthenticatedUser(req: Request): Promise<AuthenticatedU
   // 3. Fallback to local dev cookie or proxy header
   const legacyAuth = cookies["__sites_local_auth"] || req.headers.get("oai-authenticated-user-id") || req.headers.get("x-user-id");
   if (legacyAuth) {
-    const email = req.headers.get("oai-authenticated-user-email") || `${legacyAuth}@creaxa.local`;
-    const name = req.headers.get("oai-authenticated-user-full-name") || legacyAuth;
+    const KNOWN_MAP: Record<string, { email: string; name: string }> = {
+      'OW6liwdp4ITceIP87vcmjozyo9U2': { email: 'admin@mail.com', name: 'CreaXa Administrator' },
+      '7jp10RLjWMSYPDLT86v3pMgdCcK2': { email: 'creator@mail.com', name: 'CreaXa Creator' },
+      'FElnevGuMnbYvsjkVpG9JDHMHM72': { email: 'bytxl@mail.com', name: 'CreaXa Studio' },
+      'creator_alice': { email: 'creator_alice@sites.test', name: 'Alice Wonder' },
+      'brand_acme': { email: 'brand_acme@sites.test', name: 'Acme Studios' }
+    };
+    const known = KNOWN_MAP[legacyAuth];
+    const email = known ? known.email : req.headers.get("oai-authenticated-user-email") || `${legacyAuth}@creaxa.local`;
+    const name = known ? known.name : req.headers.get("oai-authenticated-user-full-name") || legacyAuth;
     return {
       userId: legacyAuth,
       email,
