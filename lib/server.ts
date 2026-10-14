@@ -5,6 +5,9 @@ import { z } from 'zod';
 import { match, allowedTransition, list } from './matching';
 import { handleEnhancements } from './enhancements';
 import { dbService } from './database';
+import { EXTERNAL_CREATOR_REFERENCES } from './creators/external-references';
+import { createOtpChallenge, verifyOtpChallenge, type OtpPurpose } from './email/otp';
+import { sendSignupVerificationOTP, sendLoginStepUpOTP } from './email/resend';
 const now = () => Date.now();
 const uid = () => crypto.randomUUID();
 const fail = (s: string, status = 400) => { throw Object.assign(new Error(s), { status }); };
@@ -170,10 +173,12 @@ export async function handle(req: Request, path: string[]) {
         const url = new URL(req.url);
         const method = req.method;
         if (method !== 'GET') {
-            if (req.headers.get('origin') !== url.origin)
+            const origin = req.headers.get('origin');
+            if (origin && origin !== url.origin)
                 fail('Request origin is not allowed.', 403);
             const user = await resolveUser(req);
-            if (!user && route !== 'auth/session')
+            const publicPostRoutes = ['auth/session', 'auth/signout', 'auth/otp/send', 'auth/otp/verify'];
+            if (!user && !publicPostRoutes.includes(route))
                 fail('Sign in to continue.', 401);
             if (user)
                 await rate(user.userId);
@@ -189,6 +194,96 @@ export async function handle(req: Request, path: string[]) {
             res.headers.append('Set-Cookie', `__session=${token}; Path=/; SameSite=Lax; Max-Age=604800`);
             res.headers.append('Set-Cookie', `firebase_token=${token}; Path=/; SameSite=Lax; Max-Age=604800`);
             return res;
+        }
+        if (method === 'POST' && route === 'auth/otp/send') {
+            const b = z.object({
+                email: z.string().email(),
+                purpose: z.enum(['signup_email_verification', 'login_step_up', 'email_change_verification', 'sensitive_account_action']).default('signup_email_verification'),
+                firebaseUid: z.string().optional()
+            }).parse(await body(req));
+
+            const challengeRes = await createOtpChallenge({
+                email: b.email,
+                purpose: b.purpose as OtpPurpose,
+                firebaseUid: b.firebaseUid
+            });
+
+            if (!challengeRes.success) {
+                fail(challengeRes.error || 'Failed to generate verification challenge.', 429);
+            }
+
+            // Deliver code via Resend
+            let sendRes;
+            if (b.purpose === 'signup_email_verification') {
+                sendRes = await sendSignupVerificationOTP(b.email, challengeRes.code!);
+            } else {
+                sendRes = await sendLoginStepUpOTP(b.email, challengeRes.code!);
+            }
+
+            if (!sendRes.success && !sendRes.simulated) {
+                console.warn('[CreaXa OTP] Resend delivery notice:', sendRes.error);
+            }
+
+            return json({
+                success: true,
+                challengeId: challengeRes.challengeId,
+                message: 'Verification code sent to your email.'
+            });
+        }
+        if (method === 'POST' && route === 'auth/otp/verify') {
+            const b = z.object({
+                email: z.string().email(),
+                purpose: z.enum(['signup_email_verification', 'login_step_up', 'email_change_verification', 'sensitive_account_action']).default('signup_email_verification'),
+                code: z.string().min(6).max(6),
+                firebaseUid: z.string().optional()
+            }).parse(await body(req));
+
+            const verifyRes = await verifyOtpChallenge({
+                email: b.email,
+                purpose: b.purpose as OtpPurpose,
+                code: b.code,
+                firebaseUid: b.firebaseUid
+            });
+
+            if (!verifyRes.success) {
+                fail(verifyRes.error || 'Verification code failed.', 400);
+            }
+
+            return json({
+                success: true,
+                status: 'verified',
+                challengeId: verifyRes.challengeId,
+                message: 'Email address verified successfully.'
+            });
+        }
+        if (method === 'POST' && route === 'push/subscribe') {
+            const { user } = await account();
+            const b = z.object({
+                token: z.string().min(10),
+                platform: z.string().max(40).optional(),
+                deviceLabel: z.string().max(120).optional()
+            }).parse(await body(req));
+
+            const id = uid();
+            if (dbService.isSupabase()) {
+                try {
+                    const sb = (await import('./supabase')).getSupabaseAdmin();
+                    if (sb) {
+                        await sb.from('push_subscriptions').upsert({
+                            id,
+                            firebase_uid: user.userId,
+                            token_digest: b.token,
+                            device_label: b.deviceLabel || 'Web Browser',
+                            platform: b.platform || 'web',
+                            created_at: now(),
+                            updated_at: now()
+                        });
+                    }
+                } catch (e: any) {
+                    console.warn('[CreaXa Push] Sub sync error:', e.message);
+                }
+            }
+            return json({ success: true, id });
         }
         if (method === 'POST' && route === 'auth/signout') {
             const res = json({ signedOut: true });
@@ -252,6 +347,12 @@ export async function handle(req: Request, path: string[]) {
             const [count, rows] = await Promise.all([one('SELECT count(*) AS n FROM profiles p WHERE ' + where.join(' AND '), ...args), all('SELECT p.* FROM profiles p WHERE ' + where.join(' AND ') + ' ORDER BY ' + order + ',p.slug ASC LIMIT ? OFFSET ?', ...args, limit, (page - 1) * limit)]);
             return json({ items: decodedAll(rows), total: count.n, page, pages: Math.ceil(count.n / limit) });
         }
+        if (method === 'GET' && (route === 'creators/references' || (path[0] === 'creators' && path[1] === 'references'))) {
+            return json({
+                references: EXTERNAL_CREATOR_REFERENCES,
+                total: EXTERNAL_CREATOR_REFERENCES.length
+            });
+        }
         if (method === 'GET' && route === 'creators') {
             return json(decodedAll(await all('SELECT p.* FROM profiles p JOIN accounts a ON a.id=p.id WHERE p.published=1 ORDER BY p.updated DESC LIMIT 200')));
         }
@@ -260,8 +361,52 @@ export async function handle(req: Request, path: string[]) {
             if (!p) {
                 p = await dbService.getProfile(path[1], true);
             }
-            if (!p)
+            if (!p) {
+                const ref = EXTERNAL_CREATOR_REFERENCES.find(r => r.slug === path[1]);
+                if (ref) {
+                    return json({
+                        profile: {
+                            id: ref.id,
+                            slug: ref.slug,
+                            verification: 'external reference',
+                            isExternalReference: true,
+                            data: {
+                                name: ref.name,
+                                headline: ref.specialization,
+                                bio: ref.bioSummary,
+                                location: ref.location,
+                                specializations: [ref.specialization],
+                                tools: ref.documentedTools,
+                                styles: ref.creativeStyles,
+                                contentTypes: ref.contentTypes,
+                                website: ref.officialWebsite,
+                                portfolioUrl: ref.portfolioUrl,
+                                availability: 'External Reference',
+                                rate: 0,
+                                currency: 'USD',
+                                revisions: 0,
+                                commercial: false,
+                                isExternalReference: true,
+                                attributionNote: ref.attributionNote,
+                                avatar: ref.avatarUrl,
+                            }
+                        },
+                        projects: ref.featuredWorks.map((w, idx) => ({
+                            id: `${ref.id}-work-${idx}`,
+                            slug: `${ref.slug}-${w.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+                            data: {
+                                title: w.title,
+                                description: w.description,
+                                contentType: 'Editorial Showcase',
+                                tools: [w.documentedTech],
+                                externalLink: w.externalUrl,
+                                isExternal: true,
+                            }
+                        }))
+                    });
+                }
                 fail('Creator not found.', 404);
+            }
             let projects = (await all('SELECT * FROM portfolios WHERE owner=? AND published=1 ORDER BY updated DESC', p.id)).map(publicProject);
             if (!projects.length) {
                 projects = (await dbService.getPublishedPortfoliosByOwner(p.id)).map(publicProject);

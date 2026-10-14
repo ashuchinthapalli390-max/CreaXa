@@ -11,6 +11,7 @@ import { AppSelect } from '../components/ui/app-select';
 import { AnimatedCheckbox } from '../components/ui/animated-checkbox';
 import { AnimatedAccordion } from '../components/ui/animated-accordion';
 import { AdminDashboard } from '../components/admin/admin-dashboard';
+import { EXTERNAL_CREATOR_REFERENCES } from '../lib/creators/external-references';
 type Obj = Record<string, any>;
 const Context = createContext<any>(null);
 const useApp = () => useContext(Context);
@@ -150,6 +151,7 @@ function CreatorCard({ p, match: score }: any) {
         }}><Heart size={18}/></button></div><div className="tags">{list(d.tools).slice(0, 3).map(t => <Badge key={t}>{t}</Badge>)}</div><CompareSelect slug={p.slug}/><div className="card-bottom"><span><span className={'status-dot ' + (d.availability === 'Available' ? 'available' : '')}/>{d.availability}</span><strong>{d.rate > 0 ? 'From ' + money(d.rate, d.currency) : 'Rate on request'}</strong></div>{score && <details className="match-details"><summary>Why this match?<ChevronDown size={15}/></summary>{score.reasons.map((r: any) => <div key={r.label}><span>{r.label}</span><strong>{r.points}/{r.max}</strong></div>)}</details>}</article>;
 }
 function Discover() {
+    const [directoryMode, setDirectoryMode] = useState<'all' | 'references'>('all');
     const [q, setQ] = useState(''), [debounced, setDebounced] = useState(''), [page, setPage] = useState(1), [filters, setFilters] = useState<Obj>({}), [sort, setSort] = useState('recent'), [open, setOpen] = useState(false), [saved, setSaved] = useState(false);
     const { me } = useApp();
     useEffect(() => { const id = setTimeout(() => setDebounced(q), 250); return () => clearTimeout(id); }, [q]);
@@ -171,7 +173,131 @@ function Discover() {
     ][] = [['specializations', 'Specialization', SPECIAL], ['tools', 'AI tools', TOOLS], ['contentTypes', 'Content type', TYPES], ['styles', 'Creative style', STYLES], ['aspectRatios', 'Aspect ratio', RATIOS], ['industries', 'Industry', INDUSTRIES], ['platforms', 'Platform', PLATFORMS]];
     const result = r.data?.items || [];
     const set = (k: string, v: any) => setFilters({ ...filters, [k]: v });
-    return <div className="page discovery"><div className="page-intro"><span className="eyebrow">THE CREATIVE DIRECTORY</span><h1>Find your next<br /><em>creative partner.</em></h1><p>Explore the people, tools and perspectives behind the work.</p></div><div className="discovery-toolbar"><div className="search"><Search size={20}/><input aria-label="Search creators" placeholder="Search creators, skills, tools or specialties" value={q} onChange={e => setQ(e.target.value)}/>{q && <button className="icon-btn" onClick={() => setQ('')} aria-label="Clear search"><X size={17}/></button>}</div><button className="filter-toggle" onClick={() => setOpen(!open)}><SlidersHorizontal size={18}/>Filters</button><div style={{ minWidth: 200 }}><AppSelect ariaLabel="Sort creators" value={sort} onChange={v => setSort(v)} options={[{ value: 'recent', label: 'Recently updated' }, { value: 'name', label: 'Alphabetical' }, { value: 'rate', label: 'Starting rate: low to high' }]}/></div></div><SavedSearchTools signedIn={!!me?.account} current={{ ...filters, q, sort }} onApply={(values: Obj) => { setQ(values.q || ''); setSort(values.sort || 'recent'); const { q: search, sort: order, ...rest } = values; setFilters(rest); setPage(1); }}/><div className="discovery-layout"><aside className={'filters ' + (open ? 'filters-open' : '')}><div className="filter-heading"><strong>Refine your search</strong><button onClick={() => { setFilters({}); setQ(''); }}>Reset</button></div><p className="micro">Any selection within a group. All selected groups must match.</p>{groups.map(([key, label, options]) => <details key={key} open={key === 'specializations' || key === 'tools'}><summary>{label}<ChevronDown size={15}/></summary><div style={{ display: 'flex', flexDirection: 'column', gap: 2, margin: '6px 0' }}>{options.map(option => <div key={option} style={{ padding: '3px 0' }}><AnimatedCheckbox label={option} checked={list(filters[key]).includes(option)} onChange={checked => set(key, checked ? [...list(filters[key]), option] : list(filters[key]).filter(v => v !== option))} ariaLabel={option}/></div>)}</div></details>)}<details open><summary>Starting rate ({filters.currency || 'INR'})<ChevronDown size={15}/></summary><div style={{ marginBottom: '8px' }}><AppSelect ariaLabel="Rate currency" value={filters.currency || 'INR'} onChange={v => set('currency', v)} options={[{ value: 'INR', label: 'INR (₹)' }, { value: 'USD', label: 'USD ($)' }, { value: 'EUR', label: 'EUR (€)' }]}/></div><div className="range"><input type="number" min="0" aria-label="Minimum rate" placeholder="Min" value={filters.min || ''} onChange={e => set('min', e.target.value)}/><span>–</span><input type="number" min="0" aria-label="Maximum rate" placeholder="Max" value={filters.max || ''} onChange={e => set('max', e.target.value)}/></div></details><div style={{ padding: '6px 0' }}><AnimatedCheckbox label="Available now" checked={!!filters.available} onChange={checked => set('available', checked)} ariaLabel="Available now"/></div><div style={{ padding: '6px 0' }}><AnimatedCheckbox label="Verified claims" checked={!!filters.verified} onChange={checked => set('verified', checked)} ariaLabel="Verified claims"/></div>{me?.account && <div style={{ padding: '6px 0' }}><AnimatedCheckbox label="Saved creators" checked={saved} onChange={checked => setSaved(checked)} ariaLabel="Saved creators"/></div>}</aside><div><div className="results-heading"><span>{r.loading ? 'Searching…' : `${r.data?.total || 0} creative${r.data?.total === 1 ? '' : 's'}`}</span><span className="micro">ORIGINAL PEOPLE. DISTINCT PERSPECTIVES.</span></div><div className="selected-filters">{Object.entries(filters).filter(([k, v]) => Array.isArray(v)).flatMap(([k, v]: any) => v.map((s: string) => <button key={k + s} onClick={() => set(k, v.filter((a: string) => a !== s))}>{s}<X size={13}/></button>))}</div>{r.loading ? <Loading /> : r.error ? <ErrorBox message={r.error} retry={r.refresh}/> : result.length ? <div className="creator-grid">{result.map((p: any) => <CreatorCard key={p.id} p={p}/>)}</div> : <Empty icon={Users} title={(Object.values(filters).some(v => v && (!Array.isArray(v) || v.length)) || q || saved) ? 'No creators match these filters.' : 'The directory is ready for its first creators.'} description={(Object.values(filters).some(v => v && (!Array.isArray(v) || v.length)) || q || saved) ? 'Try fewer filters or a wider budget to explore more creative partners.' : 'Published creator profiles appear here. Share your real work, tools and creative process to become discoverable.'} action={(Object.values(filters).some(v => v && (!Array.isArray(v) || v.length)) || q || saved) ? undefined : 'Publish your creator profile'} href="/signup"/>}{r.data?.pages > 1 && <div className="pagination"><Button secondary disabled={page <= 1} onClick={() => setPage(page - 1)}><ArrowLeft size={15}/>Previous</Button><span>Page {page} of {r.data.pages}</span><Button secondary disabled={page >= r.data.pages} onClick={() => setPage(page + 1)}>Next<ArrowRight size={15}/></Button></div>}</div></div></div>;
+
+    const filteredReferences = EXTERNAL_CREATOR_REFERENCES.filter(ref => {
+        if (!debounced) return true;
+        const needle = debounced.toLowerCase();
+        return (
+            ref.name.toLowerCase().includes(needle) ||
+            ref.specialization.toLowerCase().includes(needle) ||
+            ref.documentedTools.some(t => t.toLowerCase().includes(needle)) ||
+            ref.featuredWorks.some(w => w.title.toLowerCase().includes(needle))
+        );
+    });
+
+    return <div className="page discovery">
+        <div className="page-intro">
+            <span className="eyebrow">THE CREATIVE DIRECTORY</span>
+            <h1>Find your next<br /><em>creative partner.</em></h1>
+            <p>Explore the people, tools and perspectives behind the work.</p>
+        </div>
+
+        <div style={{ display: 'flex', gap: 10, margin: '24px 0 20px', borderBottom: '1px solid var(--border)', paddingBottom: 16 }}>
+            <button
+                type="button"
+                className={'button ' + (directoryMode === 'all' ? '' : 'secondary')}
+                onClick={() => setDirectoryMode('all')}
+                style={{ fontSize: 13, padding: '8px 18px' }}
+            >
+                Registered Creators
+            </button>
+            <button
+                type="button"
+                className={'button ' + (directoryMode === 'references' ? '' : 'secondary')}
+                onClick={() => setDirectoryMode('references')}
+                style={{ fontSize: 13, padding: '8px 18px', display: 'flex', alignItems: 'center', gap: 6 }}
+            >
+                <Sparkles size={14} /> 10 Verified AI Creators (Editorial Reference Directory)
+            </button>
+        </div>
+
+        {directoryMode === 'references' ? (
+            <div>
+                <div style={{ background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: 8, padding: '16px 20px', marginBottom: 24, display: 'flex', gap: 14, alignItems: 'center' }}>
+                    <Shield size={22} style={{ color: 'var(--accent)', flexShrink: 0 }} />
+                    <div style={{ fontSize: 13, lineHeight: 1.5 }}>
+                        <strong>Editorial Reference Directory:</strong> Sourced profiles of 10 acclaimed AI artists and filmmakers for creative benchmarking and tool research. These artists are not registered marketplace users; in-app invitations link directly to their official portfolios.
+                    </div>
+                </div>
+
+                <div className="discovery-toolbar" style={{ marginBottom: 24 }}>
+                    <div className="search full" style={{ flex: 1 }}>
+                        <Search size={20}/>
+                        <input aria-label="Search reference creators" placeholder="Filter references by artist, tool (Sora, Runway, Midjourney) or project..." value={q} onChange={e => setQ(e.target.value)}/>
+                        {q && <button className="icon-btn" onClick={() => setQ('')} aria-label="Clear search"><X size={17}/></button>}
+                    </div>
+                </div>
+
+                <div className="results-heading">
+                    <span>{filteredReferences.length} Genuine AI Creators Documented</span>
+                    <span className="micro">PRIMARY SOURCES & OFFICIAL WEBSITES</span>
+                </div>
+
+                <div className="creator-grid">
+                    {filteredReferences.map((ref) => (
+                        <article className="creator-card" key={ref.id} style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                            <div>
+                                <a href={'/creators/' + ref.slug} style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}>
+                                    <div className="card-top">
+                                        <div className="avatar large" style={{ overflow: 'hidden' }}>
+                                            {ref.avatarUrl ? <img src={ref.avatarUrl} alt={ref.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : ref.name[0]}
+                                        </div>
+                                        <div>
+                                            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 4 }}>
+                                                <Badge>Editorial Reference</Badge>
+                                                {ref.location && <Badge>{ref.location}</Badge>}
+                                            </div>
+                                            <h2 style={{ fontSize: 18, margin: '4px 0 2px' }}>{ref.name} <ArrowUpRight size={15} style={{ verticalAlign: 'middle', opacity: 0.6 }} /></h2>
+                                            <p className="headline" style={{ fontSize: 13 }}>{ref.specialization}</p>
+                                        </div>
+                                    </div>
+                                    <p className="bio" style={{ fontSize: 13, color: 'var(--muted)', margin: '14px 0', lineHeight: 1.5 }}>{ref.bioSummary}</p>
+                                    <div className="tags">
+                                        {ref.documentedTools.slice(0, 4).map(t => <Badge key={t}>{t}</Badge>)}
+                                    </div>
+                                </a>
+                            </div>
+
+                            <div style={{ marginTop: 16, paddingTop: 14, borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Button href={'/creators/' + ref.slug} secondary style={{ fontSize: 12, padding: '6px 12px' }}>
+                                    Explore Works ({ref.featuredWorks.length})
+                                </Button>
+                                <a href={ref.portfolioUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: 4, textDecoration: 'none' }}>
+                                    Official Portfolio <ExternalLink size={13} />
+                                </a>
+                            </div>
+                        </article>
+                    ))}
+                </div>
+            </div>
+        ) : (
+            <>
+                <div className="discovery-toolbar">
+                    <div className="search"><Search size={20}/><input aria-label="Search creators" placeholder="Search creators, skills, tools or specialties" value={q} onChange={e => setQ(e.target.value)}/>{q && <button className="icon-btn" onClick={() => setQ('')} aria-label="Clear search"><X size={17}/></button>}</div>
+                    <button className="filter-toggle" onClick={() => setOpen(!open)}><SlidersHorizontal size={18}/>Filters</button>
+                    <div style={{ minWidth: 200 }}><AppSelect ariaLabel="Sort creators" value={sort} onChange={v => setSort(v)} options={[{ value: 'recent', label: 'Recently updated' }, { value: 'name', label: 'Alphabetical' }, { value: 'rate', label: 'Starting rate: low to high' }]}/></div>
+                </div>
+                <SavedSearchTools signedIn={!!me?.account} current={{ ...filters, q, sort }} onApply={(values: Obj) => { setQ(values.q || ''); setSort(values.sort || 'recent'); const { q: search, sort: order, ...rest } = values; setFilters(rest); setPage(1); }}/>
+                <div className="discovery-layout">
+                    <aside className={'filters ' + (open ? 'filters-open' : '')}>
+                        <div className="filter-heading"><strong>Refine your search</strong><button onClick={() => { setFilters({}); setQ(''); }}>Reset</button></div>
+                        <p className="micro">Any selection within a group. All selected groups must match.</p>
+                        {groups.map(([key, label, options]) => <details key={key} open={key === 'specializations' || key === 'tools'}><summary>{label}<ChevronDown size={15}/></summary><div style={{ display: 'flex', flexDirection: 'column', gap: 2, margin: '6px 0' }}>{options.map(option => <div key={option} style={{ padding: '3px 0' }}><AnimatedCheckbox label={option} checked={list(filters[key]).includes(option)} onChange={checked => set(key, checked ? [...list(filters[key]), option] : list(filters[key]).filter(v => v !== option))} ariaLabel={option}/></div>)}</div></details>)}
+                        <details open><summary>Starting rate ({filters.currency || 'INR'})<ChevronDown size={15}/></summary><div style={{ marginBottom: '8px' }}><AppSelect ariaLabel="Rate currency" value={filters.currency || 'INR'} onChange={v => set('currency', v)} options={[{ value: 'INR', label: 'INR (₹)' }, { value: 'USD', label: 'USD ($)' }, { value: 'EUR', label: 'EUR (€)' }]}/></div><div className="range"><input type="number" min="0" aria-label="Minimum rate" placeholder="Min" value={filters.min || ''} onChange={e => set('min', e.target.value)}/><span>–</span><input type="number" min="0" aria-label="Maximum rate" placeholder="Max" value={filters.max || ''} onChange={e => set('max', e.target.value)}/></div></details>
+                        <div style={{ padding: '6px 0' }}><AnimatedCheckbox label="Available now" checked={!!filters.available} onChange={checked => set('available', checked)} ariaLabel="Available now"/></div>
+                        <div style={{ padding: '6px 0' }}><AnimatedCheckbox label="Verified claims" checked={!!filters.verified} onChange={checked => set('verified', checked)} ariaLabel="Verified claims"/></div>
+                        {me?.account && <div style={{ padding: '6px 0' }}><AnimatedCheckbox label="Saved creators" checked={saved} onChange={checked => setSaved(checked)} ariaLabel="Saved creators"/></div>}
+                    </aside>
+                    <div>
+                        <div className="results-heading"><span>{r.loading ? 'Searching…' : `${r.data?.total || 0} creative${r.data?.total === 1 ? '' : 's'}`}</span><span className="micro">ORIGINAL PEOPLE. DISTINCT PERSPECTIVES.</span></div>
+                        <div className="selected-filters">{Object.entries(filters).filter(([k, v]) => Array.isArray(v)).flatMap(([k, v]: any) => v.map((s: string) => <button key={k + s} onClick={() => set(k, v.filter((a: string) => a !== s))}>{s}<X size={13}/></button>))}</div>
+                        {r.loading ? <Loading /> : r.error ? <ErrorBox message={r.error} retry={r.refresh}/> : result.length ? <div className="creator-grid">{result.map((p: any) => <CreatorCard key={p.id} p={p}/>)}</div> : <Empty icon={Users} title={(Object.values(filters).some(v => v && (!Array.isArray(v) || v.length)) || q || saved) ? 'No creators match these filters.' : 'The directory is ready for its first creators.'} description={(Object.values(filters).some(v => v && (!Array.isArray(v) || v.length)) || q || saved) ? 'Try fewer filters or a wider budget to explore more creative partners.' : 'Published creator profiles appear here. Share your real work, tools and creative process to become discoverable.'} action={(Object.values(filters).some(v => v && (!Array.isArray(v) || v.length)) || q || saved) ? undefined : 'Publish your creator profile'} href="/signup"/>}
+                        {r.data?.pages > 1 && <div className="pagination"><Button secondary disabled={page <= 1} onClick={() => setPage(page - 1)}><ArrowLeft size={15}/>Previous</Button><span>Page {page} of {r.data.pages}</span><Button secondary disabled={page >= r.data.pages} onClick={() => setPage(page + 1)}>Next<ArrowRight size={15}/></Button></div>}
+                    </div>
+                </div>
+            </>
+        )}
+    </div>;
 }
 function Creator({ slug }: any) {
     const r = useResource('creators/' + slug);
@@ -181,19 +307,157 @@ function Creator({ slug }: any) {
     if (r.error)
         return <div className="page"><ErrorBox message={r.error}/></div>;
     const { profile: p, projects } = r.data, d = p.data;
-    return <div className="page profile-public"><a className="back-link" href="/discover"><ArrowLeft size={16}/>Back to discovery</a><div className="profile-cover">{d.cover ? <img src={'/api/files/' + d.cover} alt=""/> : <div className="cover-empty"><Orbit size={130} strokeWidth={.5}/></div>}</div><div className="profile-title"><div className="avatar large">{d.avatar ? <img src={'/api/files/' + d.avatar} alt=""/> : d.name.slice(0, 1)}</div><div><div className="tags"><Badge>{p.verification}</Badge><Badge>{d.availability}</Badge></div><h1>{d.name}</h1><p>{d.headline}</p></div><Button href={'/app/brand/invitations?creator=' + encodeURIComponent(p.id)}>Invite to a campaign<ArrowUpRight size={18}/></Button></div><div className="profile-layout"><div><section className="profile-section"><span className="eyebrow">THE PERSON BEHIND THE PROCESS</span><h2>About</h2><p className="preserve">{d.bio}</p></section><section className="profile-section"><h2>Tools & capabilities</h2>{[['Specializations', d.specializations], ['AI tools & models', d.tools], ['Creative styles', d.styles], ['Content types', d.contentTypes], ['Aspect ratios', d.aspectRatios], ['Industries', d.industries], ['Output formats', d.formats]].map(([l, v]) => <div className="capability-row" key={l}><h4>{l}</h4><div className="tags">{list(v).length ? list(v).map(t => <Badge key={t}>{t}</Badge>) : <span className="muted">Not provided</span>}</div></div>)}{d.experience && <p className="preserve">{d.experience}</p>}{d.workflow && <div className="note"><strong>Creative workflow</strong><p className="preserve">{d.workflow}</p></div>}</section><section className="profile-section"><div className="section-heading"><h2>Selected work</h2><span>{projects.length} project{projects.length !== 1 ? 's' : ''}</span></div>{projects.length ? <div className="portfolio-grid">{projects.map((p: any) => <a className="portfolio-card" key={p.id} href={'/projects/' + p.slug}><img src={'/api/files/' + p.data.cover} alt={p.data.title} loading="lazy"/><div><Badge>{p.data.contentType}</Badge><h3>{p.data.title}<ArrowUpRight size={18}/></h3><p>{list(p.data.tools).join(' · ')}</p></div></a>)}</div> : <Empty title="Portfolio work hasn’t been published yet." description="This creator can add project case studies with tools, workflow details and commercial-use declarations."/>}</section><CreatorReviews slug={slug}/></div><aside className="profile-facts"><h3>At a glance</h3><div><MapPin size={17}/>{d.location || 'Location not provided'}</div><div><Clock size={17}/>{d.turnaround ? d.turnaround + ' day typical turnaround' : 'Turnaround not provided'}</div><div><Briefcase size={17}/>{d.rate ? money(d.rate, d.currency) + ' starting rate' : 'Rate on request'}</div><div><RefreshCw size={17}/>{d.revisions} revision rounds</div><div><Shield size={17}/>{d.commercial ? 'Commercial projects accepted' : 'Commercial capability not declared'}</div>{d.website && <a href={d.website} target="_blank" rel="noopener noreferrer"><Globe size={17}/>Website<ExternalLink size={14}/></a>}<p className="micro">Capabilities and availability are creator declared unless a specific claim has been verified.</p><CompareSelect slug={p.slug}/><Button secondary onClick={async () => {
-            if (!me?.account) {
-                location.href = '/login';
-                return;
-            }
-            try {
-                const r = await api('favorite', { creator: p.id });
-                toast(r.saved ? 'Creator saved.' : 'Creator removed.');
-            }
-            catch (e: any) {
-                toast(e.message);
-            }
-        }}><Heart size={16}/>Save creator</Button></aside></div></div>;
+    const isRef = !!(p.isExternalReference || d.isExternalReference);
+
+    return <div className="page profile-public">
+        <a className="back-link" href="/discover"><ArrowLeft size={16}/>Back to discovery</a>
+        <div className="profile-cover">
+            {d.cover ? <img src={'/api/files/' + d.cover} alt=""/> : <div className="cover-empty"><Orbit size={130} strokeWidth={.5}/></div>}
+        </div>
+        <div className="profile-title">
+            <div className="avatar large" style={{ overflow: 'hidden' }}>
+                {d.avatar?.startsWith('http') ? (
+                    <img src={d.avatar} alt={d.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : d.avatar ? (
+                    <img src={'/api/files/' + d.avatar} alt=""/>
+                ) : (
+                    d.name.slice(0, 1)
+                )}
+            </div>
+            <div>
+                <div className="tags">
+                    {isRef ? (
+                        <>
+                            <Badge>External Editorial Reference</Badge>
+                            <Badge>Public Portfolio</Badge>
+                        </>
+                    ) : (
+                        <>
+                            <Badge>{p.verification}</Badge>
+                            <Badge>{d.availability}</Badge>
+                        </>
+                    )}
+                </div>
+                <h1>{d.name}</h1>
+                <p>{d.headline}</p>
+            </div>
+            {isRef ? (
+                <a className="button" href={d.portfolioUrl || d.website} target="_blank" rel="noopener noreferrer">
+                    Visit Official Portfolio <ExternalLink size={17} style={{ marginLeft: 6 }}/>
+                </a>
+            ) : (
+                <Button href={'/app/brand/invitations?creator=' + encodeURIComponent(p.id)}>
+                    Invite to a campaign<ArrowUpRight size={18}/>
+                </Button>
+            )}
+        </div>
+
+        {isRef && (
+            <div style={{ background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: 8, padding: '16px 20px', margin: '20px 0 28px', display: 'flex', gap: 14, alignItems: 'center' }}>
+                <Shield size={22} style={{ color: 'var(--accent)', flexShrink: 0 }} />
+                <div style={{ fontSize: 13, lineHeight: 1.5 }}>
+                    <strong>Editorial Reference Profile:</strong> Documented from official public sources for benchmarking and research. This artist is not a registered user on CreaXa, no platform fees or availability are represented, and in-app invitations link directly to their official website.
+                    {d.attributionNote && <div style={{ marginTop: 4, opacity: 0.8 }}><em>Source: {d.attributionNote}</em></div>}
+                </div>
+            </div>
+        )}
+
+        <div className="profile-layout">
+            <div>
+                <section className="profile-section">
+                    <span className="eyebrow">{isRef ? 'DOCUMENTED BIOGRAPHY & PRACTICE' : 'THE PERSON BEHIND THE PROCESS'}</span>
+                    <h2>About</h2>
+                    <p className="preserve">{d.bio}</p>
+                </section>
+                <section className="profile-section">
+                    <h2>Tools & capabilities</h2>
+                    {[['Specializations', d.specializations], ['AI tools & models', d.tools], ['Creative styles', d.styles], ['Content types', d.contentTypes], ['Aspect ratios', d.aspectRatios], ['Industries', d.industries], ['Output formats', d.formats]].map(([l, v]) => (
+                        <div className="capability-row" key={l}>
+                            <h4>{l}</h4>
+                            <div className="tags">{list(v).length ? list(v).map(t => <Badge key={t}>{t}</Badge>) : <span className="muted">Not provided</span>}</div>
+                        </div>
+                    ))}
+                    {d.experience && <p className="preserve">{d.experience}</p>}
+                    {d.workflow && <div className="note"><strong>Creative workflow</strong><p className="preserve">{d.workflow}</p></div>}
+                </section>
+                <section className="profile-section">
+                    <div className="section-heading">
+                        <h2>{isRef ? 'Documented Works & Case Studies' : 'Selected work'}</h2>
+                        <span>{projects.length} project{projects.length !== 1 ? 's' : ''}</span>
+                    </div>
+                    {projects.length ? (
+                        <div className="portfolio-grid">
+                            {projects.map((proj: any) => isRef ? (
+                                <a className="portfolio-card" key={proj.id} href={proj.data.externalLink || d.portfolioUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: 'inherit' }}>
+                                    <div style={{ padding: '24px', background: 'var(--panel)', borderRadius: 6, border: '1px solid var(--border)', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                                        <div>
+                                            <Badge>{proj.data.contentType || 'Featured Work'}</Badge>
+                                            <h3 style={{ marginTop: 12, fontSize: 16 }}>{proj.data.title} <ExternalLink size={14} style={{ verticalAlign: 'middle', opacity: 0.7 }} /></h3>
+                                            <p style={{ fontSize: 13, color: 'var(--muted)', marginTop: 8, lineHeight: 1.5 }}>{proj.data.description}</p>
+                                        </div>
+                                        <div style={{ marginTop: 16, fontSize: 12, color: 'var(--accent)', borderTop: '1px solid var(--border)', paddingTop: 10 }}>
+                                            Documented Tech: {list(proj.data.tools).join(' · ')}
+                                        </div>
+                                    </div>
+                                </a>
+                            ) : (
+                                <a className="portfolio-card" key={proj.id} href={'/projects/' + proj.slug}>
+                                    <img src={'/api/files/' + proj.data.cover} alt={proj.data.title} loading="lazy"/>
+                                    <div>
+                                        <Badge>{proj.data.contentType}</Badge>
+                                        <h3>{proj.data.title}<ArrowUpRight size={18}/></h3>
+                                        <p>{list(proj.data.tools).join(' · ')}</p>
+                                    </div>
+                                </a>
+                            ))}
+                        </div>
+                    ) : (
+                        <Empty title="Portfolio work hasn’t been published yet." description="This creator can add project case studies with tools, workflow details and commercial-use declarations."/>
+                    )}
+                </section>
+                {!isRef && <CreatorReviews slug={slug}/>}
+            </div>
+            <aside className="profile-facts">
+                <h3>At a glance</h3>
+                <div><MapPin size={17}/>{d.location || 'Location not provided'}</div>
+                {isRef ? (
+                    <>
+                        <div><FolderOpen size={17}/>{projects.length} Documented Project{projects.length === 1 ? '' : 's'}</div>
+                        <div><Shield size={17}/>Primary Source Verified</div>
+                        {d.website && (
+                            <a href={d.website} target="_blank" rel="noopener noreferrer">
+                                <Globe size={17}/>Official Website<ExternalLink size={14}/>
+                            </a>
+                        )}
+                        <p className="micro">Documented for educational reference and benchmarking. Unclaimed external profile.</p>
+                    </>
+                ) : (
+                    <>
+                        <div><Clock size={17}/>{d.turnaround ? d.turnaround + ' day typical turnaround' : 'Turnaround not provided'}</div>
+                        <div><Briefcase size={17}/>{d.rate ? money(d.rate, d.currency) + ' starting rate' : 'Rate on request'}</div>
+                        <div><RefreshCw size={17}/>{d.revisions} revision rounds</div>
+                        <div><Shield size={17}/>{d.commercial ? 'Commercial projects accepted' : 'Commercial capability not declared'}</div>
+                        {d.website && <a href={d.website} target="_blank" rel="noopener noreferrer"><Globe size={17}/>Website<ExternalLink size={14}/></a>}
+                        <p className="micro">Capabilities and availability are creator declared unless a specific claim has been verified.</p>
+                        <CompareSelect slug={p.slug}/>
+                        <Button secondary onClick={async () => {
+                            if (!me?.account) {
+                                location.href = '/login';
+                                return;
+                            }
+                            try {
+                                const r = await api('favorite', { creator: p.id });
+                                toast(r.saved ? 'Creator saved.' : 'Creator removed.');
+                            }
+                            catch (e: any) {
+                                toast(e.message);
+                            }
+                        }}><Heart size={16}/>Save creator</Button>
+                    </>
+                )}
+            </aside>
+        </div>
+    </div>;
 }
 function Project({ slug }: any) {
     const r = useResource('projects/' + slug);
@@ -237,6 +501,18 @@ function Auth({ path }: any) {
     const [error, setError] = useState('');
     const [infoMsg, setInfoMsg] = useState('');
 
+    // Custom 6-Digit Email OTP verification state
+    const [otpStep, setOtpStep] = useState(path === '/verify-email');
+    const [otpCode, setOtpCode] = useState('');
+    const [otpCooldown, setOtpCooldown] = useState(0);
+
+    useEffect(() => {
+        if (otpCooldown > 0) {
+            const timer = setTimeout(() => setOtpCooldown(c => c - 1), 1000);
+            return () => clearTimeout(timer);
+        }
+    }, [otpCooldown]);
+
     const syncSession = async (user: any) => {
         try {
             const token = await user.getIdToken();
@@ -274,6 +550,54 @@ function Auth({ path }: any) {
         }
     };
 
+    const requestOtp = async (purpose = 'signup_email_verification') => {
+        if (!email || !email.includes('@')) {
+            setError('Please enter a valid email address.');
+            return;
+        }
+        setBusy(true);
+        setError('');
+        try {
+            await api('auth/otp/send', { email, purpose });
+            setOtpStep(true);
+            setOtpCooldown(60);
+            toast('Verification code sent to ' + email);
+        } catch (err: any) {
+            setError(err.message || 'Failed to send verification code.');
+        } finally {
+            setBusy(false);
+        }
+    };
+
+    const handleVerifyOtpAndComplete = async (e: any) => {
+        e.preventDefault();
+        setBusy(true);
+        setError('');
+        try {
+            if (otpCode.trim().length !== 6) {
+                throw new Error('Please enter the complete 6-digit verification code.');
+            }
+            await api('auth/otp/verify', {
+                email,
+                code: otpCode.trim(),
+                purpose: 'signup_email_verification'
+            });
+
+            const { getFirebaseAuth, createUserWithEmailAndPassword, updateProfile } = await import('../lib/firebase');
+            const auth = getFirebaseAuth();
+            const cred = await createUserWithEmailAndPassword(auth, email, password);
+            if (displayName) {
+                await updateProfile(cred.user, { displayName });
+            }
+            toast('Email verified & account created.');
+            await syncSession(cred.user);
+        } catch (err: any) {
+            setError(err.message || 'Invalid or expired verification code.');
+        } finally {
+            setBusy(false);
+        }
+    };
+
     const handleEmailAuth = async (e: any) => {
         e.preventDefault();
         setBusy(true);
@@ -283,10 +607,7 @@ function Auth({ path }: any) {
             const {
                 getFirebaseAuth,
                 signInWithEmailAndPassword,
-                createUserWithEmailAndPassword,
                 sendPasswordResetEmail,
-                updateProfile,
-                sendEmailVerification
             } = await import('../lib/firebase');
             const auth = getFirebaseAuth();
 
@@ -304,13 +625,12 @@ function Auth({ path }: any) {
                 if (password.length < 6) {
                     throw new Error('Password must be at least 6 characters.');
                 }
-                const cred = await createUserWithEmailAndPassword(auth, email, password);
-                if (displayName) {
-                    await updateProfile(cred.user, { displayName });
+                if (!terms) {
+                    throw new Error('Please accept the Terms and Privacy Policy to continue.');
                 }
-                sendEmailVerification(cred.user).catch(() => {});
-                toast('Account created successfully.');
-                await syncSession(cred.user);
+                // Send cryptographic OTP via Resend
+                await requestOtp('signup_email_verification');
+                return;
             } else {
                 const cred = await signInWithEmailAndPassword(auth, email, password);
                 toast('Signed in.');
@@ -355,15 +675,17 @@ function Auth({ path }: any) {
             <div className="auth-card">
                 <Badge>CREAXA / INDEPENDENT MARKETPLACE</Badge>
                 <h2>
-                    {isSignUp ? 'Create your account.' : isForgot ? 'Reset your password.' : isVerify ? 'Verify your email.' : 'Welcome back.'}
+                    {otpStep ? 'Verify your email.' : isSignUp ? 'Create your account.' : isForgot ? 'Reset your password.' : isVerify ? 'Verify your email.' : 'Welcome back.'}
                 </h2>
                 <p>
-                    {isSignUp
+                    {otpStep
+                        ? `We sent a secure 6-digit verification code to ${email || 'your email'}. Enter it below to complete registration.`
+                        : isSignUp
                         ? 'Join as an AI creator, brand, or agency to begin collaborating.'
                         : isForgot
                         ? 'Enter your registered email to receive secure recovery instructions.'
                         : isVerify
-                        ? 'Check your email inbox to confirm your account address.'
+                        ? 'Enter your 6-digit verification code below.'
                         : 'Sign in to your creative workspace.'}
                 </p>
 
@@ -373,7 +695,7 @@ function Auth({ path }: any) {
                     </div>
                 )}
 
-                {!isVerify && !isForgot && (
+                {!isVerify && !isForgot && !otpStep && (
                     <>
                         <div className="oauth-grid single">
                             <button className="oauth-btn google-btn full-width" type="button" onClick={handleGoogle} disabled={busy}>
@@ -388,10 +710,64 @@ function Auth({ path }: any) {
                 {error && <ErrorBox message={error} />}
                 {infoMsg && <div className="note"><CheckCircle2 size={18}/>{infoMsg}</div>}
 
-                {isVerify ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 15, marginTop: 20 }}>
-                        <Button href="/login">Return to Sign In<ArrowRight size={16}/></Button>
-                    </div>
+                {otpStep ? (
+                    <form className="auth-form" onSubmit={handleVerifyOtpAndComplete}>
+                        <div className="field">
+                            <label htmlFor="auth-otp">6-Digit Verification Code <span className="accent">*</span></label>
+                            <input
+                                id="auth-otp"
+                                type="text"
+                                inputMode="numeric"
+                                pattern="[0-9]*"
+                                maxLength={6}
+                                required
+                                value={otpCode}
+                                onChange={e => setOtpCode(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))}
+                                placeholder="••••••"
+                                style={{
+                                    fontFamily: 'ui-monospace, monospace',
+                                    fontSize: 24,
+                                    letterSpacing: '0.4em',
+                                    textAlign: 'center',
+                                    fontWeight: 700
+                                }}
+                                disabled={busy}
+                                autoFocus
+                            />
+                            <p className="micro" style={{ marginTop: 8, textAlign: 'center' }}>
+                                Valid for 5 minutes. Delivered by Resend.
+                            </p>
+                        </div>
+
+                        <Button type="submit" disabled={busy || otpCode.length !== 6} className="full">
+                            {busy ? (
+                                <><Loader2 className="spin" size={17}/> Verifying…</>
+                            ) : (
+                                <>Verify & Complete Registration<Check size={17}/></>
+                            )}
+                        </Button>
+
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 14 }}>
+                            <button
+                                type="button"
+                                className="button secondary"
+                                style={{ fontSize: 12, padding: '6px 12px' }}
+                                onClick={() => setOtpStep(false)}
+                                disabled={busy}
+                            >
+                                ← Edit Email
+                            </button>
+                            <button
+                                type="button"
+                                className="button secondary"
+                                style={{ fontSize: 12, padding: '6px 12px' }}
+                                onClick={() => requestOtp('signup_email_verification')}
+                                disabled={busy || otpCooldown > 0}
+                            >
+                                {otpCooldown > 0 ? `Resend code in ${otpCooldown}s` : 'Resend code'}
+                            </button>
+                        </div>
+                    </form>
                 ) : (
                     <form className="auth-form" onSubmit={handleEmailAuth}>
                         {isSignUp && (
@@ -479,7 +855,7 @@ function Auth({ path }: any) {
                             {busy ? (
                                 <><Loader2 className="spin" size={17}/> Processing…</>
                             ) : isSignUp ? (
-                                <>Create Account<ArrowRight size={17}/></>
+                                <>Continue with Email Verification<ArrowRight size={17}/></>
                             ) : isForgot ? (
                                 <>Send Reset Instructions<Send size={17}/></>
                             ) : (
