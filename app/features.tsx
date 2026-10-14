@@ -6,6 +6,7 @@ import { AppSelect } from '../components/ui/app-select';
 import { AnimatedCheckbox } from '../components/ui/animated-checkbox';
 import { EXTERNAL_CREATOR_REFERENCES } from '../lib/creators/external-references';
 import { VideoEmbed } from '../components/ui/video-embed';
+import { WorkCard, WorkMediaFallback } from '../components/ui/work-card';
 type Data = Record<string, any>;
 async function request(path: string, data?: unknown, method?: string) { const r = await fetch('/api/' + path, { method: method || (data !== undefined ? 'POST' : 'GET'), headers: data !== undefined ? { 'Content-Type': 'application/json' } : {}, body: data !== undefined ? JSON.stringify(data) : undefined }); const v: any = await r.json(); if (!r.ok)
     throw new Error(v.error || 'Please try again.'); return v; }
@@ -159,74 +160,14 @@ export function WorkGallery() {
       {galleryMode === 'featured' ? (
         <>
           <div className="results-heading">
-            <span>{featuredArtistWorks.length} Verified Editorial Works</span>
-            <span className="micro">OFFICIAL EMBEDS & CASE STUDIES</span>
+            <span>{featuredArtistWorks.length} Editorial Works</span>
+            <span className="micro">PRIMARY SOURCES & OFFICIAL MEDIA</span>
           </div>
 
           {featuredArtistWorks.length ? (
             <div className="portfolio-grid work-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 24 }}>
               {featuredArtistWorks.map(w => (
-                <div key={w.id} className="portfolio-card" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  {w.videoEmbedUrl ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                      <VideoEmbed
-                        title={w.title}
-                        videoEmbedUrl={w.videoEmbedUrl}
-                        videoPlatform={w.videoPlatform}
-                        externalUrl={w.externalUrl}
-                        aspectRatio={w.aspectRatio || '16/9'}
-                        attribution={w.attribution}
-                      />
-                      <div style={{ padding: '12px 14px', background: 'var(--panel)', borderRadius: 6, border: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
-                        <div>
-                          <a href={'/creators/' + w.creatorSlug + '/works/' + w.slug} style={{ color: 'var(--text)', textDecoration: 'none', fontWeight: 600, fontSize: 14 }}>
-                            {w.title}
-                          </a>
-                          <div style={{ fontSize: 11, color: 'var(--accent)', marginTop: 2 }}>{w.tools.slice(0, 2).join(' · ')}</div>
-                        </div>
-                        <a href={'/creators/' + w.creatorSlug + '/works/' + w.slug} className="button" style={{ fontSize: 11, padding: '4px 10px', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                          Details <ArrowRight size={12} />
-                        </a>
-                      </div>
-                    </div>
-                  ) : (
-                    <div style={{ padding: '24px', background: 'var(--panel)', borderRadius: 8, border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%', minHeight: 220 }}>
-                      <div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span className="badge">{w.contentType}</span>
-                          {w.year && <span className="micro">{w.year}</span>}
-                        </div>
-                        <a href={'/creators/' + w.creatorSlug + '/works/' + w.slug} style={{ color: 'var(--text)', textDecoration: 'none' }}>
-                          <h3 style={{ marginTop: 12, fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                            {w.title} <ArrowUpRight size={15} style={{ color: 'var(--accent)' }} />
-                          </h3>
-                        </a>
-                        <p style={{ fontSize: 13, color: 'var(--muted)', marginTop: 8, lineHeight: 1.5 }}>{w.description}</p>
-                      </div>
-                      <div style={{ marginTop: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border)', paddingTop: 12, flexWrap: 'wrap', gap: 8 }}>
-                        <span style={{ fontSize: 11, color: 'var(--accent)' }}>
-                          {w.tools.join(' · ')}
-                        </span>
-                        <div style={{ display: 'flex', gap: 6 }}>
-                          <a href={'/creators/' + w.creatorSlug + '/works/' + w.slug} className="button" style={{ fontSize: 11, padding: '4px 10px', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                            Details <ArrowRight size={12} />
-                          </a>
-                          {w.externalUrl && (
-                            <a href={w.externalUrl} target="_blank" rel="noopener noreferrer" className="button secondary" style={{ fontSize: 11, padding: '4px 8px', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-                              Archive <ExternalLink size={11} />
-                            </a>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 4px', fontSize: 12 }}>
-                    <span style={{ color: 'var(--muted)' }}>By</span>
-                    <a href={'/creators/' + w.creatorSlug} style={{ color: 'var(--text)', fontWeight: 600, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                      {w.creatorName} <ArrowUpRight size={13} style={{ opacity: 0.7 }} />
-                    </a>
-                  </div>
-                </div>
+                <WorkCard key={w.id} work={w} />
               ))}
             </div>
           ) : (
@@ -271,14 +212,29 @@ export function WorkGallery() {
           </div>
 
           {r.data?.items?.length ? (
-            <div className="portfolio-grid work-grid">
+            <div className="portfolio-grid work-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 24 }}>
               {r.data.items.map((p: any) => (
-                <a className="portfolio-card" key={p.id} href={'/projects/' + p.slug}>
-                  <img src={'/api/files/' + p.data.cover} alt={p.data.title} loading="lazy"/>
-                  <div>
+                <a className="portfolio-card" key={p.id} href={'/projects/' + p.slug} style={{ display: 'flex', flexDirection: 'column' }}>
+                  {p.data.cover ? (
+                    <img
+                      src={'/api/files/' + p.data.cover}
+                      alt=""
+                      loading="lazy"
+                      onError={(e: any) => { e.currentTarget.style.display = 'none'; }}
+                      style={{ width: '100%', aspectRatio: '16/10', objectFit: 'cover' }}
+                    />
+                  ) : (
+                    <WorkMediaFallback
+                      title={p.data.title}
+                      contentType={p.data.contentType || 'AI Work'}
+                      creatorName={p.creator_name || 'Creator'}
+                      aspectRatio="16/10"
+                    />
+                  )}
+                  <div style={{ padding: '16px 20px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                     <span className="badge">{p.data.contentType}</span>
-                    <h3>{p.data.title}<ArrowUpRight size={18}/></h3>
-                    <p>{p.creator_name} · {list(p.data.tools).join(' / ')}</p>
+                    <h3 style={{ margin: '8px 0', fontSize: 16 }}>{p.data.title}<ArrowUpRight size={18}/></h3>
+                    <p style={{ fontSize: 12, color: 'var(--muted)', margin: 0 }}>{p.creator_name} · {list(p.data.tools).join(' / ')}</p>
                   </div>
                 </a>
               ))}

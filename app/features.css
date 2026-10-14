@@ -849,3 +849,433 @@
   }
 }
 
+/* ==============================================================================
+   CINEMATIC BRAND OPENING: CreaXa → Powered By CodeXa (5.5s sequence)
+   ============================================================================== */
+.creaxa-intro-viewport {
+  position: fixed;
+  inset: 0;
+  z-index: 999999;
+  background: #060807;
+  color: #f2f7f0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  font-family: var(--body, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.7s;
+}
+
+.creaxa-intro-viewport.phase-5 {
+  opacity: 0.96;
+}
+
+.creaxa-intro-viewport.phase-6 {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.intro-top-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 36px;
+  position: relative;
+  z-index: 25;
+}
+
+.intro-system-tag {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-family: var(--mono, monospace);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  color: #728070;
+  text-transform: uppercase;
+}
+
+.intro-system-tag .system-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #c7f23c;
+  box-shadow: 0 0 10px #c7f23c;
+  animation: pulseDot 1.8s infinite;
+}
+
+.intro-actions-cluster {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.intro-icon-toggle {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #b5c4b5;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.intro-icon-toggle:hover {
+  background: rgba(199, 242, 60, 0.15);
+  border-color: #c7f23c;
+  color: #c7f23c;
+}
+
+.intro-skip-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #e4eee4;
+  font-size: 11px;
+  font-family: var(--mono, monospace);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.intro-skip-button:hover {
+  background: #c7f23c;
+  color: #070a08;
+  border-color: #c7f23c;
+  transform: translateX(3px);
+  box-shadow: 0 0 20px rgba(199, 242, 60, 0.4);
+}
+
+.intro-stage-center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 10;
+  margin-top: -30px;
+  padding: 0 20px;
+}
+
+.brand-lockup-stage {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  position: relative;
+  height: clamp(80px, 12vw, 130px);
+}
+
+.brand-letter-c-wrap {
+  display: inline-flex;
+  align-items: baseline;
+  transform: translateX(80px);
+  transition: transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.phase-stage-1 .brand-letter-c-wrap,
+.phase-stage-2 .brand-letter-c-wrap,
+.phase-stage-3 .brand-letter-c-wrap,
+.phase-stage-4 .brand-letter-c-wrap,
+.phase-stage-5 .brand-letter-c-wrap {
+  transform: translateX(0);
+}
+
+.brand-letter-c {
+  font-family: var(--heading, -apple-system, sans-serif);
+  font-size: clamp(68px, 10.5vw, 116px);
+  font-weight: 750;
+  color: #fcfefc;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  display: inline-block;
+  animation: letterCScaleIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes letterCScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.88);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.brand-remaining-letters {
+  display: inline-flex;
+  align-items: baseline;
+  overflow: hidden;
+  max-width: 0;
+  opacity: 0;
+  transition: max-width 0.8s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s ease;
+}
+
+.phase-stage-2 .brand-remaining-letters,
+.phase-stage-3 .brand-remaining-letters,
+.phase-stage-4 .brand-remaining-letters,
+.phase-stage-5 .brand-remaining-letters {
+  max-width: 500px;
+  opacity: 1;
+}
+
+.brand-char {
+  font-family: var(--heading, -apple-system, sans-serif);
+  font-size: clamp(68px, 10.5vw, 116px);
+  font-weight: 750;
+  color: #fcfefc;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(20px);
+  animation: brandCharSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.phase-stage-2 .char-r,
+.phase-stage-3 .char-r,
+.phase-stage-4 .char-r,
+.phase-stage-5 .char-r {
+  animation-delay: 0.05s;
+}
+
+.phase-stage-2 .char-e,
+.phase-stage-3 .char-e,
+.phase-stage-4 .char-e,
+.phase-stage-5 .char-e {
+  animation-delay: 0.12s;
+}
+
+.phase-stage-2 .char-a,
+.phase-stage-3 .char-a,
+.phase-stage-4 .char-a,
+.phase-stage-5 .char-a {
+  animation-delay: 0.19s;
+}
+
+.phase-stage-2 .char-x,
+.phase-stage-3 .char-x,
+.phase-stage-4 .char-x,
+.phase-stage-5 .char-x {
+  animation-delay: 0.26s;
+}
+
+.phase-stage-2 .char-a2,
+.phase-stage-3 .char-a2,
+.phase-stage-4 .char-a2,
+.phase-stage-5 .char-a2 {
+  animation-delay: 0.33s;
+}
+
+@keyframes brandCharSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* The signature X: ~20% larger than surrounding letters, vivid lime accent */
+.brand-char.char-x {
+  font-size: clamp(82px, 12.8vw, 138px) !important;
+  color: #c7f23c !important;
+  font-weight: 800;
+  text-shadow: 0 0 35px rgba(199, 242, 60, 0.5), 0 0 70px rgba(199, 242, 60, 0.2);
+  margin: 0 -2px;
+  transform: translateY(3px);
+}
+
+/* Tagline: CREATIVITY. CONNECTED. */
+.brand-tagline-container {
+  margin-top: 26px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.brand-tagline-container.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.brand-accent-line {
+  width: 50px;
+  height: 2px;
+  background: #c7f23c;
+  margin-bottom: 14px;
+  border-radius: 2px;
+  box-shadow: 0 0 12px rgba(199, 242, 60, 0.7);
+}
+
+.brand-tagline-text {
+  font-family: var(--mono, monospace);
+  font-size: clamp(10px, 1.7vw, 14px);
+  font-weight: 600;
+  letter-spacing: 0.32em;
+  color: #9eb09c;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.tagline-dot {
+  color: #c7f23c;
+  font-size: 1.2em;
+}
+
+/* Powered By CodeXa */
+.brand-codexa-container {
+  margin-top: 36px;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.brand-codexa-container.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.codexa-badge-inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 24px;
+  border-radius: 30px;
+  background: rgba(14, 20, 15, 0.85);
+  border: 1px solid rgba(199, 242, 60, 0.3);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7), inset 0 0 20px rgba(199, 242, 60, 0.05);
+}
+
+.codexa-prefix {
+  font-family: var(--mono, monospace);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  color: #8da08b;
+}
+
+.codexa-brandname {
+  font-family: var(--heading, -apple-system, sans-serif);
+  font-size: clamp(17px, 2.4vw, 22px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #fbfdf9;
+}
+
+.codexa-lime-x {
+  color: #c7f23c;
+  font-size: 1.15em;
+  text-shadow: 0 0 16px rgba(199, 242, 60, 0.6);
+}
+
+.intro-bottom-strip {
+  padding: 20px 36px 30px;
+  position: relative;
+  z-index: 25;
+  width: 100%;
+}
+
+.intro-progress-track {
+  width: 100%;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.intro-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #507818, #c7f23c);
+  animation: introProgressAnimation 5.5s linear forwards;
+}
+
+@keyframes introProgressAnimation {
+  0% {
+    width: 0%;
+  }
+  100% {
+    width: 100%;
+  }
+}
+
+/* Phase 5 Transition Lime Wipe Screen */
+.intro-lime-wipe-screen {
+  position: absolute;
+  inset: 0;
+  background: #c7f23c;
+  transform: translateX(-101%);
+  pointer-events: none;
+  z-index: 40;
+}
+
+.intro-lime-wipe-screen.active {
+  animation: limeWipeSweep 0.9s cubic-bezier(0.77, 0, 0.175, 1) forwards;
+}
+
+@keyframes limeWipeSweep {
+  0% {
+    transform: translateX(-101%);
+  }
+  50% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(101%);
+  }
+}
+
+/* Accessibility: Prefers Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .creaxa-intro-viewport {
+    display: none !important;
+  }
+}
+
+/* Intro Mobile Responsiveness */
+@media (max-width: 640px) {
+  .intro-top-controls {
+    padding: 16px 20px;
+  }
+  .intro-system-tag span:last-child {
+    display: none;
+  }
+  .brand-letter-c-wrap {
+    transform: translateX(50px);
+  }
+  .brand-lockup-stage {
+    height: 90px;
+  }
+  .brand-tagline-text {
+    letter-spacing: 0.18em;
+    gap: 8px;
+  }
+  .codexa-badge-inner {
+    padding: 8px 16px;
+    gap: 8px;
+  }
+  .intro-bottom-strip {
+    padding: 16px 20px 24px;
+  }
+}
+

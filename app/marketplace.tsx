@@ -13,6 +13,7 @@ import { AnimatedAccordion } from '../components/ui/animated-accordion';
 import { AdminDashboard } from '../components/admin/admin-dashboard';
 import { EXTERNAL_CREATOR_REFERENCES } from '../lib/creators/external-references';
 import { VideoEmbed } from '../components/ui/video-embed';
+import { CreatorCoverMedia, CreatorAvatar } from '../components/ui/creator-media-card';
 type Obj = Record<string, any>;
 const Context = createContext<any>(null);
 const useApp = () => useContext(Context);
@@ -137,7 +138,27 @@ function Footer() { return <footer className="footer"><div className="footer-top
 function CreatorCard({ p, match: score }: any) {
     const { toast, me } = useApp();
     const d = p.data;
-    return <article className="creator-card"><a href={'/creators/' + p.slug} className="creator-cover">{d.cover ? <img src={'/api/files/' + d.cover} alt={d.name + ' cover'} loading="lazy"/> : <div className="cover-empty"><Orbit size={65} strokeWidth={.7}/><span>{list(d.specializations)[0] || 'AI creative'}</span></div>}{score && <span className="match-badge">{score.score}% compatibility</span>}<span className="card-arrow"><ArrowUpRight size={21}/></span></a><div className="creator-meta"><div className="avatar">{d.avatar ? <img src={'/api/files/' + d.avatar} alt=""/> : d.name?.slice(0, 1)}</div><div><a href={'/creators/' + p.slug}><h3>{d.name}</h3></a><p>{d.headline}</p></div><button className="icon-btn" aria-label={'Save ' + d.name} onClick={async () => {
+    return (
+      <article className="creator-card">
+        <a href={'/creators/' + p.slug} className="creator-cover">
+          <CreatorCoverMedia
+            coverUrl={d.cover ? '/api/files/' + d.cover : undefined}
+            name={d.name || 'AI Creator'}
+            specialization={list(d.specializations)[0] || 'AI creative'}
+          />
+          {score && <span className="match-badge">{score.score}% compatibility</span>}
+          <span className="card-arrow"><ArrowUpRight size={21}/></span>
+        </a>
+        <div className="creator-meta">
+          <CreatorAvatar
+            avatarUrl={d.avatar ? '/api/files/' + d.avatar : undefined}
+            name={d.name || 'Creator'}
+          />
+          <div>
+            <a href={'/creators/' + p.slug}><h3>{d.name}</h3></a>
+            <p>{d.headline}</p>
+          </div>
+          <button className="icon-btn" aria-label={'Save ' + d.name} onClick={async () => {
             if (!me?.account) {
                 location.href = '/login';
                 return;
@@ -149,7 +170,20 @@ function CreatorCard({ p, match: score }: any) {
             catch (e: any) {
                 toast(e.message);
             }
-        }}><Heart size={18}/></button></div><div className="tags">{list(d.tools).slice(0, 3).map(t => <Badge key={t}>{t}</Badge>)}</div><CompareSelect slug={p.slug}/><div className="card-bottom"><span><span className={'status-dot ' + (d.availability === 'Available' ? 'available' : '')}/>{d.availability}</span><strong>{d.rate > 0 ? 'From ' + money(d.rate, d.currency) : 'Rate on request'}</strong></div>{score && <details className="match-details"><summary>Why this match?<ChevronDown size={15}/></summary>{score.reasons.map((r: any) => <div key={r.label}><span>{r.label}</span><strong>{r.points}/{r.max}</strong></div>)}</details>}</article>;
+          }}><Heart size={18}/></button>
+        </div>
+        <div className="tags">{list(d.tools).slice(0, 3).map(t => <Badge key={t}>{t}</Badge>)}</div>
+        <CompareSelect slug={p.slug}/>
+        <div className="card-bottom">
+          <span>
+            <span className={'status-dot ' + (d.availability === 'Available' ? 'available' : '')}/>
+            {d.availability || 'Direct inquiry'}
+          </span>
+          <strong>{d.rate > 0 ? 'From ' + money(d.rate, d.currency) : 'Rate on request'}</strong>
+        </div>
+        {score && <details className="match-details"><summary>Why this match?<ChevronDown size={15}/></summary>{score.reasons.map((r: any) => <div key={r.label}><span>{r.label}</span><strong>{r.points}/{r.max}</strong></div>)}</details>}
+      </article>
+    );
 }
 function Discover() {
     const [directoryMode, setDirectoryMode] = useState<'all' | 'references'>('all');
@@ -582,9 +616,7 @@ function ArtistProjectDetail({ artistSlug, projectSlug, initialData }: any) {
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 28, flexWrap: 'wrap' }}>
                 <a href={'/creators/' + artistSlug} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, textDecoration: 'none', color: 'var(--text)', fontWeight: 600 }}>
-                    <div className="avatar" style={{ width: 28, height: 28, overflow: 'hidden' }}>
-                        {a.avatar ? <img src={a.avatar} alt={a.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : a.name.slice(0, 1)}
-                    </div>
+                    <CreatorAvatar avatarUrl={a.avatar} name={a.name} style={{ width: 28, height: 28 }} />
                     <span>By {a.name}</span>
                 </a>
                 {a.location && <span style={{ color: 'var(--muted)', fontSize: 13 }}>• {a.location}</span>}

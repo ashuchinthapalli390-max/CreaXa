@@ -25,6 +25,8 @@ import { WorkflowStory } from '../components/marketing/workflow-story';
 import { AnimatedCounter } from '../components/ui/animated-counter';
 import { CinematicIntro } from '../components/marketing/cinematic-intro';
 import { CinematicHero } from '../components/marketing/cinematic-hero';
+import { CreatorCoverMedia, CreatorAvatar } from '../components/ui/creator-media-card';
+import { EXTERNAL_CREATOR_REFERENCES } from '../lib/creators/external-references';
 
 interface HomeStorytellingProps {
   creators: any[];
@@ -240,16 +242,19 @@ export function HomeStorytelling({ creators, creatorsLoading }: HomeStorytelling
           ) : creators && creators.length > 0 ? (
             creators.slice(0, 3).map((c: any) => {
               const d = c.data || {};
+              const rateDisplay = d.rate > 0 
+                ? `${new Intl.NumberFormat('en-IN', { style: 'currency', currency: d.currency || 'INR', maximumFractionDigits: 0 }).format(d.rate)} / starting`
+                : 'Rate on request';
               return (
                 <article key={c.id || c.slug} className="creator-editorial-card">
                   <a href={`/creators/${c.slug}`} className="card-cover-media">
-                    <img
-                      src={d.cover ? `/api/files/${d.cover}` : 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=700&q=80'}
-                      alt={`${d.name || 'Creator'} cover`}
-                      loading="lazy"
+                    <CreatorCoverMedia
+                      coverUrl={d.cover ? `/api/files/${d.cover}` : undefined}
+                      name={d.name || 'AI Creator'}
+                      specialization={Array.isArray(d.specializations) ? d.specializations[0] : 'AI Creative'}
                     />
                     <div className="card-rate-pill">
-                      ${d.rate || '600'} / proj
+                      {rateDisplay}
                     </div>
                     <span className="card-hover-arrow">
                       <ArrowUpRight size={19} />
@@ -258,13 +263,11 @@ export function HomeStorytelling({ creators, creatorsLoading }: HomeStorytelling
 
                   <div className="card-body">
                     <div className="card-author-line">
-                      <div className="author-avatar">
-                        {d.avatar ? (
-                          <img src={`/api/files/${d.avatar}`} alt="" />
-                        ) : (
-                          (d.name || 'C').slice(0, 1)
-                        )}
-                      </div>
+                      <CreatorAvatar
+                        avatarUrl={d.avatar ? `/api/files/${d.avatar}` : undefined}
+                        name={d.name || 'Creator'}
+                        className="author-avatar"
+                      />
                       <div>
                         <a href={`/creators/${c.slug}`}>
                           <h4>{d.name || 'AI Creator'}</h4>
@@ -274,15 +277,15 @@ export function HomeStorytelling({ creators, creatorsLoading }: HomeStorytelling
                     </div>
 
                     <div className="author-tags-strip">
-                      {(Array.isArray(d.tools) ? d.tools : ['Runway', 'Midjourney', 'ComfyUI']).slice(0, 3).map((t: string) => (
+                      {(Array.isArray(d.tools) && d.tools.length > 0 ? d.tools : ['Runway', 'Midjourney', 'ComfyUI']).slice(0, 3).map((t: string) => (
                         <span key={t} className="tool-pill">{t}</span>
                       ))}
                     </div>
 
                     <div className="card-foot-meta">
                       <span className="status-label">
-                        <span className="status-dot available" />
-                        Available for Work
+                        <span className={`status-dot ${d.availability === 'Available' ? 'available' : ''}`} />
+                        {d.availability || 'Direct inquiry'}
                       </span>
                       <a href={`/creators/${c.slug}`} className="view-profile-link">
                         View Portfolio →
@@ -293,36 +296,45 @@ export function HomeStorytelling({ creators, creatorsLoading }: HomeStorytelling
               );
             })
           ) : (
-            /* Fallback Sample Creator Card if database is empty */
-            <article className="creator-editorial-card">
-              <a href="/creators/alice-wonder" className="card-cover-media">
-                <img
-                  src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=700&q=80"
-                  alt="Alice Wonder cover"
-                  loading="lazy"
-                />
-                <div className="card-rate-pill">$600 / starting</div>
-                <span className="card-hover-arrow"><ArrowUpRight size={19} /></span>
-              </a>
-              <div className="card-body">
-                <div className="card-author-line">
-                  <div className="author-avatar">A</div>
-                  <div>
-                    <a href="/creators/alice-wonder"><h4>Alice Wonder</h4></a>
-                    <span className="author-headline">Senior AI Filmmaker & Visual Storyteller</span>
+            /* Genuine Featured AI Artists Fallback when database is empty */
+            EXTERNAL_CREATOR_REFERENCES.slice(0, 3).map((artist) => (
+              <article key={artist.slug} className="creator-editorial-card">
+                <a href={`/creators/${artist.slug}`} className="card-cover-media">
+                  <CreatorCoverMedia
+                    coverUrl={artist.coverUrl}
+                    name={artist.name}
+                    specialization={artist.specialization}
+                  />
+                  <div className="card-rate-pill">Editorial Reference</div>
+                  <span className="card-hover-arrow"><ArrowUpRight size={19} /></span>
+                </a>
+                <div className="card-body">
+                  <div className="card-author-line">
+                    <CreatorAvatar
+                      avatarUrl={artist.avatarUrl}
+                      name={artist.name}
+                      className="author-avatar"
+                    />
+                    <div>
+                      <a href={`/creators/${artist.slug}`}><h4>{artist.name}</h4></a>
+                      <span className="author-headline">{artist.headline}</span>
+                    </div>
+                  </div>
+                  <div className="author-tags-strip">
+                    {artist.documentedTools.slice(0, 3).map((t) => (
+                      <span key={t} className="tool-pill">{t}</span>
+                    ))}
+                  </div>
+                  <div className="card-foot-meta">
+                    <span className="status-label">
+                      <span className="status-dot available" />
+                      Documented Portfolio
+                    </span>
+                    <a href={`/creators/${artist.slug}`} className="view-profile-link">View Projects →</a>
                   </div>
                 </div>
-                <div className="author-tags-strip">
-                  <span className="tool-pill">Runway Gen-3</span>
-                  <span className="tool-pill">Midjourney v7</span>
-                  <span className="tool-pill">DaVinci</span>
-                </div>
-                <div className="card-foot-meta">
-                  <span className="status-label"><span className="status-dot available" />Available</span>
-                  <a href="/creators/alice-wonder" className="view-profile-link">View Portfolio →</a>
-                </div>
-              </div>
-            </article>
+              </article>
+            ))
           )}
         </div>
       </ScrollSection>
