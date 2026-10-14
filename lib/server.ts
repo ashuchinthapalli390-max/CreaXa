@@ -8,6 +8,7 @@ import { dbService } from './database';
 import { EXTERNAL_CREATOR_REFERENCES } from './creators/external-references';
 import { createOtpChallenge, verifyOtpChallenge, type OtpPurpose } from './email/otp';
 import { sendSignupVerificationOTP, sendLoginStepUpOTP } from './email/resend';
+import { verifyResendWebhookSignature, handleResendWebhookEvent } from './email/webhook';
 const now = () => Date.now();
 const uid = () => crypto.randomUUID();
 const fail = (s: string, status = 400) => { throw Object.assign(new Error(s), { status }); };
@@ -174,10 +175,10 @@ export async function handle(req: Request, path: string[]) {
         const method = req.method;
         if (method !== 'GET') {
             const origin = req.headers.get('origin');
-            if (origin && origin !== url.origin)
+            if (origin && origin !== url.origin && route !== 'webhooks/resend')
                 fail('Request origin is not allowed.', 403);
             const user = await resolveUser(req);
-            const publicPostRoutes = ['auth/session', 'auth/signout', 'auth/otp/send', 'auth/otp/verify'];
+            const publicPostRoutes = ['auth/session', 'auth/signout', 'auth/otp/send', 'auth/otp/verify', 'webhooks/resend'];
             if (!user && !publicPostRoutes.includes(route))
                 fail('Sign in to continue.', 401);
             if (user)
@@ -284,6 +285,21 @@ export async function handle(req: Request, path: string[]) {
                 }
             }
             return json({ success: true, id });
+        }
+        if (method === 'POST' && route === 'webhooks/resend') {
+            const rawBody = await req.clone().text();
+            const isValid = await verifyResendWebhookSignature(rawBody, req.headers);
+            if (!isValid) {
+                fail('Invalid webhook signature.', 401);
+            }
+            let eventPayload: any;
+            try {
+                eventPayload = JSON.parse(rawBody);
+            } catch {
+                fail('Invalid JSON payload.', 400);
+            }
+            const result = await handleResendWebhookEvent(eventPayload);
+            return json({ success: true, ...result });
         }
         if (method === 'POST' && route === 'auth/signout') {
             const res = json({ signedOut: true });
